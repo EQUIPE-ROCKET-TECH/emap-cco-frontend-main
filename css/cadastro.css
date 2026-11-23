@@ -1,0 +1,451 @@
+/* CADASTRO DE VEÍCULOS */
+
+.cadastro {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cadastro__titulo {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--cor-texto);
+}
+
+.cadastro__descricao {
+  font-size: 14px;
+  color: var(--cor-texto-secundario);
+}
+
+.cadastro__formulario {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 24px;
+  background-color: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 12px;
+}
+
+.cadastro__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cadastro__campo label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.cadastro__campo input,
+.cadastro__campo select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: var(--cor-fundo-secundario);
+  color: var(--cor-texto);
+}
+
+.cadastro__campo input:focus,
+.cadastro__campo select:focus {
+  outline: none;
+  border-color: var(--cor-primaria);
+}
+
+.cadastro__acoes {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 8px;
+  padding-top: 8px;
+}
+
+.cadastro__dica {
+  font-size: 12px;
+  color: #64748B;
+  font-weight: 400;
+  margin: 0;
+}
+
+.cadastro__botao {
+  margin-left: auto;
+  background: #1D63DC;
+  color: #FFFFFF;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cadastro__botao:hover {
+  background: #154eb8;
+}
+
+/* =====================================
+   FEEDBACK DE CADASTRO
+===================================== */
+
+.cadastro__feedback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  border-left: 4px solid #15803D !important;
+  border-radius: 8px;
+  min-height: 42px;
+  padding: 10px 16px;
+  margin: 16px 0 20px;
+  color: #166534;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.cadastro__feedback[hidden] {
+  display: none !important;
+}
+
+.cadastro__feedback-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cadastro__feedback-texto strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: #15803D;
+}
+
+.cadastro__feedback-texto span {
+  font-size: 12.5px;
+  color: #166534;
+}
+
+.cadastro__feedback [data-action="view-registered-vehicle"],
+.cadastro__feedback-botoes button {
+  background: #FFFFFF;
+  color: #15803D;
+  border: 1px solid #86EFAC;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cadastro__feedback [data-action="view-registered-vehicle"]:hover,
+.cadastro__feedback-botoes button:hover {
+  background: #DCFCE7;
+}
+
+.cadastro__feedback--erro {
+  background: #FEF2F2 !important;
+  border-color: #FECACA !important;
+  border-left-color: #DC2626 !important;
+  color: #991B1B !important;
+}
+
+.cadastro__feedback--erro .cadastro__feedback-texto strong {
+  color: #DC2626 !important;
+}
+
+.cadastro__feedback--erro .cadastro__feedback-texto span {
+  color: #991B1B !important;
+}
+
+/* =====================================
+   SEÇÃO VEÍCULOS CADASTRADOS LOCALMENTE
+===================================== */
+
+.cadastro__gerenciamento {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 18px 0 0 !important;
+  margin-top: 16px;
+  border-top: 1px solid #E2E8F0 !important;
+  border-radius: 0 !important;
+}
+
+.cadastro__gerenciamento-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+  border-bottom: none !important;
+}
+
+.cadastro__gerenciamento-topo h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 2px 0;
+}
+
+.cadastro__gerenciamento-topo p {
+  font-size: 12px;
+  color: #64748B;
+  margin: 0;
+}
+
+.cadastro__botao-limpar-locais {
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cadastro__botao-limpar-locais:hover {
+  background: #FEE2E2;
+}
+
+.cadastro__botao-limpar-locais[hidden] {
+  display: none !important;
+}
+
+/* Lista e Mini-Cards de Veículos Locais */
+.cadastro__lista-locais {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.cadastro__lista-vazia {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: #64748B;
+  font-size: 12.5px;
+  margin: 10px 0 0 0;
+}
+
+.cadastro__item-local {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+
+.cadastro__item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cadastro__item-info strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.cadastro__placa-local {
+  color: #1D4ED8;
+  font-weight: 700;
+  border-bottom: 1.5px dashed #93C5FD;
+  padding-bottom: 1px;
+  margin-right: 4px;
+  display: inline-block;
+}
+
+.cadastro__item-info small {
+  font-size: 12.5px;
+  color: #475569;
+}
+
+.cadastro__item-local .btn-remover-registro {
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cadastro__item-local .btn-remover-registro:hover {
+  background: #FEE2E2;
+}
+
+/* =====================================
+   MODO ESCURO - CADASTRO
+===================================== */
+
+body.tema--escuro .cadastro__dica,
+[data-theme="dark"] .cadastro__dica,
+.dark .cadastro__dica {
+  color: #94A3B8;
+}
+
+body.tema--escuro .cadastro__feedback,
+[data-theme="dark"] .cadastro__feedback,
+.dark .cadastro__feedback {
+  background: rgba(22, 101, 52, 0.2);
+  border-color: rgba(74, 222, 128, 0.3);
+  border-left: 4px solid #4ADE80 !important;
+  color: #86EFAC;
+}
+
+body.tema--escuro .cadastro__feedback-texto strong,
+[data-theme="dark"] .cadastro__feedback-texto strong,
+.dark .cadastro__feedback-texto strong {
+  color: #4ADE80;
+}
+
+body.tema--escuro .cadastro__feedback-texto span,
+[data-theme="dark"] .cadastro__feedback-texto span,
+.dark .cadastro__feedback-texto span {
+  color: #86EFAC;
+}
+
+body.tema--escuro .cadastro__feedback [data-action="view-registered-vehicle"],
+[data-theme="dark"] .cadastro__feedback [data-action="view-registered-vehicle"],
+.dark .cadastro__feedback [data-action="view-registered-vehicle"] {
+  background: #242830;
+  border-color: rgba(74, 222, 128, 0.35);
+  color: #4ADE80;
+}
+
+body.tema--escuro .cadastro__feedback [data-action="view-registered-vehicle"]:hover,
+[data-theme="dark"] .cadastro__feedback [data-action="view-registered-vehicle"]:hover,
+.dark .cadastro__feedback [data-action="view-registered-vehicle"]:hover {
+  background: #30343D;
+  color: #86EFAC;
+}
+
+body.tema--escuro .cadastro__gerenciamento,
+[data-theme="dark"] .cadastro__gerenciamento,
+.dark .cadastro__gerenciamento {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-top: 1px solid #30343D !important;
+}
+
+body.tema--escuro .cadastro__gerenciamento-topo,
+[data-theme="dark"] .cadastro__gerenciamento-topo,
+.dark .cadastro__gerenciamento-topo {
+  border-bottom: none !important;
+}
+
+body.tema--escuro .cadastro__gerenciamento-topo h3,
+[data-theme="dark"] .cadastro__gerenciamento-topo h3,
+.dark .cadastro__gerenciamento-topo h3 {
+  color: #F1F2F4;
+}
+
+body.tema--escuro .cadastro__gerenciamento-topo p,
+[data-theme="dark"] .cadastro__gerenciamento-topo p,
+.dark .cadastro__gerenciamento-topo p {
+  color: #94A3B8;
+}
+
+body.tema--escuro .cadastro__lista-vazia,
+[data-theme="dark"] .cadastro__lista-vazia,
+.dark .cadastro__lista-vazia {
+  background: #1A1D24;
+  border-color: #30343D;
+  color: #94A3B8;
+}
+
+body.tema--escuro .cadastro__botao-limpar-locais,
+[data-theme="dark"] .cadastro__botao-limpar-locais,
+.dark .cadastro__botao-limpar-locais {
+  background: rgba(220, 38, 38, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #F87171;
+}
+
+body.tema--escuro .cadastro__botao-limpar-locais:hover,
+[data-theme="dark"] .cadastro__botao-limpar-locais:hover,
+.dark .cadastro__botao-limpar-locais:hover {
+  background: rgba(220, 38, 38, 0.25);
+}
+
+body.tema--escuro .cadastro__item-local,
+[data-theme="dark"] .cadastro__item-local,
+.dark .cadastro__item-local {
+  background: #242830;
+  border-color: #30343D;
+}
+
+body.tema--escuro .cadastro__placa-local,
+[data-theme="dark"] .cadastro__placa-local,
+.dark .cadastro__placa-local {
+  color: #93C5FD;
+  border-bottom-color: #60A5FA;
+}
+
+body.tema--escuro .cadastro__item-info strong,
+[data-theme="dark"] .cadastro__item-info strong,
+.dark .cadastro__item-info strong {
+  color: #F1F2F4;
+}
+
+body.tema--escuro .cadastro__item-info small,
+[data-theme="dark"] .cadastro__item-info small,
+.dark .cadastro__item-info small {
+  color: #94A3B8;
+}
+
+body.tema--escuro .cadastro__item-local .btn-remover-registro,
+[data-theme="dark"] .cadastro__item-local .btn-remover-registro,
+.dark .cadastro__item-local .btn-remover-registro {
+  background: rgba(220, 38, 38, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #F87171;
+}
+
+body.tema--escuro .cadastro__item-local .btn-remover-registro:hover,
+[data-theme="dark"] .cadastro__item-local .btn-remover-registro:hover,
+.dark .cadastro__item-local .btn-remover-registro:hover {
+  background: rgba(220, 38, 38, 0.25);
+}
+
+/* =========================================================
+   MONITOR VERTICAL DE SALA DE CONTROLE (1080x1920 PORTRAIT)
+========================================================= */
+
+@media (min-width: 900px) and (max-width: 1200px) and (orientation: portrait) {
+  .cadastro__formulario {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}

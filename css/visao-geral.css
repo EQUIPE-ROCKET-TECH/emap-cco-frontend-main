@@ -1,0 +1,538 @@
+/* VISÃO GERAL */
+
+#page-overview {
+    width: 100%;
+    min-width: 0;
+}
+
+.visao-geral__secao {
+    margin-bottom: 24px;
+}
+
+.visao-geral__cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.visao-geral__titulo,
+.visao-geral__cabecalho h2 {
+    margin: 18px 5px 14px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--cor-texto);
+}
+
+.visao-geral__cabecalho h2 {
+    margin-bottom: 0;
+}
+
+.visao-geral__ao-vivo {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--cor-texto-secundario);
+    font-size: 0.75rem;
+}
+
+.visao-geral__ponto {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--cor-sucesso);
+}
+
+/* =====================================
+   RESUMO EXECUTIVO
+===================================== */
+
+#page-overview .grade-indicadores--executivo {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+#page-overview .grade-indicadores--executivo .indicador {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    min-width: 0;
+    min-height: 125px;
+    padding: 20px;
+    background-color: var(--cor-superficie);
+    border: 1px solid var(--cor-borda);
+    border-radius: 12px;
+    box-shadow: var(--sombra-padrao);
+}
+
+#page-overview .grade-indicadores--executivo .indicador__rotulo {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--cor-texto-secundario);
+}
+
+#page-overview .grade-indicadores--executivo .indicador__valor {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: var(--cor-texto);
+}
+
+#page-overview .grade-indicadores--executivo .indicador__valor small {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+#page-overview .grade-indicadores--executivo .indicador--alerta {
+    background-color: var(--cor-fundo-erro);
+    border-color: var(--cor-erro);
+    border-left: 4px solid var(--cor-erro);
+}
+
+#page-overview .grade-indicadores--executivo .indicador--alerta .indicador__valor {
+    color: var(--cor-erro);
+}
+
+/* =====================================
+   CARDS DOS BERÇOS
+===================================== */
+
+.grade-bercos {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.berco {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+    padding: 20px;
+    background-color: var(--cor-superficie);
+    border: 1px solid var(--cor-borda);
+    border-radius: 12px;
+    box-shadow: var(--sombra-padrao);
+}
+
+.berco__titulo {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--cor-texto);
+}
+
+.berco__carga {
+    margin: -7px 0 0;
+    font-size: 0.8rem;
+    color: var(--cor-texto-secundario);
+}
+
+.berco__produtividade {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.berco__produtividade strong {
+    font-size: 1.2rem;
+    color: var(--cor-texto);
+}
+
+.berco__produtividade span {
+    font-size: 0.75rem;
+    color: var(--cor-texto-secundario);
+}
+
+.berco__status {
+    align-self: flex-start;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.berco__status--positivo {
+    background-color: var(--cor-fundo-sucesso);
+    color: var(--cor-sucesso);
+}
+
+.berco__status--atencao {
+    background-color: var(--cor-fundo-atencao);
+    color: var(--cor-atencao);
+}
+
+.berco__status--critico {
+    background-color: var(--cor-fundo-erro);
+    color: var(--cor-erro);
+}
+
+.berco__progresso {
+    width: 100%;
+    height: 8px;
+    overflow: hidden;
+    border-radius: 20px;
+    background-color: var(--cor-fundo-secundario);
+}
+
+.berco__progresso span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background-color: var(--cor-primaria);
+}
+
+.berco:has(.berco__status--positivo) .berco__progresso span {
+    background-color: var(--cor-sucesso);
+}
+
+.berco:has(.berco__status--atencao) .berco__progresso span {
+    background-color: var(--cor-atencao);
+}
+
+.berco:has(.berco__status--critico) .berco__progresso span {
+    background-color: var(--cor-erro);
+}
+
+.berco__detalhes {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--cor-borda);
+}
+
+.berco__detalhes p {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--cor-texto-secundario);
+}
+
+.berco__detalhes strong {
+    color: var(--cor-texto);
+}
+
+/* REFERÊNCIA DE PRODUTIVIDADE DOS BERÇOS */
+
+.berco__referencia {
+    margin: -5px 0 0;
+    font-size: 0.75rem;
+    color: var(--cor-texto-secundario);
+}
+
+.berco__referencia strong {
+    color: var(--cor-texto);
+    font-weight: 700;
+}
+
+/* MELHOR ORGANIZAÇÃO DAS INFORMAÇÕES */
+
+.berco__carga {
+    line-height: 1.4;
+}
+
+.berco__detalhes p {
+    align-items: baseline;
+}
+
+.berco__detalhes strong {
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* =====================================
+   ALERTAS E GRÁFICOS
+===================================== */
+
+#page-overview>.painel--alertas {
+    margin-bottom: 24px;
+}
+
+#page-overview>.painel--alertas .alertas__lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#page-overview>.painel--alertas .alertas__item {
+    padding: 10px 14px;
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+#page-overview>.painel--alertas .alertas__item * {
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+#page-overview>.painel--alertas .alertas__item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12);
+    background-color: #FEE2E2 !important;
+}
+
+#page-overview>.painel--alertas .alertas__item:active {
+    transform: translateY(0) scale(0.995);
+}
+
+body.tema--escuro #page-overview>.painel--alertas .alertas__item:hover,
+[data-theme="dark"] #page-overview>.painel--alertas .alertas__item:hover,
+.dark #page-overview>.painel--alertas .alertas__item:hover {
+    background-color: rgba(220, 38, 38, 0.25) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+#page-overview .grade-paineis--graficos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+#page-overview .grade-paineis--graficos>.painel {
+    min-width: 0;
+}
+
+#page-overview .grade-paineis--graficos .painel__grafico {
+    width: 100%;
+    min-width: 0;
+}
+
+/* =====================================
+   RESPONSIVIDADE DA VISÃO GERAL
+===================================== */
+
+@media (max-width: 1250px) {
+
+    #page-overview .grade-indicadores--executivo,
+    .grade-bercos {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grade-esteira {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    #page-overview .grade-paineis--graficos {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+
+    #page-overview .grade-indicadores--executivo,
+    .grade-bercos {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .grade-esteira {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .visao-geral__cabecalho {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .berco {
+        padding: 16px;
+    }
+}
+
+/* =====================================
+   CORREÇÃO DA ESTEIRA DE GIRO
+===================================== */
+
+#page-overview .grade-esteira {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+    margin-top: 14px;
+}
+
+#page-overview .grade-esteira .esteira__etapa {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    min-width: 0;
+    min-height: 105px;
+    padding: 14px 10px;
+
+    background-color: var(--cor-superficie);
+    border: 1px solid var(--cor-borda);
+    border-radius: 12px;
+
+    text-align: center;
+    box-shadow: var(--sombra-padrao);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+#page-overview .grade-esteira .esteira__etapa:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+#page-overview .grade-esteira .esteira__etapa span {
+    color: var(--cor-texto-secundario);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+#page-overview .grade-esteira .esteira__etapa strong {
+    color: var(--cor-texto);
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+#page-overview .grade-esteira .esteira__etapa .esteira__tempo {
+    color: var(--cor-texto-secundario);
+    font-size: 0.68rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+#page-overview .grade-esteira .esteira__etapa .esteira__status {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+/* STATUS SEMÂNTICOS: NORMAL */
+#page-overview .grade-esteira .esteira__etapa--normal,
+.esteira__etapa--normal {
+    background-color: #F0FDF4 !important;
+    border-color: #BBF7D0 !important;
+}
+
+#page-overview .grade-esteira .esteira__etapa--normal .esteira__status,
+.esteira__etapa--normal .esteira__status {
+    color: #15803D !important;
+    background-color: #DCFCE7;
+    border: 1px solid #BBF7D0;
+}
+
+/* STATUS SEMÂNTICOS: ATENCAO */
+#page-overview .grade-esteira .esteira__etapa--atencao,
+.esteira__etapa--atencao {
+    background-color: #FFFBEB !important;
+    border-color: #FDE68A !important;
+}
+
+#page-overview .grade-esteira .esteira__etapa--atencao .esteira__status,
+.esteira__etapa--atencao .esteira__status {
+    color: #B45309 !important;
+    background-color: #FEF3C7;
+    border: 1px solid #FDE68A;
+}
+
+/* STATUS SEMÂNTICOS: CRITICO */
+#page-overview .grade-esteira .esteira__etapa--critico,
+.esteira__etapa--critico {
+    background-color: #FEF2F2 !important;
+    border-color: #FECACA !important;
+}
+
+#page-overview .grade-esteira .esteira__etapa--critico .esteira__status,
+.esteira__etapa--critico .esteira__status {
+    color: #B91C1C !important;
+    background-color: #FEE2E2;
+    border: 1px solid #FECACA;
+}
+
+/* SUPORTE MODO ESCURO */
+body.tema--escuro #page-overview .grade-esteira .esteira__etapa--normal,
+[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--normal,
+.dark #page-overview .grade-esteira .esteira__etapa--normal {
+    background-color: rgba(21, 128, 61, 0.16) !important;
+    border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .esteira__etapa--normal .esteira__status,
+[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--normal .esteira__status,
+.dark #page-overview .grade-esteira .esteira__etapa--normal .esteira__status {
+    color: #4ADE80 !important;
+    background-color: rgba(34, 197, 94, 0.2);
+    border-color: rgba(34, 197, 94, 0.35);
+}
+
+body.tema--escuro #page-overview .grade-esteira .esteira__etapa--atencao,
+[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--atencao,
+.dark #page-overview .grade-esteira .esteira__etapa--atencao {
+    background-color: rgba(245, 158, 11, 0.16) !important;
+    border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .esteira__etapa--atencao .esteira__status,
+[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--atencao .esteira__status,
+.dark #page-overview .grade-esteira .esteira__etapa--atencao .esteira__status {
+    color: #FBBF24 !important;
+    background-color: rgba(245, 158, 11, 0.2);
+    border-color: rgba(245, 158, 11, 0.35);
+}
+
+body.tema--escuro #page-overview .grade-esteira .esteira__etapa--critico,
+[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--critico,
+.dark #page-overview .grade-esteira .esteira__etapa--critico {
+    background-color: rgba(239, 68, 68, 0.16) !important;
+    border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .esteira__etapa--critico .esteira__status,
+[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--critico .esteira__status,
+.dark #page-overview .grade-esteira .esteira__etapa--critico .esteira__status {
+    color: #F87171 !important;
+    background-color: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+/* RESPONSIVIDADE DA ESTEIRA */
+
+@media (max-width: 1250px) {
+    #page-overview .grade-esteira {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    #page-overview .grade-esteira {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* =========================================================
+   MONITOR VERTICAL DE SALA DE CONTROLE (1080x1920 PORTRAIT)
+========================================================= */
+
+@media (min-width: 900px) and (max-width: 1200px) and (orientation: portrait) {
+    #page-overview .grade-indicadores--executivo {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 14px !important;
+    }
+
+    #page-overview .grade-paineis--graficos {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+}

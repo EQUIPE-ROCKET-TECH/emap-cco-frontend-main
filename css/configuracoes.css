@@ -1,0 +1,430 @@
+/* =========================================================
+   CONFIGURAÇÕES OPERACIONAIS DO CCO
+========================================================= */
+
+#page-settings {
+  display: none;
+}
+
+#page-settings.pagina--ativa {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Salvaguarda explícita para respeitar o estado oculto das abas */
+[hidden],
+.secao-oculta,
+.view-section[hidden],
+.pagina:not(.pagina--ativa) {
+  display: none !important;
+}
+
+.configuracao__cabecalho-secao {
+  margin-bottom: 16px;
+}
+
+.configuracao__titulo-secao {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 2px 0;
+}
+
+.configuracao__subtitulo-secao {
+  font-size: 12px;
+  color: #64748B;
+  margin: 0 0 16px 0;
+}
+
+/* =====================================
+   CARD SUPERIOR DE PARÂMETROS OPERACIONAIS
+===================================== */
+
+.configuracao__card-parametros {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+
+.configuracao__card-topo {
+  margin-bottom: 8px;
+}
+
+.configuracao__card-topo h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 4px 0;
+}
+
+.configuracao__card-topo p {
+  font-size: 12px;
+  color: #64748B;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.configuracao__linhas-parametros {
+  display: flex;
+  flex-direction: column;
+}
+
+.configuracao__linha-parametro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.configuracao__parametro-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.configuracao__parametro-info label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0F172A;
+  cursor: pointer;
+  margin: 0 0 3px 0;
+}
+
+.configuracao__parametro-info span {
+  font-size: 11.5px;
+  color: #64748B;
+  line-height: 1.4;
+}
+
+.configuracao__input-numero {
+  width: 115px;
+  height: 36px;
+  padding: 6px 12px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.configuracao__input-numero:focus {
+  outline: none;
+  border-color: #1D63DC;
+  background: #FFFFFF;
+}
+
+.configuracao__botoes-parametros {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 16px;
+}
+
+.configuracao__botao-salvar {
+  background: #1D63DC;
+  color: #FFFFFF;
+  border: none;
+  min-width: 175px;
+  height: 38px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.configuracao__botao-salvar:hover {
+  background-color: #1E40AF !important;
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(29, 99, 220, 0.28);
+}
+
+.configuracao__botao-salvar:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 1px 4px rgba(29, 99, 220, 0.2);
+}
+
+.configuracao__botao-acao {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+  min-width: 175px;
+  height: 38px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.configuracao__botao-acao:hover {
+  background-color: #DBEAFE !important;
+  border-color: #93C5FD !important;
+  color: #1E40AF !important;
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.12);
+}
+
+.configuracao__botao-acao:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+}
+
+.configuracao__botao-acao--girando {
+  opacity: 0.85;
+  cursor: wait !important;
+  pointer-events: none;
+  background-color: #DBEAFE !important;
+  border-color: #93C5FD !important;
+  color: #1D4ED8 !important;
+}
+
+@keyframes girar-icone {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.configuracao__icone-giro {
+  display: inline-block;
+  animation: girar-icone 0.9s linear infinite;
+}
+
+/* =====================================
+   GRID INFERIOR DE 2 COLUNAS
+===================================== */
+
+.configuracao__grade-inferior {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+.configuracao__card-inferior {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+
+.configuracao__lista-opcoes {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+}
+
+.configuracao__item-opcao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.configuracao__item-opcao--ultimo {
+  border-bottom: none !important;
+}
+
+.configuracao__opcao-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.configuracao__opcao-texto strong,
+.configuracao__opcao-texto label strong {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.configuracao__opcao-texto small {
+  font-size: 11.5px;
+  color: #64748B;
+  line-height: 1.4;
+}
+
+.configuracao__checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #1D63DC;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.configuracao__select {
+  min-width: 155px;
+  height: 36px;
+  padding: 6px 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #0F172A;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.configuracao__select:focus {
+  outline: none;
+  border-color: #1D63DC;
+}
+
+.configuracao__resumo-ativo {
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-left: 3.5px solid #F59E0B !important;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 14px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #B45309;
+  line-height: 1.45;
+}
+
+/* =====================================
+   MODO ESCURO - CONFIGURAÇÕES
+===================================== */
+
+body.tema--escuro #page-settings .configuracao__titulo-secao,
+[data-theme="dark"] #page-settings .configuracao__titulo-secao,
+.dark #page-settings .configuracao__titulo-secao {
+  color: #F1F2F4;
+}
+
+body.tema--escuro #page-settings .configuracao__subtitulo-secao,
+[data-theme="dark"] #page-settings .configuracao__subtitulo-secao,
+.dark #page-settings .configuracao__subtitulo-secao {
+  color: #94A3B8;
+}
+
+body.tema--escuro .configuracao__card-parametros,
+[data-theme="dark"] .configuracao__card-parametros,
+.dark .configuracao__card-parametros,
+body.tema--escuro .configuracao__card-inferior,
+[data-theme="dark"] .configuracao__card-inferior,
+.dark .configuracao__card-inferior {
+  background: #1A1D24;
+  border-color: #30343D;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+body.tema--escuro .configuracao__card-topo h3,
+[data-theme="dark"] .configuracao__card-topo h3,
+.dark .configuracao__card-topo h3,
+body.tema--escuro .configuracao__parametro-info label,
+[data-theme="dark"] .configuracao__parametro-info label,
+.dark .configuracao__parametro-info label,
+body.tema--escuro .configuracao__opcao-texto strong,
+[data-theme="dark"] .configuracao__opcao-texto strong,
+.dark .configuracao__opcao-texto strong,
+body.tema--escuro .configuracao__opcao-texto label strong,
+[data-theme="dark"] .configuracao__opcao-texto label strong,
+.dark .configuracao__opcao-texto label strong {
+  color: #F1F2F4;
+}
+
+body.tema--escuro .configuracao__card-topo p,
+[data-theme="dark"] .configuracao__card-topo p,
+.dark .configuracao__card-topo p,
+body.tema--escuro .configuracao__parametro-info span,
+[data-theme="dark"] .configuracao__parametro-info span,
+.dark .configuracao__parametro-info span,
+body.tema--escuro .configuracao__opcao-texto small,
+[data-theme="dark"] .configuracao__opcao-texto small,
+.dark .configuracao__opcao-texto small {
+  color: #94A3B8;
+}
+
+body.tema--escuro .configuracao__linha-parametro,
+[data-theme="dark"] .configuracao__linha-parametro,
+.dark .configuracao__linha-parametro,
+body.tema--escuro .configuracao__item-opcao,
+[data-theme="dark"] .configuracao__item-opcao,
+.dark .configuracao__item-opcao {
+  border-bottom-color: #2D333B;
+}
+
+body.tema--escuro .configuracao__input-numero,
+[data-theme="dark"] .configuracao__input-numero,
+.dark .configuracao__input-numero,
+body.tema--escuro .configuracao__select,
+[data-theme="dark"] .configuracao__select,
+.dark .configuracao__select {
+  background: #242830;
+  border-color: #30343D;
+  color: #F1F2F4;
+}
+
+body.tema--escuro .configuracao__botao-salvar:hover,
+[data-theme="dark"] .configuracao__botao-salvar:hover,
+.dark .configuracao__botao-salvar:hover {
+  background-color: #2563EB !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+body.tema--escuro .configuracao__botao-acao,
+[data-theme="dark"] .configuracao__botao-acao,
+.dark .configuracao__botao-acao {
+  background: rgba(29, 78, 216, 0.15);
+  border-color: rgba(59, 130, 246, 0.35);
+  color: #93C5FD;
+}
+
+body.tema--escuro .configuracao__botao-acao:hover,
+[data-theme="dark"] .configuracao__botao-acao:hover,
+.dark .configuracao__botao-acao:hover {
+  background-color: rgba(29, 78, 216, 0.28) !important;
+  border-color: rgba(96, 165, 250, 0.5) !important;
+  color: #BFDBFE !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+body.tema--escuro .configuracao__resumo-ativo,
+[data-theme="dark"] .configuracao__resumo-ativo,
+.dark .configuracao__resumo-ativo {
+  background: rgba(180, 83, 9, 0.15);
+  border-color: rgba(245, 158, 11, 0.35);
+  border-left-color: #F59E0B !important;
+  color: #FCD34D;
+}
+
+/* =========================================================
+   MONITOR VERTICAL DE SALA DE CONTROLE (1080x1920 PORTRAIT)
+========================================================= */
+
+@media (min-width: 900px) and (max-width: 1200px) and (orientation: portrait) {
+  .configuracao__grade-inferior {
+    grid-template-columns: 1fr !important;
+  }
+}

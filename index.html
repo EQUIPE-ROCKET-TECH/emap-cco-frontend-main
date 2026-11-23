@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>COPI | Acompanhamento da Movimentação Rodoviária</title>
+  <link rel="stylesheet" href="css/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+  <div class="aplicacao">
+    <aside class="barra-lateral">
+      <a class="marca" href="https://copiporto.com.br" target="_blank" rel="noopener noreferrer" title="COPI - Operações Integradas" aria-label="COPI - Operações Integradas">
+        <img class="barra-lateral__imagem" src="logoCOPI.png" alt="COPI - Operações Integradas">
+      </a>
+
+      <nav class="menu" aria-label="Menu principal" data-i18n-aria="nav.aria">
+        <button class="menu__link menu__link--ativo" data-page="overview" data-i18n="nav.overview">
+          Visão Geral
+        </button>
+
+        <button class="menu__link" data-page="movements" data-i18n="nav.movements">
+          Movimentações
+        </button>
+
+        <button class="menu__link" data-page="carriers" data-i18n="nav.carriers">
+          Transportadoras
+        </button>
+
+        <button class="menu__link" data-page="vehicles" data-i18n="nav.vehicles">
+          Cadastrar Veículos
+        </button>
+
+        <button class="menu__link" data-page="reports" data-i18n="nav.reports">
+          Relatórios
+        </button>
+
+        <button class="menu__link" data-page="settings" data-i18n="nav.settings">
+          Configurações
+        </button>
+
+      </nav>
+
+      <div class="barra-lateral__rodape">
+        <span class="monitoramento__ponto"></span>
+        <div>
+          <strong data-i18n="sidebar.monitoring">Monitoramento</strong>
+        </div>
+      </div>
+    </aside>
+
+    <main class="conteudo-principal">
+
+
+      <header class="cabecalho">
+        <div>
+          <p class="cabecalho__rotulo" data-i18n="header.label">CENTRO DE CONTROLE OPERACIONAL</p>
+          <h1 id="page-title">Acompanhamento da Movimentação Rodoviária</h1>
+        </div>
+
+        <div class="usuario">
+          <div class="usuario__data">
+            <span>◷</span>
+            <div>
+              <strong id="current-date">20 out. 2026</strong>
+              <small id="current-time">Atualizado agora</small>
+            </div>
+          </div>
+          <div class="usuario__avatar">CCO</div>
+          <div class="usuario__identificacao">
+            <strong>CCO</strong>
+            <small data-i18n="header.control_center">Centro de Controle</small>
+          </div>
+        </div>
+      </header>
+
+
+
+      <section class="pagina pagina--ativa" id="page-overview">
+
+        <!-- RESUMO EXECUTIVO -->
+        <div class="visao-geral__secao">
+          <div class="visao-geral__cabecalho">
+            <h2 data-i18n="overview.executive_title">Resumo executivo global</h2>
+            <span class="visao-geral__ao-vivo">
+              <span class="visao-geral__ponto"></span>
+              Dados demonstrativos
+            </span>
+          </div>
+
+          <div class="grade-indicadores grade-indicadores--executivo">
+
+            <article class="indicador" id="kpi-card-descarregado">
+              <div class="indicador__rotulo" id="kpi-label-descarregado" data-i18n="kpi.unloaded">Total descarregado</div>
+              <div class="indicador__valor" id="kpi-descarregado">13.440 <small>t</small></div>
+            </article>
+
+            <article class="indicador" id="kpi-card-expedido">
+              <div class="indicador__rotulo" id="kpi-label-expedido" data-i18n="kpi.shipped">Total expedido</div>
+              <div class="indicador__valor" id="kpi-expedido">4.050 <small>t</small></div>
+            </article>
+
+            <article class="indicador" id="kpi-card-flow">
+              <div class="indicador__rotulo" id="kpi-label-flow" data-i18n="kpi.cycle">Veículos no giro</div>
+              <div class="indicador__valor" id="kpi-flow">69</div>
+            </article>
+
+            <article class="indicador indicador--alerta" id="kpi-card-alertas">
+              <div class="indicador__rotulo" id="kpi-label-alertas" data-i18n="kpi.alerts">Alertas críticos</div>
+              <div class="indicador__valor" id="kpi-alertas">3 <small>alertas ativos</small></div>
+            </article>
+
+          </div>
+        </div>
+
+        <!-- PONTOS OPERACIONAIS -->
+        <div class="visao-geral__secao">
+          <h2 class="visao-geral__titulo" data-i18n="overview.points_title">
+            Pontos operacionais com dados integrados
+          </h2>
+
+
+          <div class="grade-bercos">
+
+            <!-- BERÇO 99 -->
+            <article class="berco" data-berco-filter="Berço 99" title="Clique para inspecionar veículos do Berço 99">
+              <h3 class="berco__titulo">Berço 99</h3>
+              <p class="berco__carga">Fertilizantes · 2 ternos</p>
+
+              <div class="berco__produtividade">
+                <strong>298 t/h</strong>
+                <span>96% da meta</span>
+              </div>
+
+              <p class="berco__referencia">
+                Prancha normal: <strong>310 t/h</strong>
+              </p>
+
+              <span class="berco__status berco__status--atencao">
+                Abaixo da norma
+              </span>
+
+              <div class="berco__progresso">
+                <span style="width: 96%"></span>
+              </div>
+
+              <div class="berco__detalhes">
+                <p>Volume descarregado: <strong>4.170 t</strong></p>
+                <p>Veículos no giro: <strong>18</strong></p>
+              </div>
+            </article>
+
+            <!-- BERÇO 101 -->
+            <article class="berco" data-berco-filter="Berço 101" title="Clique para inspecionar veículos do Berço 101">
+              <h3 class="berco__titulo">Berço 101</h3>
+              <p class="berco__carga">Carvão mineral · mecanizado</p>
+
+              <div class="berco__produtividade">
+                <strong>472 t/h</strong>
+                <span>103% da meta</span>
+              </div>
+
+              <p class="berco__referencia">
+                Prancha normal: <strong>458 t/h</strong>
+              </p>
+
+              <span class="berco__status berco__status--positivo">
+                Na meta
+              </span>
+
+              <div class="berco__progresso">
+                <span style="width: 100%"></span>
+              </div>
+
+              <div class="berco__detalhes">
+                <p>Volume descarregado: <strong>6.380 t</strong></p>
+                <p>Veículos no giro: <strong>24</strong></p>
+              </div>
+            </article>
+
+            <!-- BERÇO 102 -->
+            <article class="berco" data-berco-filter="Berço 102" title="Clique para inspecionar veículos do Berço 102">
+              <h3 class="berco__titulo">Berço 102</h3>
+              <p class="berco__carga">Trigo e arroz · 2 ternos</p>
+
+              <div class="berco__produtividade">
+                <strong>255 t/h</strong>
+                <span>91% da meta</span>
+              </div>
+
+              <p class="berco__referencia">
+                Prancha normal: <strong>280 t/h</strong>
+              </p>
+
+              <span class="berco__status berco__status--critico">
+                Abaixo da norma
+              </span>
+
+              <div class="berco__progresso">
+                <span style="width: 91%"></span>
+              </div>
+
+              <div class="berco__detalhes">
+                <p>Volume descarregado: <strong>2.890 t</strong></p>
+                <p>Veículos no giro: <strong>12</strong></p>
+              </div>
+            </article>
+
+            <!-- EXPEDIÇÃO -->
+            <article class="berco" data-berco-filter="Expedição" title="Clique para inspecionar veículos da Expedição">
+              <h3 class="berco__titulo">Expedição</h3>
+              <p class="berco__carga">Armazém Porto · rodoviária</p>
+
+              <div class="berco__produtividade">
+                <strong>312 t/h</strong>
+                <span>104% da meta</span>
+              </div>
+
+              <p class="berco__referencia">
+                Prancha meta: <strong>300 t/h</strong>
+              </p>
+
+              <span class="berco__status berco__status--positivo">
+                Na meta
+              </span>
+
+              <div class="berco__progresso">
+                <span style="width: 100%"></span>
+              </div>
+
+              <div class="berco__detalhes">
+                <p>Volume expedido: <strong>4.050 t</strong></p>
+                <p>Veículos no giro: <strong>15</strong></p>
+              </div>
+            </article>
+
+          </div>
+        </div>
+
+        <!-- ESTEIRA DE GIRO -->
+          <div class="visao-geral__secao">
+            <h2 class="visao-geral__titulo" data-i18n="overview.conveyor_title">Esteira de giro em 6 etapas</h2>
+
+            <div class="grade-esteira">
+
+              <article class="esteira__etapa esteira__etapa--atencao" data-stage-filter="Fila PRC" title="Clique para inspecionar veículos na etapa 1. Fila PRC">
+                <span>1. Fila PRC</span>
+                <strong>4</strong>
+                <span class="esteira__status">ATENÇÃO</span>
+              </article>
+
+              <article class="esteira__etapa esteira__etapa--normal" data-stage-filter="PAN" title="Clique para inspecionar veículos na etapa 2. PAN">
+                <span>2. PAN</span>
+                <strong>3</strong>
+                <span class="esteira__status">NORMAL</span>
+              </article>
+
+              <article class="esteira__etapa esteira__etapa--normal" data-stage-filter="Balança Tara" title="Clique para inspecionar veículos na etapa 3. Balança Tara">
+                <span>3. Balança Tara</span>
+                <strong>3</strong>
+                <span class="esteira__status">NORMAL</span>
+              </article>
+
+              <article class="esteira__etapa esteira__etapa--normal" data-stage-filter="Pátio" title="Clique para inspecionar veículos na etapa 4. Pátio">
+                <span>4. Pátio</span>
+                <strong>3</strong>
+                <span class="esteira__status">NORMAL</span>
+              </article>
+
+              <article class="esteira__etapa esteira__etapa--atencao" data-stage-filter="Operação" title="Clique para inspecionar veículos na etapa 5. Operação">
+                <span>5. Operação</span>
+                <strong>4</strong>
+                <span class="esteira__status">ATENÇÃO</span>
+              </article>
+
+              <article class="esteira__etapa esteira__etapa--critico" data-stage-filter="Balança Bruto" title="Clique para inspecionar veículos na etapa 6. Balança Bruto">
+                <span>6. Balança Bruto</span>
+                <strong>3</strong>
+                <span class="esteira__status">CRÍTICO</span>
+              </article>
+
+            </div>
+          </div>
+
+          <!-- ALERTAS CRÍTICOS -->
+          <article class="painel painel--alertas">
+            <div class="painel__cabecalho">
+              <div>
+                <h2 data-i18n="alerts.title">Alertas críticos</h2>
+                <p data-i18n="alerts.subtitle">Ocorrências que exigem atenção imediata</p>
+              </div>
+
+              <span class="alertas__contador">3 ativos</span>
+            </div>
+
+            <div class="alertas__lista">
+              <div class="alertas__item alertas__item--critico">
+                <span class="alertas__icone">!</span>
+
+                <div class="alertas__conteudo">
+                  <strong>Sobrepeso detectado</strong>
+                  <p>
+                    BRA2E19 · +3,2 t · Retido na balança bruto
+                  </p>
+                </div>
+
+                <span class="alertas__nivel">Crítico</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- GRÁFICOS -->
+          <div class="grade-paineis grade-paineis--graficos">
+
+            <article class="painel painel--grafico">
+              <div class="painel__cabecalho">
+                <div>
+                  <h2 data-i18n="chart.flow_title">Fluxo de veículos no terminal</h2>
+                  <p data-i18n="chart.flow_subtitle">Movimentações na janela de 48h</p>
+                </div>
+
+                <span class="etiqueta" data-i18n="period.48h">Últimas 48h</span>
+              </div>
+
+              <div class="painel__grafico">
+                <canvas id="flowChart" aria-label="Gráfico de fluxo de veículos" data-i18n-aria="chart.flow_aria">
+                </canvas>
+              </div>
+            </article>
+
+            <article class="painel painel--transportadoras">
+              <div class="painel__cabecalho">
+                <div>
+                  <h2 data-i18n="chart.carriers_title">Veículos por transportadora</h2>
+                  <p data-i18n="chart.carriers_subtitle">Distribuição das movimentações</p>
+                </div>
+              </div>
+
+              <div class="distribuicao">
+                <div class="distribuicao__grafico">
+                  <strong>128</strong>
+                  <span data-i18n="chart.vehicles_label">veículos</span>
+                </div>
+
+                <div class="legenda">
+                  <span>
+                    <i class="legenda__ponto legenda__ponto--azul"></i>
+                    Transporte Alfa <b>28%</b>
+                  </span>
+
+                  <span>
+                    <i class="legenda__ponto legenda__ponto--verde-agua"></i>
+                    Translog <b>18%</b>
+                  </span>
+
+                  <span>
+                    <i class="legenda__ponto legenda__ponto--laranja"></i>
+                    Veloz Cargas <b>16%</b>
+                  </span>
+
+                  <span>
+                    <i class="legenda__ponto legenda__ponto--roxo"></i>
+                    Rota Sul <b>12%</b>
+                  </span>
+
+                  <span>
+                    <i class="legenda__ponto legenda__ponto--cinza"></i>
+                    Outras <b>26%</b>
+                  </span>
+                </div>
+              </div>
+            </article>
+
+          </div>
+
+          <p class="pagina__observacao">
+            Dados demonstrativos. Integração com a API pendente.
+          </p>
+
+      </section>
+
+
+
+      <section class="pagina" id="page-movements">
+        <div class="secao__introducao">
+          <div>
+            <h2 data-i18n="movements.title">Movimentações de veículos</h2>
+            <p data-i18n="movements.subtitle">Consulte os registros de entrada e saída da operação.</p>
+          </div>
+          <button class="botao botao--primario" id="export-csv" data-i18n="common.export_csv">
+            ⇩ Exportar CSV
+          </button>
+        </div>
+
+        <div id="movement-inspection-banner" class="inspecao-banner">
+          <div class="inspecao-banner__info">
+            <div class="inspecao-banner__titulo">
+              <span data-i18n="movements.default_banner_title">Contrato Oficial iPort · COPI001</span>
+              <span class="situacao situacao--concluido" data-i18n="movements.default_banner_status">Operação Ativa</span>
+            </div>
+            <div class="inspecao-banner__metricas">
+              <span data-i18n="movements.default_banner_desc">Acompanhamento contínuo de movimentações rodoviárias (Entrada e Saída) nas unidades COPISI, VM e TIPA · Janela operacional de 48h.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="filtros filtros--movimentacoes">
+          <label>
+            <span data-i18n="filter.unit">Unidade / Empresa</span>
+            <select id="movement-unidade">
+              <option value="all" data-i18n="filter.all_units">Todas as unidades</option>
+              <option value="COPISI">COPISI</option>
+              <option value="VM">VM</option>
+              <option value="TIPA">TIPA</option>
+            </select>
+          </label>
+
+          <label>
+            <span data-i18n="filter.destination">Destino (Berço)</span>
+            <select id="movement-destino">
+              <option value="all" data-i18n="filter.all_m">Todos</option>
+              <option value="Berço 99" data-i18n="dest.berth99">Berço 99</option>
+              <option value="Berço 101" data-i18n="dest.berth101">Berço 101</option>
+              <option value="Berço 102" data-i18n="dest.berth102">Berço 102</option>
+              <option value="Expedição" data-i18n="dest.expedicao">Expedição</option>
+            </select>
+          </label>
+
+          <label>
+            <span data-i18n="filter.stage">Etapa Operacional</span>
+            <select id="movement-etapa">
+              <option value="all" data-i18n="filter.all_f">Todas</option>
+              <option value="PAN" data-i18n="stage.1">1. PAN</option>
+              <option value="Fila PRC" data-i18n="stage.2">2. Fila PRC</option>
+              <option value="Balança Tara" data-i18n="stage.3">3. Balança Tara</option>
+              <option value="Operação" data-i18n="stage.4">4. Operação</option>
+              <option value="Balança Bruto" data-i18n="stage.5">5. Balança Bruto</option>
+              <option value="Gate-out" data-i18n="stage.6">6. Gate-out</option>
+            </select>
+          </label>
+
+          <label>
+            <span data-i18n="filter.plate">Placa</span>
+            <input id="plate-filter" type="search" placeholder="Ex.: ABC-1234" data-i18n-placeholder="filter.plate_placeholder">
+          </label>
+
+          <label>
+            <span data-i18n="filter.carrier">Transportadora</span>
+            <select id="movement-carrier">
+              <option value="all" data-i18n="filter.all_f">Todas</option>
+              <option value="Transporte Alfa">Transporte Alfa</option>
+              <option value="Translog">Translog</option>
+              <option value="Veloz Cargas">Veloz Cargas</option>
+              <option value="Rota Sul">Rota Sul</option>
+              <option value="Logística Brasil">Logística Brasil</option>
+            </select>
+          </label>
+
+          <label>
+            <span data-i18n="filter.operation">Tipo de operação</span>
+            <select id="movement-operation">
+              <option value="all" data-i18n="filter.all_f">Todas</option>
+              <option value="Recebimento" data-i18n="op.recebimento">Recebimento</option>
+              <option value="Expedição" data-i18n="op.expedicao">Expedição</option>
+            </select>
+          </label>
+
+          <button class="botao botao--claro" id="clear-movements-filters" type="button" data-i18n="filter.clear">
+            ✕ Limpar filtros
+          </button>
+        </div>
+
+        <article class="painel painel--tabela">
+          <div class="painel__cabecalho">
+            <div>
+              <div class="painel__titulo-linha">
+                <h2 data-i18n="movements.table_title">Registros de movimentação</h2>
+                <button type="button" id="btn-restaurar-removidos" class="botao-restaurar-removidos" hidden>
+                  Restaurar excluídos (0)
+                </button>
+              </div>
+              <p id="movement-count">Exibindo registros demonstrativos</p>
+            </div>
+            <div class="painel__cabecalho-acoes">
+              <span class="etiqueta" id="movement-api-status">Aguardando sincronização com a API</span>
+            </div>
+          </div>
+
+          <div class="tabela__rolagem">
+
+            <table class="tabela--completa">
+              <thead>
+                <tr>
+                  <th data-i18n="table.plate">Placa</th>
+                  <th data-i18n="table.carrier">Transportadora</th>
+                  <th data-i18n="table.operation">Operação</th>
+                  <th data-i18n="table.destination">Destino (Berço)</th>
+                  <th data-i18n="table.stage">Etapa Atual</th>
+                  <th data-i18n="table.weight">Peso / Carga (kg)</th>
+                  <th data-i18n="table.duration">Tempo / Permanência</th>
+                  <th data-i18n="table.status">Situação / Alerta</th>
+                  <th data-i18n="table.actions">Ações</th>
+                </tr>
+              </thead>
+
+              <tbody id="movement-rows"></tbody>
+            </table>
+
+          </div>
+        </article>
+
+        <p class="pagina__observacao">
+          Os dados desta tela são fictícios e servem apenas para desenvolver e testar a interface.
+        </p>
+      </section>
+
+
+      <section class="pagina" id="page-carriers">
+        <div class="secao__introducao">
+          <div>
+            <h2 data-i18n="carriers.title">Transportadoras</h2>
+            <p data-i18n="carriers.subtitle">Compare o volume de veículos e os indicadores por transportadora (COPI001).</p>
+          </div>
+        </div>
+
+        <div class="filtros filtros--transportadoras">
+          <label>
+            <span data-i18n="filter.unit">Unidade / Empresa</span>
+            <select id="carrier-unidade">
+              <option value="all" data-i18n="filter.unit_all">Todas as unidades</option>
+              <option value="COPISI">COPISI</option>
+              <option value="VM">VM</option>
+              <option value="TIPA">TIPA</option>
+            </select>
+          </label>
+
+          <label>
+            <span data-i18n="carriers.search_label">Buscar transportadora</span>
+            <input id="carrier-search-input" type="search" placeholder="Ex.: Transporte Alfa, Translog..." data-i18n-placeholder="carriers.search_placeholder">
+          </label>
+
+          <label>
+            <span data-i18n="filter.operation">Tipo de operação</span>
+            <select id="carrier-operation">
+              <option value="all" data-i18n="filter.all_fem">Todas</option>
+              <option value="Recebimento" data-i18n="op.receiving">Recebimento</option>
+              <option value="Expedição" data-i18n="op.dispatch">Expedição</option>
+            </select>
+          </label>
+
+          <label>
+            <span data-i18n="filter.period">Período</span>
+            <select id="carrier-period">
+              <option value="today" data-i18n="period.today">Hoje</option>
+              <option value="24h" data-i18n="period.24h">Últimas 24h</option>
+              <option value="48h" data-i18n="period.48h">Últimas 48h</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="grade-indicadores grade-indicadores--tres-colunas">
+          <article class="indicador">
+            <div class="indicador__rotulo" data-i18n="carriers.kpi_total">Total de transportadoras</div>
+            <div class="indicador__valor" id="carrier-kpi-total">5</div>
+            <div class="indicador__observacao" id="carrier-kpi-obs" data-i18n="carriers.kpi_total_obs">Ativas na operação</div>
+          </article>
+
+          <article class="indicador">
+            <div class="indicador__rotulo" data-i18n="carriers.kpi_vehicles">Veículos em operação</div>
+            <div class="indicador__valor" id="carrier-kpi-vehicles">9</div>
+            <div class="indicador__observacao indicador__observacao--positiva" id="carrier-kpi-volume">
+              Volume total: 221,3 t
+            </div>
+          </article>
+
+          <article class="indicador">
+            <div class="indicador__rotulo" data-i18n="carriers.kpi_time">Tempo médio de permanência</div>
+            <div class="indicador__valor" id="carrier-kpi-time">48 <small>min</small></div>
+            <div class="indicador__observacao" id="carrier-kpi-sla" data-i18n="carriers.kpi_sla_obs">
+              Monitoramento SLA ativo
+            </div>
+          </article>
+        </div>
+
+        <article class="painel painel--tabela">
+          <div class="painel__cabecalho">
+            <div>
+              <h2 data-i18n="carriers.panel_title">Desempenho por transportadora</h2>
+              <p id="carrier-table-subtitle" data-i18n="carriers.panel_subtitle">Indicadores consolidados por transportadora.</p>
+            </div>
+          </div>
+
+          <div class="tabela__rolagem">
+            <table class="tabela--completa">
+              <thead>
+                <tr>
+                  <th data-i18n="carriers.th_carrier">Transportadora</th>
+                  <th data-i18n="carriers.th_vehicles">Veículos em operação</th>
+                  <th data-i18n="carriers.th_volume">Volume Total (kg / t)</th>
+                  <th data-i18n="carriers.th_avg_time">Tempo médio (min)</th>
+                  <th data-i18n="carriers.th_units">Unidades atendidas</th>
+                  <th data-i18n="carriers.th_sla">Status de SLA</th>
+                  <th data-i18n="carriers.th_action">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="carrier-rows"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+
+      <section class="pagina" id="page-reports">
+        <div class="secao__introducao">
+          <div>
+            <h2 data-i18n="reports.title">Relatórios</h2>
+            <p data-i18n="reports.subtitle">Organize consultas e relatórios operacionais.</p>
+          </div>
+        </div>
+
+        <div class="filtros filtros--relatorios">
+          <label>
+            <span data-i18n="filter.period">Período</span>
+            <select id="report-period">
+              <option value="today" data-i18n="period.today">Hoje</option>
+              <option value="24h" data-i18n="period.24h">Últimas 24h</option>
+              <option value="48h" data-i18n="period.48h">Últimas 48h</option>
+            </select>
+          </label>
+
+          <label>
+            <span data-i18n="filter.unit">Unidade / Empresa</span>
+            <select id="report-unidade">
+              <option value="all" data-i18n="filter.unit_all">Todas as unidades</option>
+              <option value="COPISI">COPISI</option>
+              <option value="VM">VM</option>
+              <option value="TIPA">TIPA</option>
+            </select>
+          </label>
+
+          <label>
+            <span data-i18n="reports.type_label">Tipo de relatório</span>
+            <select id="report-type">
+              <option value="all" data-i18n="filter.all_masc">Todos</option>
+              <option value="Movimentação de carga" data-i18n="reports.card_movement.title">Movimentação de carga</option>
+              <option value="Recebimento de carga" data-i18n="reports.card_receiving.title">Recebimento de carga</option>
+              <option value="Expedição de carga" data-i18n="reports.card_dispatch.title">Expedição de carga</option>
+              <option value="Estoque atual" data-i18n="reports.card_stock.title">Estoque atual</option>
+              <option value="Conferência de Manifestado × Realizado" data-i18n="reports.card_manifest_vs_actual.title">Conferência de Manifestado × Realizado</option>
+              <option value="Relatório de veículos" data-i18n="reports.card_vehicles.title">Relatório de veículos</option>
+            </select>
+          </label>
+        </div>
+
+        <p class="relatorios__nota-janela" data-i18n="reports.window_note">
+          ℹ Janela operacional de consulta limitada a 48h conforme integração com a API iPort (COPI001).
+        </p>
+
+        <div class="lista-relatorios" id="report-list">
+          <article class="relatorio" data-type="Movimentação de carga">
+            <div class="relatorio__icone">▤</div>
+            <div class="relatorio__conteudo">
+              <h3 data-i18n="reports.card_movement.title">Movimentação de carga</h3>
+              <p data-i18n="reports.card_movement.desc">Consulta das movimentações de entrada e saída de carga.</p>
+              <small data-i18n="reports.card_movement.note">Disponibilidade e campos a confirmar com a API</small>
+            </div>
+            <button type="button" class="botao botao--claro relatorio__acao" data-i18n="common.details">Detalhes</button>
+          </article>
+
+          <article class="relatorio" data-type="Recebimento de carga">
+            <div class="relatorio__icone">⇩</div>
+            <div class="relatorio__conteudo">
+              <h3 data-i18n="reports.card_receiving.title">Recebimento de carga</h3>
+              <p data-i18n="reports.card_receiving.desc">Detalhamento das operações de recebimento.</p>
+              <small data-i18n="reports.card_receiving.note">Unidades e filtros conforme documentação</small>
+            </div>
+            <button type="button" class="botao botao--claro relatorio__acao" data-i18n="common.details">Detalhes</button>
+          </article>
+
+          <article class="relatorio" data-type="Expedição de carga">
+            <div class="relatorio__icone">⇧</div>
+            <div class="relatorio__conteudo">
+              <h3 data-i18n="reports.card_dispatch.title">Expedição de carga</h3>
+              <p data-i18n="reports.card_dispatch.desc">Detalhamento das operações de expedição.</p>
+              <small data-i18n="reports.card_dispatch.note">Unidades e filtros conforme documentação</small>
+            </div>
+            <button type="button" class="botao botao--claro relatorio__acao" data-i18n="common.details">Detalhes</button>
+          </article>
+
+          <article class="relatorio" data-type="Estoque atual">
+            <div class="relatorio__icone">▣</div>
+            <div class="relatorio__conteudo">
+              <h3 data-i18n="reports.card_stock.title">Estoque atual</h3>
+              <p data-i18n="reports.card_stock.desc">Consulta de situação do estoque no terminal.</p>
+              <small data-i18n="reports.card_stock.note">Confirmar se faz parte do escopo do painel</small>
+            </div>
+            <button type="button" class="botao botao--claro relatorio__acao" data-i18n="common.details">Detalhes</button>
+          </article>
+
+          <article class="relatorio" data-type="Conferência de Manifestado × Realizado">
+            <div class="relatorio__icone">⚖</div>
+            <div class="relatorio__conteudo">
+              <h3 data-i18n="reports.card_manifest_vs_actual.title">Conferência de Manifestado × Realizado</h3>
+              <p data-i18n="reports.card_manifest_vs_actual.desc">Controle de teto operacional e saldo restante por lote e documento.</p>
+              <small data-i18n="reports.card_manifest_vs_actual.note">Controle de teto por DI/BL e cliente</small>
+            </div>
+            <button type="button" class="botao botao--claro relatorio__acao" data-i18n="common.details">Detalhes</button>
+          </article>
+
+          <article class="relatorio" data-type="Relatório de veículos">
+            <div class="relatorio__icone">⇄</div>
+            <div class="relatorio__conteudo">
+              <h3 data-i18n="reports.card_vehicles.title">Relatório de veículos</h3>
+              <p data-i18n="reports.card_vehicles.desc">Lista de veículos por período, transportadora e etapa.</p>
+              <small data-i18n="reports.card_vehicles.note">Proposta de relatório para o novo painel</small>
+            </div>
+            <button type="button" class="botao botao--claro relatorio__acao" data-i18n="common.details">Detalhes</button>
+          </article>
+        </div>
+      </section>
+
+
+      <section class="pagina" id="page-settings">
+        <div class="configuracao__cabecalho-secao">
+          <h2 class="configuracao__titulo-secao" data-i18n="settings.title">Configurações Operacionais do CCO</h2>
+          <p class="configuracao__subtitulo-secao" data-i18n="settings.subtitle">Ajuste os limiares de SLA, alertas críticos (COPI001) e sincronização com a API.</p>
+        </div>
+
+        <article class="configuracao__card-parametros">
+          <div class="configuracao__card-topo">
+            <h3 data-i18n="settings.params.title">Parâmetros Operacionais e Polling da API</h3>
+            <p data-i18n="settings.params.desc">Defina os limites para cálculo automático de alertas críticos de Sobrepeso e Retenção PRC, além do intervalo de atualização em tempo real.</p>
+          </div>
+
+          <div class="configuracao__linhas-parametros">
+            <div class="configuracao__linha-parametro">
+              <div class="configuracao__parametro-info">
+                <label for="config-overweight-limit" data-i18n="settings.overweight.label">Limite de Sobrepeso (kg)</label>
+                <span data-i18n="settings.overweight.desc">Acima deste peso bruto/movimentado o veículo entra em alerta crítico de Sobrepeso (padrão: 48.500 kg).</span>
+              </div>
+              <input type="number" id="config-overweight-limit" min="1000" step="500" value="48500" class="configuracao__input-numero">
+            </div>
+
+            <div class="configuracao__linha-parametro">
+              <div class="configuracao__parametro-info">
+                <label for="config-prc-limit" data-i18n="settings.prc.label">Limite de Retenção PRC (min)</label>
+                <span data-i18n="settings.prc.desc">Tempo máximo de permanência na Fila PRC antes de gerar alerta crítico de retenção (padrão: 120 min).</span>
+              </div>
+              <input type="number" id="config-prc-limit" min="10" step="10" value="120" class="configuracao__input-numero">
+            </div>
+
+            <div class="configuracao__linha-parametro">
+              <div class="configuracao__parametro-info">
+                <label for="config-polling-interval" data-i18n="settings.polling.label">Intervalo de Polling da API (segundos)</label>
+                <span data-i18n="settings.polling.desc">Frequência de sincronização automática com os 5 endpoints FastAPI (padrão: 30s).</span>
+              </div>
+              <input type="number" id="config-polling-interval" min="5" step="5" value="30" class="configuracao__input-numero">
+            </div>
+          </div>
+
+          <div class="configuracao__botoes-parametros">
+            <button type="button" class="configuracao__botao-salvar" id="btn-save-settings" data-i18n="settings.btn_save">
+              Salvar configurações
+            </button>
+            <button type="button" class="configuracao__botao-acao" id="btn-sync-settings" data-i18n="settings.btn_sync">
+              ↻ Sincronizar agora
+            </button>
+            <button type="button" class="configuracao__botao-acao" id="btn-reset-settings" data-i18n="settings.btn_reset">
+              Restaurar padrões
+            </button>
+          </div>
+        </article>
+
+        <div class="configuracao__grade-inferior">
+          <article class="configuracao__card-inferior">
+            <div>
+              <div class="configuracao__card-topo">
+                <h3 data-i18n="settings.notifications.title">Notificações</h3>
+                <p data-i18n="settings.notifications.desc">Escolha quais avisos deseja visualizar nesta interface operacional.</p>
+              </div>
+
+              <div class="configuracao__lista-opcoes">
+                <label class="configuracao__item-opcao">
+                  <div class="configuracao__opcao-texto">
+                    <strong data-i18n="settings.notify_alerts.label">Alertas de desvios operacionais</strong>
+                    <small data-i18n="settings.notify_alerts.desc">Exibir avisos sobre situações fora dos limites de SLA e balança.</small>
+                  </div>
+                  <input type="checkbox" checked class="configuracao__checkbox">
+                </label>
+
+                <label class="configuracao__item-opcao">
+                  <div class="configuracao__opcao-texto">
+                    <strong data-i18n="settings.notify_updates.label">Atualizações do painel</strong>
+                    <small data-i18n="settings.notify_updates.desc">Mostrar indicação de sincronização dos dados com a API.</small>
+                  </div>
+                  <input type="checkbox" checked class="configuracao__checkbox">
+                </label>
+
+                <label class="configuracao__item-opcao configuracao__item-opcao--ultimo">
+                  <div class="configuracao__opcao-texto">
+                    <strong data-i18n="settings.notify_email.label">Relatórios por e-mail</strong>
+                    <small data-i18n="settings.notify_email.desc">Preferência visual; envio automático via servidor.</small>
+                  </div>
+                  <input type="checkbox" class="configuracao__checkbox">
+                </label>
+              </div>
+            </div>
+          </article>
+
+          <article class="configuracao__card-inferior">
+            <div>
+              <div class="configuracao__card-topo">
+                <h3 data-i18n="settings.visual.title">Visualização</h3>
+                <p data-i18n="settings.visual.desc">Ajustes locais para a aparência do painel CCO.</p>
+              </div>
+
+              <div class="configuracao__lista-opcoes">
+                <div class="configuracao__item-opcao">
+                  <div class="configuracao__opcao-texto">
+                    <label for="theme-select" data-i18n="settings.theme.label"><strong>Tema</strong></label>
+                    <small data-i18n="settings.theme.desc">Alternar entre tema claro e escuro.</small>
+                  </div>
+                  <select id="theme-select" class="configuracao__select">
+                    <option value="light" data-i18n="settings.theme.light">Claro</option>
+                    <option value="dark" data-i18n="settings.theme.dark">Escuro</option>
+                  </select>
+                </div>
+
+                <div class="configuracao__item-opcao configuracao__item-opcao--ultimo">
+                  <div class="configuracao__opcao-texto">
+                    <label for="language-select" data-i18n="settings.language.label"><strong>Idioma</strong></label>
+                    <small data-i18n="settings.language.desc">Idioma dos textos da interface.</small>
+                  </div>
+                  <select id="language-select" class="configuracao__select" data-i18n-aria="settings.language.aria" aria-label="Idioma da interface">
+                    <option value="pt-BR">Português (Brasil)</option>
+                    <option value="en-US">English (US)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="configuracao__resumo-ativo" id="settings-active-summary">
+              Parâmetros operacionais ativos: Sobrepeso &gt; 48.500 kg · Retenção PRC &gt; 120 min · Polling: 30s
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="pagina" id="page-vehicles">
+        <div class="cadastro">
+          <h2 class="cadastro__titulo" data-i18n="vehicles.title">Cadastro de Veículos</h2>
+          <p class="cadastro__descricao" data-i18n="vehicles.subtitle">
+            Cadastre e gerencie os veículos da operação. Os veículos cadastrados aqui são mantidos localmente e sincronizados com as tabelas de Movimentações, Visão Geral e Transportadoras.
+          </p>
+
+          <form class="cadastro__formulario" id="form-vehicles" novalidate>
+            <div class="cadastro__campo">
+              <label for="vehicle-plate" data-i18n="vehicles.plate_label">Placa do veículo *</label>
+              <input type="text" id="vehicle-plate" placeholder="Ex.: ABC1D23 ou ABC-1234" data-i18n-placeholder="vehicles.plate_placeholder" maxlength="8" required>
+            </div>
+
+            <div class="cadastro__campo">
+              <label for="vehicle-carrier" data-i18n="vehicles.carrier_label">Transportadora *</label>
+              <input type="text" id="vehicle-carrier" list="carrier-suggestions" placeholder="Nome da transportadora" data-i18n-placeholder="vehicles.carrier_placeholder" required>
+              <datalist id="carrier-suggestions">
+                <option value="Transporte Alfa"></option>
+                <option value="Translog"></option>
+                <option value="Veloz Cargas"></option>
+                <option value="Rota Sul"></option>
+                <option value="Logística Brasil"></option>
+              </datalist>
+            </div>
+
+            <div class="cadastro__campo">
+              <label for="vehicle-type" data-i18n="vehicles.type_label">Tipo de veículo</label>
+              <select id="vehicle-type" required>
+                <option value="Carreta" selected data-i18n="vehicles.type_carreta">Carreta (6 eixos)</option>
+                <option value="Bitrem" data-i18n="vehicles.type_bitrem">Bitrem (7 eixos)</option>
+                <option value="Rodotrem" data-i18n="vehicles.type_rodotrem">Rodotrem (9 eixos)</option>
+                <option value="Caminhão" data-i18n="vehicles.type_truck">Caminhão (4 eixos)</option>
+                <option value="Outro" data-i18n="vehicles.type_other">Outro</option>
+              </select>
+            </div>
+
+            <div class="cadastro__campo">
+              <label for="vehicle-operation" data-i18n="vehicles.op_label">Tipo de operação</label>
+              <select id="vehicle-operation">
+                <option value="Recebimento" selected data-i18n="vehicles.op_receiving">Recebimento (Descarga)</option>
+                <option value="Expedição" data-i18n="vehicles.op_dispatch">Expedição (Carregamento)</option>
+              </select>
+            </div>
+
+            <div class="cadastro__campo">
+              <label for="vehicle-destino" data-i18n="vehicles.dest_label">Destino / Berço</label>
+              <select id="vehicle-destino">
+                <option value="Berço 99" selected data-i18n="dest.berth99">Berço 99</option>
+                <option value="Berço 101" data-i18n="dest.berth101">Berço 101</option>
+                <option value="Berço 102" data-i18n="dest.berth102">Berço 102</option>
+                <option value="Expedição" data-i18n="op.dispatch">Expedição</option>
+              </select>
+            </div>
+
+            <div class="cadastro__campo">
+              <label for="vehicle-stage" data-i18n="vehicles.stage_label">Etapa inicial</label>
+              <select id="vehicle-stage">
+                <option value="PAN" selected data-i18n="stage.pan_short">1. PAN (Triagem)</option>
+                <option value="Fila PRC" data-i18n="stage.prc">2. Fila PRC</option>
+                <option value="Balança Tara" data-i18n="stage.tara">3. Balança Tara</option>
+                <option value="Operação" data-i18n="stage.op_berth">4. Operação (Berço)</option>
+                <option value="Balança Bruto" data-i18n="stage.bruto">5. Balança Bruto</option>
+                <option value="Gate-out" data-i18n="stage.gateout">6. Gate-out</option>
+              </select>
+            </div>
+
+            <div class="cadastro__campo">
+              <label for="vehicle-weight" data-i18n="vehicles.weight_label">Peso / Carga líquida (kg)</label>
+              <input type="number" id="vehicle-weight" placeholder="Ex.: 32000" data-i18n-placeholder="vehicles.weight_placeholder" min="0" step="100">
+            </div>
+
+            <div class="cadastro__campo">
+              <label for="vehicle-unidade" data-i18n="vehicles.unit_label">Unidade / Empresa (iPort)</label>
+              <select id="vehicle-unidade">
+                <option value="COPISI" selected>COPISI</option>
+                <option value="VM">VM</option>
+                <option value="TIPA">TIPA</option>
+              </select>
+            </div>
+
+            <div class="cadastro__campo">
+              <label for="vehicle-driver" data-i18n="vehicles.driver_label">Motorista</label>
+              <input type="text" id="vehicle-driver" placeholder="Ex.: Carlos Mendes" data-i18n-placeholder="vehicles.driver_placeholder">
+            </div>
+
+            <div class="cadastro__campo">
+              <label for="vehicle-client" data-i18n="vehicles.client_label">Cliente</label>
+              <input type="text" id="vehicle-client" placeholder="Ex.: Vale S.A. / Suzano / Raízen" data-i18n-placeholder="vehicles.client_placeholder">
+            </div>
+
+            <div class="cadastro__campo">
+              <label for="vehicle-obs" data-i18n="vehicles.obs_label">Navio / Documento do Lote (DI / BL)</label>
+              <input type="text" id="vehicle-obs" placeholder="Ex.: PRESTIGE DIVA · BL-ITQ-2026-103" data-i18n-placeholder="vehicles.obs_placeholder">
+            </div>
+
+            <div class="cadastro__acoes">
+              <span class="cadastro__dica" data-i18n="vehicles.required_hint">* Campos obrigatórios para liberar o veículo no giro.</span>
+              <button type="submit" class="cadastro__botao" data-i18n="vehicles.submit">
+                Cadastrar veículo na operação
+              </button>
+            </div>
+          </form>
+
+          <div id="vehicle-feedback" class="cadastro__feedback" hidden role="status" aria-live="polite"></div>
+
+          <div class="cadastro__gerenciamento" id="local-vehicles-manager">
+            <div class="cadastro__gerenciamento-topo">
+              <div>
+                <h3 data-i18n="vehicles.local_title">Veículos cadastrados localmente</h3>
+                <p data-i18n="vehicles.local_desc">Registros salvos neste navegador e mesclados automaticamente com a API.</p>
+              </div>
+              <div class="cadastro__gerenciamento-acoes">
+                <button type="button" class="cadastro__botao-limpar-locais" id="btn-limpar-veiculos-locais" hidden data-i18n="vehicles.clear_local">
+                  Limpar cadastros locais
+                </button>
+              </div>
+            </div>
+            <div class="cadastro__lista-locais" id="local-vehicles-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="rodape">
+        <span data-i18n="footer.left">Protótipo de interface · COPI</span>
+        <span data-i18n="footer.right">Dados fictícios — integração com API pendente</span>
+      </footer>
+    </main>
+  </div>
+
+  <div class="modal-confirmacao" id="restore-vehicles-modal" hidden role="dialog" aria-modal="true" aria-labelledby="restore-vehicles-title">
+    <div class="modal-confirmacao__caixa modal-confirmacao__caixa--ampla">
+      <h3 id="restore-vehicles-title" data-i18n="restore_modal.title">Restaurar veículos excluídos</h3>
+      <p data-i18n="restore_modal.desc">Selecione individualmente qual registro deseja voltar para a operação ou restaure todos de uma vez.</p>
+      <div class="modal-restauracao__lista" id="restore-vehicles-list"></div>
+      <div class="modal-confirmacao__acoes">
+        <button type="button" class="botao botao--claro" id="restore-vehicles-cancel" data-i18n="common.close">
+          Fechar
+        </button>
+        <button type="button" class="botao botao--primario" id="restore-all-vehicles-submit">
+          Restaurar todos (0)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <dialog class="modal-ticket" id="ticket-details-modal" closedby="any" aria-labelledby="ticket-modal-title">
+    <div class="modal-ticket__caixa">
+      <header class="modal-ticket__cabecalho">
+        <div>
+          <span class="modal-ticket__etiqueta" data-i18n="modal.iport_contract">Contrato Oficial iPort · COPI001</span>
+          <h3 id="ticket-modal-title" data-i18n="ticket_modal.title">Detalhes do Ticket de Movimentação</h3>
+        </div>
+        <button type="button" class="modal-ticket__fechar" id="ticket-modal-close-icon" aria-label="Fechar detalhes do ticket" data-i18n-aria="ticket_modal.close_aria">
+          ✕
+        </button>
+      </header>
+
+      <div class="modal-ticket__corpo" id="ticket-modal-body"></div>
+
+      <footer class="modal-ticket__rodape">
+        <button type="button" class="botao botao--claro" id="ticket-modal-copy-summary" data-i18n="ticket.copy_summary">
+          Copiar resumo
+        </button>
+        <button type="button" class="botao botao--primario" id="ticket-modal-close" data-i18n="common.close">
+          Fechar
+        </button>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog class="modal-relatorio" id="report-details-modal" closedby="any" aria-labelledby="report-modal-title">
+    <div class="modal-relatorio__caixa">
+      <header class="modal-relatorio__cabecalho">
+        <div class="modal-relatorio__titulos">
+          <span class="modal-ticket__etiqueta" data-i18n="modal.iport_contract">Contrato Oficial iPort · COPI001</span>
+          <h3 id="report-modal-title" data-i18n="report_modal.title">Detalhes do Relatório</h3>
+          <div class="modal-relatorio__badges" id="report-modal-badges"></div>
+        </div>
+        <div class="modal-relatorio__acoes-topo">
+          <button type="button" class="botao botao--primario" id="report-modal-export-csv" data-i18n="common.export_csv_arrow">
+            ⬇ Exportar CSV
+          </button>
+          <button type="button" class="botao botao--claro" id="report-modal-close" data-i18n="common.close">
+            Fechar
+          </button>
+          <button type="button" class="modal-ticket__fechar" id="report-modal-close-icon" aria-label="Fechar detalhes do relatório" data-i18n-aria="report_modal.close_aria">
+            ✕
+          </button>
+        </div>
+      </header>
+
+      <div class="modal-relatorio__kpis" id="report-modal-kpis"></div>
+
+      <div class="modal-relatorio__nota" id="report-modal-note" hidden></div>
+
+      <div
+        class="tabela__rolagem modal-relatorio__tabela-wrapper"
+        id="report-modal-table-wrapper"
+        tabindex="0"
+        role="region"
+        aria-labelledby="report-modal-title"
+      >
+        <table class="tabela--completa modal-relatorio__tabela" id="report-modal-table">
+          <thead id="report-modal-thead"></thead>
+          <tbody id="report-modal-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="modal-confirmar-exclusao" id="confirm-delete-movement-modal" closedby="any" aria-labelledby="confirm-delete-title">
+    <div class="modal-confirmar-exclusao__caixa">
+      <span class="modal-confirmar-exclusao__badge">ATENÇÃO · EXCLUSÃO DE REGISTRO</span>
+      <h3 id="confirm-delete-title">Confirmar remoção do veículo?</h3>
+      <p id="confirm-delete-desc" class="modal-confirmar-exclusao__desc">
+        Deseja realmente remover o veículo da listagem operacional? Você poderá restaurá-lo depois em "Restaurar excluídos".
+      </p>
+      <footer class="modal-confirmar-exclusao__rodape">
+        <button type="button" class="botao botao--claro" id="confirm-delete-cancel">
+          Cancelar
+        </button>
+        <button type="button" class="botao botao--perigo" id="confirm-delete-submit">
+          Sim, remover
+        </button>
+      </footer>
+    </div>
+  </dialog>
+
+  <div class="notificacao" id="toast" role="status" aria-live="polite"></div>
+</body>
+
+</html>

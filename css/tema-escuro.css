@@ -1,0 +1,45 @@
+/* =====================================
+   TEMA ESCURO - COPI
+===================================== */
+
+body.tema--escuro {
+
+  /* FUNDOS */
+  --cor-fundo: #111318;
+  --cor-fundo-secundario: #191C22;
+  --cor-superficie: #242830;
+  --cor-hover: #30343D;
+
+  /* TEXTOS */
+  --cor-texto: #F1F2F4;
+  --cor-texto-secundario: #A3A6AE;
+  --cor-texto-desabilitado: #727782;
+
+  /* BORDAS */
+  --cor-borda: #30343D;
+
+  /* CORES PRINCIPAIS */
+  --cor-primaria: #3B82F6;
+  --cor-primaria-hover: #2563EB;
+  --cor-primaria-suave: #252F40;
+
+  /* STATUS E ALERTAS */
+  --cor-sucesso: #39B66B;
+  --cor-atencao: #F0B429;
+  --cor-erro: #E45B58;
+
+  /* FUNDOS DOS STATUS */
+  --cor-fundo-sucesso: #19382B;
+  --cor-fundo-atencao: #3D321C;
+  --cor-fundo-erro: #3B2227;
+
+  /* CORES DOS GRÁFICOS */
+  --cor-grafico-azul: #3B82F6;
+  --cor-grafico-verde: #25BBA4;
+  --cor-grafico-laranja: #F0B429;
+  --cor-grafico-roxo: #A78BFA;
+  --cor-grafico-cinza: #727782;
+
+  /* SOMBRAS */
+  --sombra-padrao: 0 4px 18px rgba(0, 0, 0, 0.25);
+}

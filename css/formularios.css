@@ -1,0 +1,84 @@
+/* FILTROS */
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  padding: 15px;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 12px;
+  box-shadow: var(--sombra-padrao);
+  margin-bottom: 16px;
+}
+
+.filtros label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: var(--cor-texto-secundario);
+  font-size: 10px;
+  font-weight: 600;
+  flex: 1;
+  min-width: 130px;
+}
+
+.filtros select,
+.filtros input,
+.configuracao__linha select {
+  width: 100%;
+  min-height: 37px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 7px;
+  padding: 0 10px;
+  background: var(--cor-fundo-secundario);
+  color: var(--cor-texto);
+  outline: none;
+}
+
+.filtros select:focus,
+.filtros input:focus {
+  border-color: var(--cor-primaria);
+  box-shadow: 0 0 0 3px var(--cor-primaria-suave);
+}
+
+/* BOTÕES */
+
+.botao {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  min-height: 37px;
+  padding: 0 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.botao--primario {
+  color: var(--cor-texto);
+  background: var(--cor-primaria);
+  box-shadow: var(--sombra-padrao);
+}
+
+.botao--primario:hover {
+  background: var(--cor-primaria-hover);
+}
+
+.botao--claro {
+  color: var(--cor-primaria);
+  background: var(--cor-primaria-suave);
+  border-color: var(--cor-borda);
+}
+
+.botao--claro:hover {
+  background: var(--cor-hover);
+}
+
+.botao--texto {
+  border: 0;
+  background: none;
+  color: var(--cor-primaria);
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}

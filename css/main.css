@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@import url("./base.css");
+@import url("./layout.css");
+@import url("./formularios.css");
+@import url("./dashboard.css");
+@import url("./tabelas.css");
+@import url("./cadastro.css");
+@import url("./relatorios.css");
+@import url("./configuracoes.css");
+@import url("./tema-escuro.css");
+@import url("./responsivo.css");
+@import url("./alertas.css");
+@import url("./visao-geral.css");

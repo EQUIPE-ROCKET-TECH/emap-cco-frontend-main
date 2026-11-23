@@ -1,0 +1,399 @@
+/* INDICADORES */
+
+.grade-indicadores {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.grade-indicadores--tres-colunas {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.indicador,
+.painel {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 12px;
+  box-shadow: var(--sombra-padrao);
+}
+
+.indicador {
+  padding: 17px 16px;
+  min-width: 0;
+  position: relative;
+}
+
+.indicador__icone {
+  width: 37px;
+  height: 37px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  margin-bottom: 14px;
+}
+
+.indicador__icone--azul {
+  background: var(--cor-primaria-suave);
+  color: var(--cor-primaria);
+}
+
+.indicador__icone--roxo {
+  background: var(--cor-primaria-suave);
+  color: var(--cor-grafico-roxo);
+}
+
+.indicador__icone--verde {
+  background: var(--cor-fundo-sucesso);
+  color: var(--cor-sucesso);
+}
+
+.indicador__icone--vermelho {
+  background: var(--cor-fundo-erro);
+  color: var(--cor-erro);
+}
+
+.indicador__rotulo {
+  color: var(--cor-texto-secundario);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.indicador__informacao {
+  display: inline-grid;
+  place-items: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1px solid var(--cor-borda);
+  font-size: 9px;
+  margin-left: 4px;
+}
+
+.indicador__valor {
+  font-size: 30px;
+  letter-spacing: -1px;
+  font-weight: 700;
+  margin: 8px 0 9px;
+  color: var(--cor-texto);
+}
+
+.indicador__valor small {
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+.indicador__observacao {
+  color: var(--cor-texto-secundario);
+  font-size: 10px;
+}
+
+.indicador__observacao span {
+  font-size: 9px;
+  display: block;
+  margin-top: 5px;
+}
+
+.indicador__observacao--positiva {
+  color: var(--cor-sucesso);
+  font-weight: 700;
+}
+
+/* ALERTAS */
+
+.indicador--alerta {
+  padding-top: 15px;
+}
+
+.indicador--alerta .indicador__icone {
+  display: none;
+}
+
+.indicador__contador-alertas {
+  float: right;
+  color: var(--cor-texto);
+  background: var(--cor-erro);
+  font-size: 9px;
+  padding: 3px 6px;
+  border-radius: 20px;
+}
+
+.indicador__linha-alerta {
+  border-left: 2px solid var(--cor-erro);
+  padding-left: 8px;
+  margin-top: 11px;
+}
+
+.indicador__linha-alerta strong,
+.indicador__linha-alerta small {
+  display: block;
+}
+
+.indicador__linha-alerta strong {
+  font-size: 10px;
+}
+
+.indicador__linha-alerta small {
+  color: var(--cor-texto-secundario);
+  font-size: 9px;
+  margin-top: 4px;
+}
+
+/* GRADE DE PAINÉIS */
+
+.grade-paineis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 10px 0 10px;
+}
+
+.grade-paineis>.painel--grafico,
+.grade-paineis>.painel--transportadoras,
+.grade-paineis>.painel--alertas {
+  min-width: 0;
+}
+
+/* Tabela ocupando toda a largura */
+
+.grade-paineis>.painel--ultimas-movimentacoes {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+}
+
+.painel--ultimas-movimentacoes {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.grade-graficos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.grade-graficos>.painel {
+  min-width: 0;
+}
+
+.painel {
+  padding: 17px;
+  min-width: 0;
+}
+
+.painel__cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.painel__cabecalho h2,
+.secao__introducao h2,
+.painel--configuracoes h2 {
+  font-size: 14px;
+  margin: 0;
+  color: var(--cor-texto);
+}
+
+.painel__cabecalho p,
+.secao__introducao p,
+.painel--configuracoes>p {
+  font-size: 10px;
+  color: var(--cor-texto-secundario);
+  margin: 5px 0 0;
+}
+
+.etiqueta {
+  display: inline-block;
+  color: var(--cor-primaria);
+  background: var(--cor-primaria-suave);
+  border-radius: 20px;
+  padding: 6px 9px;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+/* GRÁFICOS */
+
+.painel__grafico {
+  height: 235px;
+  position: relative;
+}
+
+.distribuicao {
+  display: flex;
+  align-items: center;
+  gap: 19px;
+  min-height: 185px;
+}
+
+.distribuicao__grafico {
+  width: 145px;
+  height: 145px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: conic-gradient(var(--cor-grafico-azul) 0 28%,
+      var(--cor-grafico-verde) 28% 46%,
+      var(--cor-grafico-laranja) 46% 62%,
+      var(--cor-grafico-roxo) 62% 74%,
+      var(--cor-grafico-cinza) 74% 100%);
+  position: relative;
+}
+
+.distribuicao__grafico::before {
+  content: "";
+  position: absolute;
+  inset: 23px;
+  background: var(--cor-superficie);
+  border-radius: 50%;
+}
+
+.distribuicao__grafico strong,
+.distribuicao__grafico span {
+  z-index: 1;
+}
+
+.distribuicao__grafico strong {
+  font-size: 23px;
+  color: var(--cor-texto);
+}
+
+.distribuicao__grafico span {
+  color: var(--cor-texto-secundario);
+  font-size: 10px;
+  margin-top: 3px;
+}
+
+/* LEGENDA */
+
+.legenda {
+  display: grid;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.legenda span {
+  display: grid;
+  grid-template-columns: 9px 1fr auto;
+  gap: 6px;
+  align-items: center;
+  color: var(--cor-texto-secundario);
+  font-size: 10px;
+}
+
+.legenda b {
+  color: var(--cor-texto);
+  font-size: 10px;
+}
+
+.legenda__ponto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.legenda__ponto--azul {
+  background: var(--cor-grafico-azul);
+}
+
+.legenda__ponto--verde-agua {
+  background: var(--cor-grafico-verde);
+}
+
+.legenda__ponto--laranja {
+  background: var(--cor-grafico-laranja);
+}
+
+.legenda__ponto--roxo {
+  background: var(--cor-grafico-roxo);
+}
+
+.legenda__ponto--cinza {
+  background: var(--cor-grafico-cinza);
+}
+
+/* PAINÉIS DE MOVIMENTAÇÃO */
+
+.painel--ultimas-movimentacoes {
+  grid-column: 1 / 2;
+}
+
+.painel--fluxo {
+  grid-column: 2 / 3;
+}
+
+/* ETAPAS DO FLUXO */
+
+.etapa {
+  display: grid;
+  grid-template-columns: 72px 24px minmax(40px, 1fr);
+  align-items: center;
+  gap: 9px;
+  margin: 18px 0;
+}
+
+.etapa__nome {
+  font-size: 10px;
+  color: var(--cor-texto-secundario);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.etapa__ponto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.etapa__ponto--azul {
+  background: var(--cor-grafico-azul);
+}
+
+.etapa__ponto--roxo {
+  background: var(--cor-grafico-roxo);
+}
+
+.etapa__ponto--verde-agua {
+  background: var(--cor-grafico-verde);
+}
+
+.etapa__ponto--laranja {
+  background: var(--cor-grafico-laranja);
+}
+
+.etapa strong {
+  font-size: 11px;
+}
+
+.etapa__barra {
+  height: 6px;
+  background: var(--cor-fundo-secundario);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.etapa__barra span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--cor-primaria);
+}
+
+.etapas__observacao,
+.pagina__observacao {
+  font-size: 10px;
+  color: var(--cor-texto-secundario);
+  margin: 13px 0 0;
+}

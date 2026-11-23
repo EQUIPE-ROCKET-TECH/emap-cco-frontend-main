@@ -1,0 +1,725 @@
+/* RELATÓRIOS */
+
+.lista-relatorios {
+  display: grid;
+  gap: 12px;
+}
+
+.relatorio {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 12px;
+  padding: 17px;
+  box-shadow: var(--sombra-padrao);
+}
+
+.relatorio__icone {
+  display: grid;
+  place-items: center;
+  flex: 0 0 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--cor-primaria-suave);
+  color: var(--cor-primaria);
+  font-size: 20px;
+}
+
+.relatorio__conteudo {
+  flex: 1;
+}
+
+.relatorio__conteudo h3 {
+  font-size: 12px;
+  margin: 0 0 5px;
+  color: var(--cor-texto);
+}
+
+.relatorio__conteudo p {
+  margin: 0 0 6px;
+  color: var(--cor-texto-secundario);
+  font-size: 11px;
+}
+
+.relatorio__conteudo small {
+  color: var(--cor-texto-desabilitado);
+  font-size: 9px;
+}
+
+/* Faixa informativa da janela de 48h na aba Relatórios */
+.relatorios__nota-janela {
+  display: flex;
+  align-items: center;
+  background: #F0F7FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin: 12px 0 16px;
+  color: #1E3A8A;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* =====================================
+   MODAL DETALHES DO RELATÓRIO (#report-details-modal)
+===================================== */
+
+dialog.modal-relatorio {
+  position: fixed;
+  inset: 0;
+  margin: auto !important;
+  max-height: 88vh;
+  max-width: 980px;
+  width: 94vw;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 18px 22px !important;
+  background: #FFFFFF;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+  box-sizing: border-box;
+  z-index: 1000;
+}
+
+dialog.modal-relatorio:not([open]) {
+  display: none;
+}
+
+dialog.modal-relatorio::backdrop {
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(3px);
+}
+
+.modal-relatorio__caixa {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+/* Cabeçalho do modal */
+.modal-relatorio__cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 10px !important;
+  margin-bottom: 12px !important;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.modal-relatorio__titulos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.modal-relatorio__titulos .modal-ticket__etiqueta {
+  display: inline-block;
+  align-self: flex-start;
+  background: #E0F2FE;
+  color: #0284C7 !important;
+  border: none;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+  line-height: normal;
+}
+
+.modal-relatorio__titulos h3 {
+  font-size: 18px !important;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 6px 0 !important;
+  line-height: 1.25;
+}
+
+.modal-relatorio__badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.modal-relatorio__badges .situacao {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  line-height: normal;
+}
+
+.modal-relatorio__badges .situacao--andamento {
+  background: #E0F2FE !important;
+  color: #0369A1 !important;
+  border: none !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 3px 10px !important;
+  border-radius: 999px !important;
+}
+
+.modal-relatorio__badges .situacao--concluido {
+  background: #DCFCE7 !important;
+  color: #15803D !important;
+  border: none !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 3px 10px !important;
+  border-radius: 999px !important;
+}
+
+/* Ações no topo direito do cabeçalho */
+.modal-relatorio__acoes-topo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+#report-modal-export-csv {
+  background: #1D63DC !important;
+  color: #FFFFFF !important;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.4;
+}
+
+#report-modal-export-csv:hover {
+  background: #1A54BD !important;
+}
+
+#report-modal-close {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1.4;
+}
+
+#report-modal-close:hover {
+  background: #DBEAFE;
+  color: #1E40AF;
+}
+
+#report-modal-close-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+#report-modal-close-icon:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+/* Grid de 4 Cards de Métricas (KPIs) */
+.modal-relatorio__kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px !important;
+  margin-top: 2px !important;
+  margin-bottom: 10px !important;
+  padding-top: 0 !important;
+}
+
+.modal-relatorio__kpi {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px !important;
+  padding: 9px 12px !important;
+  box-sizing: border-box;
+}
+
+.modal-relatorio__kpi span {
+  font-size: 9.5px !important;
+  font-weight: 600;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: block;
+  margin-bottom: 2px !important;
+  line-height: 1.3;
+  overflow: visible;
+}
+
+.modal-relatorio__kpi strong {
+  font-size: 16px !important;
+  font-weight: 700;
+  color: #0F172A;
+  display: block;
+  line-height: 1.2 !important;
+}
+
+.modal-relatorio__kpi small {
+  font-size: 10.5px !important;
+  color: #64748B;
+  margin-top: 2px !important;
+  display: block;
+}
+
+.modal-relatorio__kpi--critico {
+  background: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+  border-left: 3.5px solid #EF4444 !important;
+}
+
+.modal-relatorio__kpi--critico span {
+  color: #64748B !important;
+}
+
+.modal-relatorio__kpi--critico strong {
+  color: #0F172A !important;
+}
+
+.modal-relatorio__kpi--critico small {
+  color: #64748B !important;
+}
+
+/* Faixa de nota contextual/contratual */
+.modal-relatorio__nota {
+  background: #F0F7FF;
+  border: 1.5px solid #60A5FA;
+  border-radius: 8px !important;
+  padding: 7px 12px !important;
+  margin-bottom: 10px !important;
+  font-size: 11.5px !important;
+  color: #1E3A8A;
+  font-weight: 600;
+  line-height: 1.35 !important;
+}
+
+/* Wrapper da tabela de dados como área rolável independente */
+#report-details-modal .modal-relatorio__tabela-wrapper,
+.modal-relatorio__tabela-wrapper {
+  max-height: 360px !important;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  margin-bottom: 0 !important;
+  background: #FFFFFF;
+  box-shadow: none;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+/* Tabela do modal - largura por conteúdo para forçar scroll horizontal */
+#report-details-modal table,
+#report-details-modal .modal-relatorio__tabela,
+.modal-relatorio__tabela {
+  width: max-content !important;
+  min-width: 100% !important;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+#report-details-modal thead,
+.modal-relatorio__tabela thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #FFFFFF !important;
+}
+
+#report-details-modal thead th,
+.modal-relatorio__tabela thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #FFFFFF !important;
+  box-shadow: inset 0 -1px 0 #E2E8F0;
+  padding: 8px 12px !important;
+  font-size: 10.5px !important;
+  font-weight: 600;
+  color: #64748B;
+  border-bottom: 1px solid #E2E8F0;
+  text-transform: none !important;
+  letter-spacing: normal;
+  white-space: nowrap !important;
+  text-align: left;
+}
+
+/* Células do corpo da tabela - estritamente position: static e nowrap */
+#report-details-modal tbody td,
+#report-details-modal tbody th,
+#report-details-modal tbody th[scope="row"],
+.modal-relatorio__tabela tbody td,
+.modal-relatorio__tabela tbody th,
+.modal-relatorio__tabela tbody th[scope="row"] {
+  position: static !important;
+  top: auto !important;
+  z-index: auto !important;
+  background-color: transparent !important;
+  padding: 8.5px 12px !important;
+  font-size: 11.5px !important;
+  line-height: 1.25 !important;
+  vertical-align: middle;
+  color: #334155;
+  border-bottom: 1px solid #F1F5F9;
+  white-space: nowrap !important;
+}
+
+/* Pill de Unidade na tabela */
+.modal-relatorio__tabela .badge-unidade,
+.modal-relatorio__tabela td > span.situacao--andamento,
+.modal-relatorio__tabela th > span.situacao--andamento {
+  background: #E0F2FE !important;
+  color: #0369A1 !important;
+  padding: 2px 8px !important;
+  border-radius: 999px !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center;
+  line-height: normal !important;
+  border: none !important;
+}
+
+/* Manter white-space: nowrap apenas em códigos, placas, pesos, percentuais e badges de situação */
+.modal-relatorio__tabela th[scope="row"],
+.modal-relatorio__tabela td:first-child,
+.modal-relatorio__tabela td strong,
+.modal-relatorio__tabela .situacao,
+.modal-relatorio__tabela .badge,
+.modal-relatorio__tabela .celula-situacao-alertas {
+  white-space: nowrap !important;
+}
+
+/* Coluna de Placa limpa em negrito, sem fundo cinza */
+.modal-relatorio__tabela td strong {
+  color: #0F172A;
+  font-weight: 700;
+  background: transparent !important;
+  border: none !important;
+  padding: 0;
+}
+
+.modal-relatorio__tabela th[scope="row"] {
+  color: #0F172A;
+  font-weight: 700;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.modal-relatorio__tabela tr:hover td,
+.modal-relatorio__tabela tr:hover th {
+  background-color: #F8FAFC;
+}
+
+.modal-relatorio__tabela tr.tabela__linha--alerta {
+  background-color: #FEF2F2;
+}
+
+/* Responsividade do modal */
+@media (max-width: 768px) {
+  dialog.modal-relatorio {
+    padding: 18px 16px;
+    width: 96vw;
+  }
+
+  .modal-relatorio__cabecalho {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .modal-relatorio__acoes-topo {
+    justify-content: flex-end;
+  }
+
+  .modal-relatorio__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-relatorio__kpis {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =====================================
+   MODO ESCURO - RELATÓRIOS E MODAL
+===================================== */
+
+body.tema--escuro .relatorios__nota-janela,
+[data-theme="dark"] .relatorios__nota-janela,
+.dark .relatorios__nota-janela {
+  background: rgba(30, 58, 138, 0.2);
+  border-color: rgba(96, 165, 250, 0.35);
+  color: #BFDBFE;
+}
+
+body.tema--escuro dialog.modal-relatorio,
+[data-theme="dark"] dialog.modal-relatorio,
+.dark dialog.modal-relatorio {
+  background: #1A1D24;
+  border-color: #30343D;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+  color: #F1F2F4;
+}
+
+body.tema--escuro .modal-relatorio__cabecalho,
+[data-theme="dark"] .modal-relatorio__cabecalho,
+.dark .modal-relatorio__cabecalho {
+  border-bottom-color: #30343D;
+}
+
+body.tema--escuro .modal-relatorio__titulos .modal-ticket__etiqueta,
+[data-theme="dark"] .modal-relatorio__titulos .modal-ticket__etiqueta,
+.dark .modal-relatorio__titulos .modal-ticket__etiqueta {
+  background: rgba(3, 105, 161, 0.25);
+  color: #38BDF8 !important;
+}
+
+body.tema--escuro .modal-relatorio__titulos h3,
+[data-theme="dark"] .modal-relatorio__titulos h3,
+.dark .modal-relatorio__titulos h3 {
+  color: #F1F2F4;
+}
+
+body.tema--escuro .modal-relatorio__badges .situacao--andamento,
+body.tema--escuro .modal-relatorio__badges .situacao--concluido,
+[data-theme="dark"] .modal-relatorio__badges .situacao--andamento,
+[data-theme="dark"] .modal-relatorio__badges .situacao--concluido,
+.dark .modal-relatorio__badges .situacao--andamento,
+.dark .modal-relatorio__badges .situacao--concluido {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(96, 165, 250, 0.3) !important;
+  color: #93C5FD !important;
+}
+
+body.tema--escuro #report-modal-close,
+[data-theme="dark"] #report-modal-close,
+.dark #report-modal-close {
+  background: #242830;
+  border-color: #30343D;
+  color: #93C5FD;
+}
+
+body.tema--escuro #report-modal-close:hover,
+[data-theme="dark"] #report-modal-close:hover,
+.dark #report-modal-close:hover {
+  background: #30343D;
+  color: #BFDBFE;
+}
+
+body.tema--escuro #report-modal-close-icon,
+[data-theme="dark"] #report-modal-close-icon,
+.dark #report-modal-close-icon {
+  background: #242830;
+  border-color: #30343D;
+  color: #A3A6AE;
+}
+
+body.tema--escuro #report-modal-close-icon:hover,
+[data-theme="dark"] #report-modal-close-icon:hover,
+.dark #report-modal-close-icon:hover {
+  background: #30343D;
+  color: #F1F2F4;
+}
+
+body.tema--escuro .modal-relatorio__kpi,
+[data-theme="dark"] .modal-relatorio__kpi,
+.dark .modal-relatorio__kpi {
+  background: #242830;
+  border-color: #30343D;
+}
+
+body.tema--escuro .modal-relatorio__kpi span,
+[data-theme="dark"] .modal-relatorio__kpi span,
+.dark .modal-relatorio__kpi span {
+  color: #94A3B8;
+}
+
+body.tema--escuro .modal-relatorio__kpi strong,
+[data-theme="dark"] .modal-relatorio__kpi strong,
+.dark .modal-relatorio__kpi strong {
+  color: #F1F2F4;
+}
+
+body.tema--escuro .modal-relatorio__kpi small,
+[data-theme="dark"] .modal-relatorio__kpi small,
+.dark .modal-relatorio__kpi small {
+  color: #94A3B8;
+}
+
+body.tema--escuro .modal-relatorio__kpi--critico,
+[data-theme="dark"] .modal-relatorio__kpi--critico,
+.dark .modal-relatorio__kpi--critico {
+  background: #242830 !important;
+  border: 1px solid #30343D !important;
+  border-left: 3.5px solid #EF4444 !important;
+}
+
+body.tema--escuro .modal-relatorio__kpi--critico strong,
+[data-theme="dark"] .modal-relatorio__kpi--critico strong,
+.dark .modal-relatorio__kpi--critico strong {
+  color: #F1F2F4 !important;
+}
+
+body.tema--escuro .modal-relatorio__kpi--critico small,
+[data-theme="dark"] .modal-relatorio__kpi--critico small,
+.dark .modal-relatorio__kpi--critico small {
+  color: #94A3B8 !important;
+}
+
+body.tema--escuro .modal-relatorio__nota,
+[data-theme="dark"] .modal-relatorio__nota,
+.dark .modal-relatorio__nota {
+  background: rgba(30, 58, 138, 0.25);
+  border: 1.5px solid #3B82F6;
+  color: #BFDBFE;
+}
+
+body.tema--escuro #report-details-modal .modal-relatorio__tabela-wrapper,
+body.tema--escuro .modal-relatorio__tabela-wrapper,
+[data-theme="dark"] #report-details-modal .modal-relatorio__tabela-wrapper,
+[data-theme="dark"] .modal-relatorio__tabela-wrapper,
+.dark #report-details-modal .modal-relatorio__tabela-wrapper,
+.dark .modal-relatorio__tabela-wrapper {
+  background: #1A1D24;
+  border-color: #30343D;
+}
+
+body.tema--escuro #report-details-modal thead,
+body.tema--escuro .modal-relatorio__tabela thead,
+[data-theme="dark"] #report-details-modal thead,
+[data-theme="dark"] .modal-relatorio__tabela thead,
+.dark #report-details-modal thead,
+.dark .modal-relatorio__tabela thead {
+  background-color: #1E293B !important;
+}
+
+body.tema--escuro #report-details-modal thead th,
+body.tema--escuro .modal-relatorio__tabela thead th,
+[data-theme="dark"] #report-details-modal thead th,
+[data-theme="dark"] .modal-relatorio__tabela thead th,
+.dark #report-details-modal thead th,
+.dark .modal-relatorio__tabela thead th {
+  background-color: #1E293B !important;
+  box-shadow: inset 0 -1px 0 #30343D;
+  border-bottom-color: #30343D;
+  color: #94A3B8;
+}
+
+body.tema--escuro #report-details-modal tbody td,
+body.tema--escuro #report-details-modal tbody th,
+body.tema--escuro #report-details-modal tbody th[scope="row"],
+body.tema--escuro .modal-relatorio__tabela tbody td,
+body.tema--escuro .modal-relatorio__tabela tbody th,
+body.tema--escuro .modal-relatorio__tabela tbody th[scope="row"],
+[data-theme="dark"] #report-details-modal tbody td,
+[data-theme="dark"] #report-details-modal tbody th,
+[data-theme="dark"] #report-details-modal tbody th[scope="row"],
+[data-theme="dark"] .modal-relatorio__tabela tbody td,
+[data-theme="dark"] .modal-relatorio__tabela tbody th,
+[data-theme="dark"] .modal-relatorio__tabela tbody th[scope="row"],
+.dark #report-details-modal tbody td,
+.dark #report-details-modal tbody th,
+.dark #report-details-modal tbody th[scope="row"],
+.dark .modal-relatorio__tabela tbody td,
+.dark .modal-relatorio__tabela tbody th,
+.dark .modal-relatorio__tabela tbody th[scope="row"] {
+  position: static !important;
+  top: auto !important;
+  z-index: auto !important;
+  border-bottom-color: #242830;
+  color: #CBD5E1;
+  background-color: transparent !important;
+}
+
+body.tema--escuro .modal-relatorio__tabela td strong,
+body.tema--escuro .modal-relatorio__tabela th[scope="row"],
+[data-theme="dark"] .modal-relatorio__tabela td strong,
+[data-theme="dark"] .modal-relatorio__tabela th[scope="row"],
+.dark .modal-relatorio__tabela td strong,
+.dark .modal-relatorio__tabela th[scope="row"] {
+  color: #F1F2F4 !important;
+}
+
+body.tema--escuro .modal-relatorio__tabela .badge-unidade,
+body.tema--escuro .modal-relatorio__tabela td > span.situacao--andamento,
+body.tema--escuro .modal-relatorio__tabela th > span.situacao--andamento,
+[data-theme="dark"] .modal-relatorio__tabela .badge-unidade,
+[data-theme="dark"] .modal-relatorio__tabela td > span.situacao--andamento,
+[data-theme="dark"] .modal-relatorio__tabela th > span.situacao--andamento,
+.dark .modal-relatorio__tabela .badge-unidade,
+.dark .modal-relatorio__tabela td > span.situacao--andamento,
+.dark .modal-relatorio__tabela th > span.situacao--andamento {
+  background: rgba(3, 105, 161, 0.25) !important;
+  color: #38BDF8 !important;
+  border: none !important;
+}
+
+body.tema--escuro .modal-relatorio__tabela tr:hover td,
+body.tema--escuro .modal-relatorio__tabela tr:hover th,
+[data-theme="dark"] .modal-relatorio__tabela tr:hover td,
+[data-theme="dark"] .modal-relatorio__tabela tr:hover th,
+.dark .modal-relatorio__tabela tr:hover td,
+.dark .modal-relatorio__tabela tr:hover th {
+  background-color: #242830;
+}
+
+/* =========================================================
+   MONITOR VERTICAL DE SALA DE CONTROLE (1080x1920 PORTRAIT)
+========================================================= */
+
+@media (min-width: 900px) and (max-width: 1200px) and (orientation: portrait) {
+  dialog.modal-relatorio,
+  #report-details-modal {
+    width: 94vw !important;
+    max-width: 980px !important;
+    max-height: 90vh !important;
+  }
+
+  .modal-relatorio__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  #report-details-modal .modal-relatorio__tabela-wrapper,
+  .modal-relatorio__tabela-wrapper {
+    max-height: 48vh !important;
+  }
+}

@@ -1,0 +1,113 @@
+/* PAINEL DE ALERTAS */
+
+.painel--alertas {
+    min-width: 0;
+}
+
+.alertas__contador {
+    padding: 5px 10px;
+    border-radius: 20px;
+    background-color: var(--cor-fundo-erro);
+    color: var(--cor-erro);
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.alertas__lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.alertas__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 10px;
+    background-color: var(--cor-superficie);
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.alertas__item * {
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+.alertas__item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12);
+    background-color: #FEE2E2 !important;
+}
+
+.alertas__item:active {
+    transform: translateY(0) scale(0.995);
+}
+
+.alertas__item--critico {
+    background-color: var(--cor-fundo-erro);
+    border-left: 3px solid var(--cor-erro);
+}
+
+.alertas__item--normal {
+    border-left: 3px solid var(--cor-sucesso);
+    cursor: default !important;
+}
+
+.alertas__item--normal:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    background-color: var(--cor-superficie) !important;
+}
+
+/* Modo escuro para os cards de alerta */
+body.tema--escuro .alertas__item:hover,
+[data-theme="dark"] .alertas__item:hover,
+.dark .alertas__item:hover {
+    background-color: rgba(220, 38, 38, 0.25) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.alertas__icone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background-color: var(--cor-fundo-sucesso);
+    color: var(--cor-sucesso);
+    font-weight: 700;
+}
+
+.alertas__item--critico .alertas__icone {
+    background-color: var(--cor-fundo-erro);
+    color: var(--cor-erro);
+}
+
+.alertas__conteudo {
+    flex: 1;
+    min-width: 0;
+}
+
+.alertas__conteudo strong {
+    font-size: 0.85rem;
+}
+
+.alertas__conteudo p {
+    margin: 4px 0 0;
+    font-size: 0.75rem;
+    color: var(--cor-texto-secundario);
+}
+
+.alertas__nivel {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--cor-erro);
+}

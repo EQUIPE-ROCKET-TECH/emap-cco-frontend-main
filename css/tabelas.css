@@ -75,7 +75,7 @@ table {
 /* CÉLULAS DA TABELA */
 .tabela--completa td {
   border-bottom: 1px solid var(--cor-borda, #E2E8F0);
-  color: #1E293B;
+  color: var(--cor-texto);
   padding: 12px 16px;
   font-size: 12.5px;
   vertical-align: middle;

@@ -1139,10 +1139,10 @@ body.tema--escuro #confirm-delete-cancel:hover,
 }
 
 /* =========================================================
-   MONITOR VERTICAL DE SALA DE CONTROLE (1080x1920 PORTRAIT)
+   RESPONSIVIDADE: TELAS VERTICAIS E TABLETS (<= 1200px)
 ========================================================= */
 
-@media (min-width: 900px) and (max-width: 1200px) and (orientation: portrait) {
+@media (max-width: 1200px), (orientation: portrait) and (max-width: 1200px) {
   .filtros,
   .filtros.filtros--movimentacoes {
     display: grid !important;
@@ -1161,6 +1161,34 @@ body.tema--escuro #confirm-delete-cancel:hover,
     grid-column: span 1;
     width: 100% !important;
     height: 38px !important;
+  }
+
+  .painel--tabela,
+  .painel--tabela .tabela__rolagem,
+  .tabela__rolagem {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* =========================================================
+   RESPONSIVIDADE: MOBILE E TELAS PEQUENAS (<= 768px)
+========================================================= */
+
+@media (max-width: 768px) {
+  .filtros,
+  .filtros.filtros--movimentacoes {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .filtros label,
+  .filtros .botao,
+  .filtros #clear-movements-filters {
+    width: 100% !important;
   }
 
   .painel--tabela,

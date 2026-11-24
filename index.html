@@ -240,50 +240,316 @@
           </div>
         </div>
 
-        <!-- ESTEIRA DE GIRO -->
+        <!-- MONITORAMENTO ÁREA PRIMÁRIA · MODAL CONVENCIONAL -->
           <div class="visao-geral__secao">
-            <h2 class="visao-geral__titulo" data-i18n="overview.conveyor_title">Esteira de giro em 6 etapas</h2>
+            <div class="visao-geral__cabecalho-bloco"><h2 class="visao-geral__titulo" data-i18n="overview.conveyor_title">Monitoramento Área Primária · Modal Convencional</h2><p class="visao-geral__subtitulo" data-i18n="overview.conveyor_subtitle">Giro de veículos por etapa de fluxo operacional</p></div>
 
             <div class="grade-esteira">
 
-              <article class="esteira__etapa esteira__etapa--atencao" data-stage-filter="Fila PRC" title="Clique para inspecionar veículos na etapa 1. Fila PRC">
-                <span>1. Fila PRC</span>
-                <strong>4</strong>
-                <span class="esteira__status">ATENÇÃO</span>
+              <article class="esteira__etapa card-area-primaria card-area-primaria--total" data-group-filter="total" title="Clique para filtrar todos os veículos na Área Primária">
+                <span class="card-area-primaria__titulo">Total na Área Primária</span>
+                <strong class="card-area-primaria__valor">7</strong>
+                <small class="esteira__tempo">Médio: 24.5 min / Lim: 45 min</small>
+                <span class="esteira__status esteira__status--normal">NORMAL</span>
               </article>
 
-              <article class="esteira__etapa esteira__etapa--normal" data-stage-filter="PAN" title="Clique para inspecionar veículos na etapa 2. PAN">
-                <span>2. PAN</span>
-                <strong>3</strong>
-                <span class="esteira__status">NORMAL</span>
+              <article class="esteira__etapa card-area-primaria card-area-primaria--sem-coletor" data-group-filter="sem_coletor" title="Clique para filtrar veículos sem passar no coletor (Fila PRC + Pátio)">
+                <span class="card-area-primaria__titulo">Sem passar no Coletor</span>
+                <strong class="card-area-primaria__valor">1</strong>
+                <small class="esteira__tempo">Médio: 18.0 min / Lim: 30 min</small>
+                <span class="esteira__status esteira__status--normal">NORMAL</span>
               </article>
 
-              <article class="esteira__etapa esteira__etapa--normal" data-stage-filter="Balança Tara" title="Clique para inspecionar veículos na etapa 3. Balança Tara">
-                <span>3. Balança Tara</span>
-                <strong>3</strong>
-                <span class="esteira__status">NORMAL</span>
+              <article class="esteira__etapa card-area-primaria card-area-primaria--coletor-balanca" data-group-filter="coletor_balanca" title="Clique para filtrar veículos em operação (entre coletor e balança)">
+                <span class="card-area-primaria__titulo">Entre Coletor e Balança</span>
+                <strong class="card-area-primaria__valor">2</strong>
+                <small class="esteira__tempo">Médio: 32.0 min / Lim: 30 min</small>
+                <span class="esteira__status esteira__status--critico">CRÍTICO</span>
               </article>
 
-              <article class="esteira__etapa esteira__etapa--normal" data-stage-filter="Pátio" title="Clique para inspecionar veículos na etapa 4. Pátio">
-                <span>4. Pátio</span>
-                <strong>3</strong>
-                <span class="esteira__status">NORMAL</span>
-              </article>
-
-              <article class="esteira__etapa esteira__etapa--atencao" data-stage-filter="Operação" title="Clique para inspecionar veículos na etapa 5. Operação">
-                <span>5. Operação</span>
-                <strong>4</strong>
-                <span class="esteira__status">ATENÇÃO</span>
-              </article>
-
-              <article class="esteira__etapa esteira__etapa--critico" data-stage-filter="Balança Bruto" title="Clique para inspecionar veículos na etapa 6. Balança Bruto">
-                <span>6. Balança Bruto</span>
-                <strong>3</strong>
-                <span class="esteira__status">CRÍTICO</span>
+              <article class="esteira__etapa card-area-primaria card-area-primaria--balanca-pan" data-group-filter="balanca_pan" title="Clique para filtrar veículos de Balança (Tara/Bruto) e PAN">
+                <span class="card-area-primaria__titulo">Entre Balança e PAN</span>
+                <strong class="card-area-primaria__valor">4</strong>
+                <small class="esteira__tempo">Médio: 22.0 min / Lim: 25 min</small>
+                <span class="esteira__status esteira__status--atencao">ATENÇÃO</span>
               </article>
 
             </div>
           </div>
+
+          <!-- FLUXOS OPERACIONAIS · COPI -->
+          <section class="visao-geral__secao painel fluxos-operacionais" id="bloco-fluxos-operacionais">
+            <div class="fluxos-operacionais__cabecalho">
+              <div class="fluxos-operacionais__titulos">
+                <h3 class="fluxos-operacionais__titulo">Fluxos Operacionais · COPI</h3>
+                <p class="fluxos-operacionais__subtitulo">Referência dos 3 fluxos integrados ao CCO</p>
+              </div>
+
+              <div class="fluxos-operacionais__abas" role="tablist" aria-label="Abas dos fluxos operacionais">
+                <button type="button" class="fluxo-aba-btn fluxo-aba-btn--ativo" role="tab" id="tab-btn-convencional" aria-selected="true" aria-controls="painel-fluxo-convencional" data-tab="convencional">
+                  Modal Convencional
+                </button>
+                <button type="button" class="fluxo-aba-btn" role="tab" id="tab-btn-mecanizado" aria-selected="false" aria-controls="painel-fluxo-mecanizado" data-tab="mecanizado">
+                  Modal Mecanizado
+                </button>
+                <button type="button" class="fluxo-aba-btn" role="tab" id="tab-btn-expedicao" aria-selected="false" aria-controls="painel-fluxo-expedicao" data-tab="expedicao">
+                  Expedição Rodoviária
+                </button>
+              </div>
+            </div>
+
+            <div class="fluxos-operacionais__conteudo">
+              <!-- Aba 1: Modal Convencional (Descarga Direta) -->
+              <div class="fluxo-conteudo-aba fluxo-conteudo-aba--ativo" id="painel-fluxo-convencional" role="tabpanel" aria-labelledby="tab-btn-convencional" data-tab-content="convencional">
+                <div class="fluxo-subcabecalho">
+                  <span class="fluxo-subcabecalho__badge">Descarga Direta</span>
+                </div>
+
+                <div class="fluxo-etapas">
+                  <div class="fluxo-etapa">
+                    <span class="fluxo-etapa__numero">1</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">PRC</strong>
+                      <span class="fluxo-etapa__desc">1ª pesagem</span>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa">
+                    <span class="fluxo-etapa__numero">2</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">PAN</strong>
+                      <span class="fluxo-etapa__desc">Entrada área primária</span>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa">
+                    <span class="fluxo-etapa__numero">3</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">Berço</strong>
+                      <span class="fluxo-etapa__desc">Fila operacional</span>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa fluxo-etapa--copi">
+                    <span class="fluxo-etapa__tag-copi">COPI</span>
+                    <span class="fluxo-etapa__numero">4</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">Registro</strong>
+                      <span class="fluxo-etapa__desc">TOS e SICOPI</span>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa fluxo-etapa--copi">
+                    <span class="fluxo-etapa__tag-copi">COPI</span>
+                    <span class="fluxo-etapa__numero">5</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">Funil</strong>
+                      <span class="fluxo-etapa__desc">Carregamento</span>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa">
+                    <span class="fluxo-etapa__numero">6</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">Balança</strong>
+                      <span class="fluxo-etapa__desc">2ª pesagem e ticket</span>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa">
+                    <span class="fluxo-etapa__numero">7</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">PAN</strong>
+                      <span class="fluxo-etapa__desc">Saída para destino</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="fluxo-rodape">
+                  <span class="fluxo-badge">Carregamento ≈ 1 h</span>
+                  <span class="fluxo-badge">Retorno ≈ 2 h</span>
+                  <span class="fluxo-badge fluxo-badge--destaque">Sistemas: TOS / SICOPI</span>
+                </div>
+              </div>
+
+              <!-- Aba 2: Modal Mecanizado (Descarga por Esteira) -->
+              <div class="fluxo-conteudo-aba" id="painel-fluxo-mecanizado" role="tabpanel" aria-labelledby="tab-btn-mecanizado" data-tab-content="mecanizado" hidden>
+                <div class="fluxo-subcabecalho">
+                  <span class="fluxo-subcabecalho__badge">Descarga por Esteira</span>
+                </div>
+
+                <div class="fluxo-etapas">
+                  <div class="fluxo-etapa">
+                    <span class="fluxo-etapa__numero">1</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">Porão</strong>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa">
+                    <span class="fluxo-etapa__numero">2</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">Funil</strong>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa">
+                    <span class="fluxo-etapa__numero">3</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">TC01</strong>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa">
+                    <span class="fluxo-etapa__numero">4</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">TC02</strong>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa fluxo-etapa--copi">
+                    <span class="fluxo-etapa__tag-copi">COPI</span>
+                    <span class="fluxo-etapa__numero">5</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">BF1</strong>
+                      <span class="fluxo-etapa__desc">Balança de Fluxo</span>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa">
+                    <span class="fluxo-etapa__numero">6</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">TC03/04</strong>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa">
+                    <span class="fluxo-etapa__numero">7</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">TC05</strong>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa">
+                    <span class="fluxo-etapa__numero">8</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">Box</strong>
+                      <span class="fluxo-etapa__desc">Armazém</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="fluxo-rodape">
+                  <span class="fluxo-badge">BF1: volume real (t/h)</span>
+                  <span class="fluxo-badge">Elipse: correias</span>
+                  <span class="fluxo-badge">iPort: entrada de carga</span>
+                  <span class="fluxo-badge fluxo-badge--destaque">Berço 101: Carvão 458 t/h | Fertilizantes 390 t/h | Ureia 320 t/h</span>
+                </div>
+              </div>
+
+              <!-- Aba 3: Expedição Rodoviária (Armazém Porto) -->
+              <div class="fluxo-conteudo-aba" id="painel-fluxo-expedicao" role="tabpanel" aria-labelledby="tab-btn-expedicao" data-tab-content="expedicao" hidden>
+                <div class="fluxo-subcabecalho">
+                  <span class="fluxo-subcabecalho__badge">Armazém Porto</span>
+                </div>
+
+                <div class="fluxo-etapas">
+                  <div class="fluxo-etapa">
+                    <span class="fluxo-etapa__numero">1</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">PAN</strong>
+                      <span class="fluxo-etapa__desc">Acesso ao porto</span>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa fluxo-etapa--copi">
+                    <span class="fluxo-etapa__tag-copi">COPI</span>
+                    <span class="fluxo-etapa__numero">2</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">Gate in</strong>
+                      <span class="fluxo-etapa__desc">Terminal COPI</span>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa">
+                    <span class="fluxo-etapa__numero">3</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">Balança</strong>
+                      <span class="fluxo-etapa__desc">1ª pesagem vazio</span>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa fluxo-etapa--copi">
+                    <span class="fluxo-etapa__tag-copi">COPI</span>
+                    <span class="fluxo-etapa__numero">4</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">Carregamento</strong>
+                      <span class="fluxo-etapa__desc">Na balança</span>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa">
+                    <span class="fluxo-etapa__numero">5</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">Balança</strong>
+                      <span class="fluxo-etapa__desc">2ª pesagem carregado</span>
+                    </div>
+                  </div>
+
+                  <div class="fluxo-seta" aria-hidden="true">→</div>
+
+                  <div class="fluxo-etapa">
+                    <span class="fluxo-etapa__numero">6</span>
+                    <div class="fluxo-etapa__info">
+                      <strong class="fluxo-etapa__nome">Gate out</strong>
+                      <span class="fluxo-etapa__desc">Enlonamento e ticket</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="fluxo-rodape">
+                  <span class="fluxo-badge">Carregamento ≈ 13 min</span>
+                  <span class="fluxo-badge">Permanência ≈ 30 min</span>
+                  <span class="fluxo-badge fluxo-badge--destaque">Prancha: 250 t/h (Ureia: 200 t/h)</span>
+                  <span class="fluxo-badge">Sistema: iPort</span>
+                </div>
+              </div>
+            </div>
+          </section>
 
           <!-- ALERTAS CRÍTICOS -->
           <article class="painel painel--alertas">

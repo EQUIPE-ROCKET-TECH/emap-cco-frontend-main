@@ -60,7 +60,7 @@ let ultimoResumoAPI = null;
 let ultimosBercosAPI = [];
 let ultimasEtapasAPI = [];
 let alertasAtivosAPI = [];
-let contextoInspecaoCard = null;
+var contextoInspecaoCard = null;
 
 /* =========================================
    INTERNACIONALIZAÇÃO (I18N · PT-BR / EN-US)
@@ -112,7 +112,17 @@ const I18N_DICTIONARY = {
 
     "overview.executive_title": "Indicadores executivos",
     "overview.points_title": "Operações por ponto",
-    "overview.conveyor_title": "Esteira de movimentação · Fluxo operacional",
+    "overview.conveyor_title": "Monitoramento Área Primária · Modal Convencional",
+    "overview.conveyor_subtitle": "Giro de veículos por etapa de fluxo operacional",
+    "primary_area.total": "Total na Área Primária",
+    "primary_area.without_collector": "Sem passar no Coletor",
+    "primary_area.between_collector_scale": "Entre Coletor e Balança",
+    "primary_area.between_scale_pan": "Entre Balança e PAN",
+    "primary_area.total_title": "Clique para filtrar todos os veículos na Área Primária",
+    "primary_area.without_collector_title": "Clique para filtrar veículos sem passar no coletor (Fila PRC + Pátio)",
+    "primary_area.between_collector_scale_title": "Clique para filtrar veículos em operação (entre coletor e balança)",
+    "primary_area.between_scale_pan_title": "Clique para filtrar veículos de Balança (Tara/Bruto) e PAN",
+    "primary_area.inspecting_title": "Inspecionando Área Primária",
     "kpi.active_vehicles": "Veículos ativos",
     "kpi.total_cargo": "Carga movimentada",
     "kpi.avg_time": "Tempo médio",
@@ -485,7 +495,17 @@ const I18N_DICTIONARY = {
 
     "overview.executive_title": "Executive KPIs",
     "overview.points_title": "Operations by point",
-    "overview.conveyor_title": "Movement conveyor · Operational flow",
+    "overview.conveyor_title": "Primary Area Monitoring · Conventional Mode",
+    "overview.conveyor_subtitle": "Vehicle turnaround by operational flow stage",
+    "primary_area.total": "Total in Primary Area",
+    "primary_area.without_collector": "Without Collector Passage",
+    "primary_area.between_collector_scale": "Between Collector and Scale",
+    "primary_area.between_scale_pan": "Between Scale and PAN",
+    "primary_area.total_title": "Click to filter all vehicles in the Primary Area",
+    "primary_area.without_collector_title": "Click to filter vehicles without collector passage (PRC Queue + Yard)",
+    "primary_area.between_collector_scale_title": "Click to filter vehicles in operation (between collector and scale)",
+    "primary_area.between_scale_pan_title": "Click to filter scale (Tare/Gross) and PAN vehicles",
+    "primary_area.inspecting_title": "Inspecting Primary Area",
     "kpi.active_vehicles": "Active vehicles",
     "kpi.total_cargo": "Cargo moved",
     "kpi.avg_time": "Average time",
@@ -905,6 +925,9 @@ function traduzirOrigemRegistro(origem) {
 }
 
 function renderDashboard() {
+  if (typeof renderizarCardsAreaPrimaria === "function") {
+    renderizarCardsAreaPrimaria(ultimasEtapasAPI);
+  }
   if (typeof renderizarBercosResumoFallback === "function" && ultimosBercosAPI.length) {
     renderizarBercosResumoFallback(ultimosBercosAPI);
   }
@@ -1033,9 +1056,9 @@ function salvarHistoricoExcluidosStorage(lista) {
   }
 }
 
-let veiculosCadastradosLocalmente = carregarVeiculosLocaisStorage();
-let veiculosRemovidosSessao = new Set(carregarVeiculosRemovidosStorage());
-let historicoVeiculosExcluidos = carregarHistoricoExcluidosStorage();
+var veiculosCadastradosLocalmente = carregarVeiculosLocaisStorage();
+var veiculosRemovidosSessao = new Set(carregarVeiculosRemovidosStorage());
+var historicoVeiculosExcluidos = carregarHistoricoExcluidosStorage();
 
 function obterChaveRegistroVeiculo(item) {
   if (!item) return "";
@@ -1122,6 +1145,9 @@ function normalizarRotuloEtapa(valor) {
   if (norm.includes("fila prc") || norm === "prc" || norm === "fila") {
     return "Fila PRC";
   }
+  if (norm.includes("patio")) {
+    return "Pátio";
+  }
   if (norm.includes("balanca tara") || norm.includes("balanca entrada") || norm.includes("pesagem inicial") || norm === "tara") {
     return "Balança Tara";
   }
@@ -1201,7 +1227,34 @@ function coincidirEtapa(itemStage, filtroEtapa) {
   const etapaFiltro = normalizarRotuloEtapa(filtroEtapa);
   if (!etapaItem || !etapaFiltro) return false;
 
-  return etapaItem === etapaFiltro;
+  return normalizarTexto(etapaItem) === normalizarTexto(etapaFiltro);
+}
+
+/* -----------------------------------------
+   AGRUPAMENTO DA ÁREA PRIMÁRIA (MODAL CONVENCIONAL)
+----------------------------------------- */
+const ETAPAS_GRUPOS_AREA_PRIMARIA = {
+  sem_coletor: ["Fila PRC", "Pátio"],
+  coletor_balanca: ["Operação"],
+  balanca_pan: ["Balança Tara", "Balança Bruto", "PAN"]
+};
+
+function obterEtapasDoGrupoAreaPrimaria(grupo) {
+  if (grupo === "total") {
+    return [
+      ...ETAPAS_GRUPOS_AREA_PRIMARIA.sem_coletor,
+      ...ETAPAS_GRUPOS_AREA_PRIMARIA.coletor_balanca,
+      ...ETAPAS_GRUPOS_AREA_PRIMARIA.balanca_pan
+    ];
+  }
+  return ETAPAS_GRUPOS_AREA_PRIMARIA[grupo] || [];
+}
+
+function pertenceAoGrupoAreaPrimaria(stage, grupo) {
+  if (!stage) return false;
+  const etapas = obterEtapasDoGrupoAreaPrimaria(grupo);
+  if (!etapas.length) return false;
+  return etapas.some(etapaAlvo => coincidirEtapa(stage, etapaAlvo));
 }
 
 function coincidirOperacao(itemOp, filtroOp) {
@@ -2265,6 +2318,179 @@ function formatarStatusOperacional(statusOperacional) {
   return "NORMAL";
 }
 
+function renderizarCardsAreaPrimaria(listaEtapas) {
+  const gradeEsteira = document.querySelector(".grade-esteira");
+  if (!gradeEsteira) return;
+
+  const etapas = Array.isArray(listaEtapas) && listaEtapas.length > 0
+    ? listaEtapas
+    : (Array.isArray(ultimasEtapasAPI) && ultimasEtapasAPI.length > 0 ? ultimasEtapasAPI : []);
+
+  const todosVeiculos = typeof obterFonteVeiculosCompleta === "function" ? obterFonteVeiculosCompleta() : [];
+
+  const gSemColetorQtd = todosVeiculos.filter(v => pertenceAoGrupoAreaPrimaria(v.stage, "sem_coletor")).length;
+  const gColetorBalancaQtd = todosVeiculos.filter(v => pertenceAoGrupoAreaPrimaria(v.stage, "coletor_balanca")).length;
+  const gBalancaPanQtd = todosVeiculos.filter(v => pertenceAoGrupoAreaPrimaria(v.stage, "balanca_pan")).length;
+  const gTotalQtd = gSemColetorQtd + gColetorBalancaQtd + gBalancaPanQtd;
+
+  const dadosGrupos = {
+    sem_coletor: {
+      somaPonderadaTempo: 0,
+      pesoTotalTempo: 0,
+      tempoLimite: 30,
+      tempoPadrao: 18.0
+    },
+    coletor_balanca: {
+      somaPonderadaTempo: 0,
+      pesoTotalTempo: 0,
+      tempoLimite: 30,
+      tempoPadrao: 32.0
+    },
+    balanca_pan: {
+      somaPonderadaTempo: 0,
+      pesoTotalTempo: 0,
+      tempoLimite: 25,
+      tempoPadrao: 22.0
+    }
+  };
+
+  if (etapas.length > 0) {
+    etapas.forEach(item => {
+      const nomeEtapaBruto = item.etapa ?? item.nome ?? item[0] ?? "";
+      const nomeEtapa = normalizarRotuloEtapa(nomeEtapaBruto) || nomeEtapaBruto;
+      const qtdItem = Number(item.quantidade_veiculos ?? item.qtd ?? item[1] ?? 0);
+      const tempoMedioItem = Number(item.tempo_medio_permanencia_min ?? item.tempo_medio ?? (Array.isArray(item) ? 0 : 0));
+      const tempoLimiteItem = Number(item.tempo_limite_min ?? item.tempo_limite ?? 0);
+
+      let grupoAlvo = null;
+      if (pertenceAoGrupoAreaPrimaria(nomeEtapa, "sem_coletor")) {
+        grupoAlvo = dadosGrupos.sem_coletor;
+      } else if (pertenceAoGrupoAreaPrimaria(nomeEtapa, "coletor_balanca")) {
+        grupoAlvo = dadosGrupos.coletor_balanca;
+      } else if (pertenceAoGrupoAreaPrimaria(nomeEtapa, "balanca_pan")) {
+        grupoAlvo = dadosGrupos.balanca_pan;
+      }
+
+      if (grupoAlvo) {
+        if (tempoMedioItem > 0) {
+          const peso = qtdItem > 0 ? qtdItem : 1;
+          grupoAlvo.somaPonderadaTempo += tempoMedioItem * peso;
+          grupoAlvo.pesoTotalTempo += peso;
+        }
+        if (tempoLimiteItem > 0) {
+          grupoAlvo.tempoLimite = tempoLimiteItem;
+        }
+      }
+    });
+  }
+
+  const temDadosAPI = etapas.length > 0;
+
+  const gSemColetorTempo = temDadosAPI && dadosGrupos.sem_coletor.pesoTotalTempo > 0
+    ? dadosGrupos.sem_coletor.somaPonderadaTempo / dadosGrupos.sem_coletor.pesoTotalTempo
+    : 18.0;
+  const gSemColetorLim = dadosGrupos.sem_coletor.tempoLimite || 30;
+
+  const gColetorBalancaTempo = temDadosAPI && dadosGrupos.coletor_balanca.pesoTotalTempo > 0
+    ? dadosGrupos.coletor_balanca.somaPonderadaTempo / dadosGrupos.coletor_balanca.pesoTotalTempo
+    : 32.0;
+  const gColetorBalancaLim = dadosGrupos.coletor_balanca.tempoLimite || 30;
+
+  const gBalancaPanTempo = temDadosAPI && dadosGrupos.balanca_pan.pesoTotalTempo > 0
+    ? dadosGrupos.balanca_pan.somaPonderadaTempo / dadosGrupos.balanca_pan.pesoTotalTempo
+    : 22.0;
+  const gBalancaPanLim = dadosGrupos.balanca_pan.tempoLimite || 25;
+
+  const somaTotalPonderada =
+    dadosGrupos.sem_coletor.somaPonderadaTempo +
+    dadosGrupos.coletor_balanca.somaPonderadaTempo +
+    dadosGrupos.balanca_pan.somaPonderadaTempo;
+  const pesoTotalPonderado =
+    dadosGrupos.sem_coletor.pesoTotalTempo +
+    dadosGrupos.coletor_balanca.pesoTotalTempo +
+    dadosGrupos.balanca_pan.pesoTotalTempo;
+
+  const gTotalTempo = temDadosAPI && pesoTotalPonderado > 0
+    ? somaTotalPonderada / pesoTotalPonderado
+    : 24.5;
+  const gTotalLim = 45;
+
+  // Cálculo de status diretamente a partir da média e do limite exibidos no próprio card:
+  // - Se media > limite: CRÍTICO
+  // - Se media >= limite * 0.8: ATENÇÃO
+  // - Caso contrário: NORMAL
+  const calcularStatusCard = (media, limite) => {
+    const m = Number(media) || 0;
+    const l = Number(limite) || 0;
+    if (l <= 0) return "NORMAL";
+    if (m > l) return "CRITICO";
+    if (m >= l * 0.8) return "ATENCAO";
+    return "NORMAL";
+  };
+
+  const gTotalStatus = calcularStatusCard(gTotalTempo, gTotalLim);
+  const gSemColetorStatus = calcularStatusCard(gSemColetorTempo, gSemColetorLim);
+  const gColetorBalancaStatus = calcularStatusCard(gColetorBalancaTempo, gColetorBalancaLim);
+  const gBalancaPanStatus = calcularStatusCard(gBalancaPanTempo, gBalancaPanLim);
+
+  const lblMedio = idiomaAtual === "en-US" ? "Avg" : "Médio";
+  const lblLimite = idiomaAtual === "en-US" ? "Lim" : "Lim";
+
+  const rotuloStatus = (status) => {
+    if (status === "CRITICO") return idiomaAtual === "en-US" ? "CRITICAL" : "CRÍTICO";
+    if (status === "ATENCAO") return idiomaAtual === "en-US" ? "ATTENTION" : "ATENÇÃO";
+    return "NORMAL";
+  };
+
+  const statusClasse = (status) => {
+    if (status === "CRITICO") return "esteira__status--critico";
+    if (status === "ATENCAO") return "esteira__status--atencao";
+    return "esteira__status--normal";
+  };
+
+  const tituloTotal = t("primary_area.total") || "Total na Área Primária";
+  const descTotal = t("primary_area.total_title") || "Clique para filtrar todos os veículos na Área Primária";
+
+  const tituloSemColetor = t("primary_area.without_collector") || "Sem passar no Coletor";
+  const descSemColetor = t("primary_area.without_collector_title") || "Clique para filtrar veículos sem passar no coletor (Fila PRC + Pátio)";
+
+  const tituloColetorBalanca = t("primary_area.between_collector_scale") || "Entre Coletor e Balança";
+  const descColetorBalanca = t("primary_area.between_collector_scale_title") || "Clique para filtrar veículos em operação (entre coletor e balança)";
+
+  const tituloBalancaPan = t("primary_area.between_scale_pan") || "Entre Balança e PAN";
+  const descBalancaPan = t("primary_area.between_scale_pan_title") || "Clique para filtrar veículos de Balança (Tara/Bruto) e PAN";
+
+  gradeEsteira.innerHTML = `
+    <article class="esteira__etapa card-area-primaria card-area-primaria--total" data-group-filter="total" title="${escaparHtml(descTotal)}">
+      <span class="card-area-primaria__titulo">${escaparHtml(tituloTotal)}</span>
+      <strong class="card-area-primaria__valor">${gTotalQtd}</strong>
+      <small class="esteira__tempo">${lblMedio}: ${escaparHtml(formatarNumero(gTotalTempo, 1))} min / ${lblLimite}: ${gTotalLim} min</small>
+      <span class="esteira__status ${statusClasse(gTotalStatus)}">${escaparHtml(rotuloStatus(gTotalStatus))}</span>
+    </article>
+
+    <article class="esteira__etapa card-area-primaria card-area-primaria--sem-coletor" data-group-filter="sem_coletor" title="${escaparHtml(descSemColetor)}">
+      <span class="card-area-primaria__titulo">${escaparHtml(tituloSemColetor)}</span>
+      <strong class="card-area-primaria__valor">${gSemColetorQtd}</strong>
+      <small class="esteira__tempo">${lblMedio}: ${escaparHtml(formatarNumero(gSemColetorTempo, 1))} min / ${lblLimite}: ${gSemColetorLim} min</small>
+      <span class="esteira__status ${statusClasse(gSemColetorStatus)}">${escaparHtml(rotuloStatus(gSemColetorStatus))}</span>
+    </article>
+
+    <article class="esteira__etapa card-area-primaria card-area-primaria--coletor-balanca" data-group-filter="coletor_balanca" title="${escaparHtml(descColetorBalanca)}">
+      <span class="card-area-primaria__titulo">${escaparHtml(tituloColetorBalanca)}</span>
+      <strong class="card-area-primaria__valor">${gColetorBalancaQtd}</strong>
+      <small class="esteira__tempo">${lblMedio}: ${escaparHtml(formatarNumero(gColetorBalancaTempo, 1))} min / ${lblLimite}: ${gColetorBalancaLim} min</small>
+      <span class="esteira__status ${statusClasse(gColetorBalancaStatus)}">${escaparHtml(rotuloStatus(gColetorBalancaStatus))}</span>
+    </article>
+
+    <article class="esteira__etapa card-area-primaria card-area-primaria--balanca-pan" data-group-filter="balanca_pan" title="${escaparHtml(descBalancaPan)}">
+      <span class="card-area-primaria__titulo">${escaparHtml(tituloBalancaPan)}</span>
+      <strong class="card-area-primaria__valor">${gBalancaPanQtd}</strong>
+      <small class="esteira__tempo">${lblMedio}: ${escaparHtml(formatarNumero(gBalancaPanTempo, 1))} min / ${lblLimite}: ${gBalancaPanLim} min</small>
+      <span class="esteira__status ${statusClasse(gBalancaPanStatus)}">${escaparHtml(rotuloStatus(gBalancaPanStatus))}</span>
+    </article>
+  `;
+}
+
 async function carregarEtapasOperacao() {
   try {
     const resposta = await fetchComTimeout(`${API_BASE_URL}/operacao/etapas`);
@@ -2282,39 +2508,7 @@ async function carregarEtapasOperacao() {
     etapasCarregadasPorEndpoint = true;
     ultimasEtapasAPI = listaEtapas;
 
-    const gradeEsteira = document.querySelector(".grade-esteira");
-    if (gradeEsteira) {
-      gradeEsteira.innerHTML = listaEtapas
-        .map((item, idx) => {
-          const nomeEtapaBruto = item.etapa ?? `Etapa ${idx + 1}`;
-          const nomeEtapa = normalizarRotuloEtapa(nomeEtapaBruto) || nomeEtapaBruto;
-          const extrasLocais = veiculosCadastradosLocalmente.filter(v =>
-            coincidirEtapa(v.stage, nomeEtapa)
-          ).length;
-          const qtd = Number(item.quantidade_veiculos ?? 0) + extrasLocais;
-          const tempoMedio = item.tempo_medio_permanencia_min ?? 0;
-          const tempoLimite = item.tempo_limite_min ?? 0;
-          const statusOp = String(item.status_operacional || "NORMAL").toUpperCase();
-          const classeStatus = obterClasseStatusEtapa(statusOp);
-          const rotuloStatus = formatarStatusOperacional(statusOp);
-
-          const rotuloExibicao = `${idx + 1}. ${traduzirEtapa(nomeEtapa)}`;
-          const lblMedio = idiomaAtual === "en-US" ? "Avg" : "Médio";
-          const lblLimite = idiomaAtual === "en-US" ? "Limit" : "Lim";
-
-          return `
-            <article class="esteira__etapa ${classeStatus}" data-stage-filter="${escaparHtml(nomeEtapa)}" title="Clique para filtrar veículos nesta etapa">
-              <span>${escaparHtml(rotuloExibicao)}</span>
-              <strong>${escaparHtml(qtd)}</strong>
-              <small class="esteira__tempo">
-                ${lblMedio}: ${escaparHtml(formatarNumero(tempoMedio, 1))} min / ${lblLimite}: ${escaparHtml(tempoLimite, 0)} min
-              </small>
-              <span class="esteira__status">${escaparHtml(rotuloStatus)}</span>
-            </article>
-          `;
-        })
-        .join("");
-    }
+    renderizarCardsAreaPrimaria(listaEtapas);
 
     const nomesEtapas = listaEtapas
       .map(e => normalizarRotuloEtapa(e.etapa) || e.etapa)
@@ -2445,35 +2639,17 @@ function renderizarBercosResumoFallback(pontosOperacionais) {
 }
 
 function renderizarEtapasResumoFallback(esteira) {
-  const etapasCards = document.querySelectorAll(".grade-esteira .esteira__etapa");
   const valores = [
-    ["Fila PRC", esteira.fila_prc ?? 0, "ATENCAO"],
-    ["PAN", esteira.pan ?? 0, "NORMAL"],
-    ["Balança Tara", esteira.balanca_tara ?? 0, "NORMAL"],
-    ["Pátio", esteira.patio ?? 0, "NORMAL"],
-    ["Operação", esteira.operacao ?? 0, "ATENCAO"],
-    ["Balança Bruto", esteira.balanca_bruto ?? 0, "CRITICO"]
+    { etapa: "Fila PRC", quantidade_veiculos: esteira.fila_prc ?? 0, tempo_medio_permanencia_min: 18, tempo_limite_min: 30, status_operacional: "ATENCAO" },
+    { etapa: "PAN", quantidade_veiculos: esteira.pan ?? 0, tempo_medio_permanencia_min: 22, tempo_limite_min: 25, status_operacional: "NORMAL" },
+    { etapa: "Balança Tara", quantidade_veiculos: esteira.balanca_tara ?? 0, tempo_medio_permanencia_min: 20, tempo_limite_min: 25, status_operacional: "NORMAL" },
+    { etapa: "Pátio", quantidade_veiculos: esteira.patio ?? 0, tempo_medio_permanencia_min: 18, tempo_limite_min: 30, status_operacional: "NORMAL" },
+    { etapa: "Operação", quantidade_veiculos: esteira.operacao ?? 0, tempo_medio_permanencia_min: 32, tempo_limite_min: 30, status_operacional: "ATENCAO" },
+    { etapa: "Balança Bruto", quantidade_veiculos: esteira.balanca_bruto ?? 0, tempo_medio_permanencia_min: 24, tempo_limite_min: 25, status_operacional: "CRITICO" }
   ];
 
-  ultimasEtapasAPI = valores.map(([etapa, quantidade_veiculos, status_operacional]) => ({
-    etapa,
-    quantidade_veiculos,
-    status_operacional
-  }));
-
-  if (etapasCards.length >= 6) {
-    valores.forEach(([nomeEtapa, qtd, statusOp], idx) => {
-      const etapaCanon = normalizarRotuloEtapa(nomeEtapa) || nomeEtapa;
-      etapasCards[idx].dataset.stageFilter = etapaCanon;
-      etapasCards[idx].className = `esteira__etapa ${obterClasseStatusEtapa(statusOp)}`;
-      const tituloSpan = etapasCards[idx].querySelector("span:not(.esteira__status)");
-      if (tituloSpan) tituloSpan.textContent = `${idx + 1}. ${traduzirEtapa(etapaCanon)}`;
-      const strong = etapasCards[idx].querySelector("strong");
-      if (strong) strong.textContent = qtd;
-      const statusSpan = etapasCards[idx].querySelector(".esteira__status");
-      if (statusSpan) statusSpan.textContent = formatarStatusOperacional(statusOp);
-    });
-  }
+  ultimasEtapasAPI = valores;
+  renderizarCardsAreaPrimaria(valores);
   atualizarBannerInspecaoMovimentacoes();
 }
 
@@ -3087,11 +3263,11 @@ function extrairResumoCardEtapa(etapaFiltro, cardEl) {
     const tempoOuPrancha =
       itemAPI.tempo_medio_permanencia_min !== undefined
         ? `Tempo médio: ${formatarNumero(itemAPI.tempo_medio_permanencia_min, 1)} min (Limite: ${formatarNumero(itemAPI.tempo_limite_min ?? 30, 0)} min)`
-        : "Etapa monitorada em tempo real";
+        : "Monitoramento em tempo real";
     const status = itemAPI.status_operacional ?? "NORMAL";
 
     return {
-      tipo: "Etapa da Esteira de Giro",
+      tipo: "Área Primária",
       nome: itemAPI.etapa ?? etapaFiltro,
       totalVeiculos,
       tempoOuPrancha,
@@ -3101,13 +3277,19 @@ function extrairResumoCardEtapa(etapaFiltro, cardEl) {
   }
 
   if (cardEl) {
-    const titulo = cardEl.querySelector("span")?.textContent?.trim() || etapaFiltro;
-    const totalVeiculos = cardEl.querySelector("strong")?.textContent?.trim() || "0";
+    const titulo =
+      cardEl.querySelector(".card-area-primaria__titulo")?.textContent?.trim() ||
+      cardEl.querySelector("span")?.textContent?.trim() ||
+      etapaFiltro;
+    const totalVeiculos =
+      cardEl.querySelector(".card-area-primaria__valor")?.textContent?.trim() ||
+      cardEl.querySelector("strong")?.textContent?.trim() ||
+      "0";
     const tempo = cardEl.querySelector(".esteira__tempo")?.textContent?.trim() || "Monitoramento em tempo real";
     const status = cardEl.querySelector(".esteira__status")?.textContent?.trim() || "NORMAL";
 
     return {
-      tipo: "Etapa da Esteira de Giro",
+      tipo: "Área Primária",
       nome: titulo,
       totalVeiculos,
       tempoOuPrancha: tempo,
@@ -3140,8 +3322,9 @@ function atualizarBannerInspecaoMovimentacoes() {
     (contextoInspecaoCard?.ehTransportadora || contextoInspecaoCard?.tipo === "Transportadora") &&
     carrierVal !== "all"
   );
+  const temInspecaoGrupo = Boolean(contextoInspecaoCard?.filtroGrupo);
 
-  if (!temInspecaoBerco && !temInspecaoEtapa && !temInspecaoAlerta && !temInspecaoCarrier) {
+  if (!temInspecaoBerco && !temInspecaoEtapa && !temInspecaoAlerta && !temInspecaoCarrier && !temInspecaoGrupo) {
     contextoInspecaoCard = null;
     banner.hidden = false;
     banner.innerHTML = `
@@ -3198,7 +3381,14 @@ function atualizarBannerInspecaoMovimentacoes() {
 
   banner.hidden = false;
   let metricasHtml = "";
-  if (resumo.ehAlerta) {
+  if (resumo.filtroGrupo) {
+    resumo.totalVeiculos = filteredMovements().length;
+    metricasHtml = `<span>Total agregado no card: <strong>${escaparHtml(resumo.totalVeiculos)} veículo(s)</strong></span>
+       <span>·</span>
+       <span>${escaparHtml(resumo.tempoOuPrancha)}</span>
+       <span>·</span>
+       <span>Registros exibidos: <strong>${escaparHtml(filteredMovements().length)} veículo(s)</strong></span>`;
+  } else if (resumo.ehAlerta) {
     metricasHtml = `<span>Ocorrência: <strong>${escaparHtml(resumo.tempoOuPrancha)}</strong></span>
        <span>·</span>
        <span>Registros exibidos: <strong>${escaparHtml(filteredMovements().length)}</strong></span>`;
@@ -3214,10 +3404,14 @@ function atualizarBannerInspecaoMovimentacoes() {
   }
 
   const rotuloLimpar = idiomaAtual === "en-US" ? "Clear filter and view all" : "Limpar filtro e ver todos";
+  const rotuloInspecao = resumo.filtroGrupo
+    ? (idiomaAtual === "en-US" ? "Inspecting Primary Area" : "Inspecionando Área Primária")
+    : `Inspecionando ${escaparHtml(resumo.tipo)}`;
+
   banner.innerHTML = `
     <div class="inspecao-banner__info">
       <div class="inspecao-banner__titulo">
-        <span>Inspecionando ${escaparHtml(resumo.tipo)}: <strong>${escaparHtml(resumo.nome)}</strong></span>
+        <span>${rotuloInspecao}: <strong>${escaparHtml(resumo.nome)}</strong></span>
         <span class="situacao ${classeBadge}">${escaparHtml(resumo.status)}</span>
       </div>
       <div class="inspecao-banner__metricas">
@@ -3338,6 +3532,53 @@ document.addEventListener("click", event => {
 
   const etapaCard = event.target.closest(".esteira__etapa");
   if (etapaCard) {
+    const selectUnidade = document.getElementById("movement-unidade");
+    const selectEtapa = document.getElementById("movement-etapa");
+    const selectDestino = document.getElementById("movement-destino");
+    const inputPlaca = document.getElementById("plate-filter");
+    const selectCarrier = document.getElementById("movement-carrier");
+    const selectOp = document.getElementById("movement-operation");
+
+    const groupFilter = etapaCard.dataset.groupFilter;
+    if (groupFilter) {
+      const tituloGrupo =
+        etapaCard.querySelector(".card-area-primaria__titulo")?.textContent?.trim() ||
+        etapaCard.querySelector("span")?.textContent?.trim() ||
+        groupFilter;
+      const totalVeiculos = typeof obterFonteVeiculosCompleta === "function"
+        ? obterFonteVeiculosCompleta().filter(v => pertenceAoGrupoAreaPrimaria(v.stage, groupFilter)).length
+        : Number(
+            String(etapaCard.querySelector(".card-area-primaria__valor, strong")?.textContent || "0").replace(/\D/g, "")
+          ) || 0;
+      const tempoOuPrancha =
+        etapaCard.querySelector(".esteira__tempo")?.textContent?.trim() || "Monitoramento em tempo real";
+      const status =
+        etapaCard.querySelector(".esteira__status")?.textContent?.trim() || "NORMAL";
+
+      const etapasPermitidas = obterEtapasDoGrupoAreaPrimaria(groupFilter);
+
+      contextoInspecaoCard = {
+        tipo: "Área Primária",
+        nome: tituloGrupo,
+        filtroGrupo: groupFilter,
+        etapasPermitidas,
+        totalVeiculos,
+        tempoOuPrancha,
+        status
+      };
+
+      if (selectUnidade) selectUnidade.value = "all";
+      if (selectDestino) selectDestino.value = "all";
+      if (selectEtapa) selectEtapa.value = "all";
+      if (inputPlaca) inputPlaca.value = "";
+      if (selectCarrier) selectCarrier.value = "all";
+      if (selectOp) selectOp.value = "all";
+
+      showPage("movements");
+      renderMovements();
+      return;
+    }
+
     const rawStage =
       etapaCard.dataset.stageFilter ||
       etapaCard.querySelector("span")?.textContent ||
@@ -3345,13 +3586,6 @@ document.addEventListener("click", event => {
     const etapaBruta = rawStage.replace(/^\d+\.\s*/, "").trim();
     const etapaFiltro = normalizarRotuloEtapa(etapaBruta) || etapaBruta;
     if (!etapaFiltro) return;
-
-    const selectUnidade = document.getElementById("movement-unidade");
-    const selectEtapa = document.getElementById("movement-etapa");
-    const selectDestino = document.getElementById("movement-destino");
-    const inputPlaca = document.getElementById("plate-filter");
-    const selectCarrier = document.getElementById("movement-carrier");
-    const selectOp = document.getElementById("movement-operation");
 
     if (selectUnidade) selectUnidade.value = "all";
     if (selectDestino) selectDestino.value = "all";
@@ -3857,7 +4091,13 @@ function filteredMovements() {
       normalizarTexto(item.carrier) === normalizarTexto(carrier);
     const matchOperation = coincidirOperacao(item.operation, operation);
     const matchDestino = coincidirDestino(item.flow, destino);
-    const matchEtapa = coincidirEtapa(item.stage, etapa);
+
+    let matchEtapa = true;
+    if (contextoInspecaoCard?.filtroGrupo) {
+      matchEtapa = pertenceAoGrupoAreaPrimaria(item.stage, contextoInspecaoCard.filtroGrupo);
+    } else {
+      matchEtapa = coincidirEtapa(item.stage, etapa);
+    }
 
     return (
       matchUnidade &&
@@ -5124,7 +5364,7 @@ function construirDadosRelatorio(tipoRelatorio) {
     ];
 
     notaContextual =
-      "Relatório Operacional de Veículos: Monitoramento de etapa na esteira, tempo de permanência (min), peso movimentado e alertas críticos.";
+      "Relatório Operacional de Veículos: Monitoramento de etapa do fluxo operacional / Área Primária, tempo de permanência (min), peso movimentado e alertas críticos.";
 
     linhasCSV = veiculosRecorte.map(v => {
       const placa = v.plate ?? v.Placa ?? "—";
@@ -5418,6 +5658,18 @@ function recalcularContadoresOverviewDelta(veiculo, delta) {
   }
 
   document.querySelectorAll(".grade-esteira .esteira__etapa").forEach(card => {
+    const groupFilter = card.dataset.groupFilter;
+    if (groupFilter) {
+      if (pertenceAoGrupoAreaPrimaria(veiculo.stage, groupFilter)) {
+        const strong = card.querySelector(".card-area-primaria__valor, strong");
+        if (strong) {
+          const qtdAtual = Number(String(strong.textContent).replace(/\D/g, "")) || 0;
+          strong.textContent = Math.max(0, qtdAtual + delta);
+        }
+      }
+      return;
+    }
+
     const rawStage =
       card.dataset.stageFilter || card.querySelector("span")?.textContent || "";
     if (coincidirEtapa(veiculo.stage, rawStage)) {
@@ -5447,7 +5699,12 @@ function atualizarContadoresOverviewComNovoVeiculo(novoVeiculo) {
   recalcularContadoresOverviewDelta(novoVeiculo, 1);
 }
 
+const atualizarContadoresAoAdicionarRemoverVeiculo = recalcularContadoresOverviewDelta;
+
 function atualizarInterfacesAposAlteracaoVeiculos() {
+  if (typeof renderizarCardsAreaPrimaria === "function") {
+    renderizarCardsAreaPrimaria(ultimasEtapasAPI);
+  }
   renderMovements();
   renderCarriers();
   atualizarPainelTransportadorasOverview();
@@ -6704,9 +6961,52 @@ if (languageSelectEl) {
   });
 }
 
+/* =========================================
+   FLUXOS OPERACIONAIS · COPI (ABAS INTERNAS)
+========================================= */
+
+function configurarAbasFluxosOperacionais() {
+  const container = document.getElementById("bloco-fluxos-operacionais");
+  if (!container) return;
+
+  const tabButtons = container.querySelectorAll(".fluxo-aba-btn");
+  const tabPanels = container.querySelectorAll(".fluxo-conteudo-aba");
+
+  if (!tabButtons.length || !tabPanels.length) return;
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const targetTab = btn.getAttribute("data-tab");
+      if (!targetTab) return;
+
+      tabButtons.forEach(b => {
+        const isCurrent = b === btn;
+        b.classList.toggle("fluxo-aba-btn--ativo", isCurrent);
+        b.setAttribute("aria-selected", isCurrent ? "true" : "false");
+      });
+
+      tabPanels.forEach(panel => {
+        const panelTab = panel.getAttribute("data-tab-content");
+        const isTarget = panelTab === targetTab;
+        panel.classList.toggle("fluxo-conteudo-aba--ativo", isTarget);
+        if (isTarget) {
+          panel.removeAttribute("hidden");
+        } else {
+          panel.setAttribute("hidden", "");
+        }
+      });
+    });
+  });
+}
+
+if (document.readyState === "complete" || document.readyState === "interactive") {
+  configurarAbasFluxosOperacionais();
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   aplicarIdiomaUI(idiomaAtual);
   inicializarConfiguracoesOperacionais();
+  configurarAbasFluxosOperacionais();
   sincronizarTodosEndpoints();
 });
 

@@ -311,53 +311,17 @@ body.tema--escuro #page-overview>.painel--alertas .alertas__item:hover,
    RESPONSIVIDADE DA VISÃO GERAL
 ===================================== */
 
-@media (max-width: 1250px) {
+/* Responsividade das seções da Visão Geral consolidada ao final do arquivo */
 
-    #page-overview .grade-indicadores--executivo,
-    .grade-bercos {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+/* =========================================================
+   MONITORAMENTO ÁREA PRIMÁRIA · MODAL CONVENCIONAL
+========================================================= */
 
-    .grade-esteira {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 900px) {
-    #page-overview .grade-paineis--graficos {
-        grid-template-columns: minmax(0, 1fr);
-    }
-}
-
-@media (max-width: 600px) {
-
-    #page-overview .grade-indicadores--executivo,
-    .grade-bercos {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .grade-esteira {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .visao-geral__cabecalho {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .berco {
-        padding: 16px;
-    }
-}
-
-/* =====================================
-   CORREÇÃO DA ESTEIRA DE GIRO
-===================================== */
-
-#page-overview .grade-esteira {
+#page-overview .grade-esteira,
+.grade-esteira {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
     width: 100%;
     margin-top: 14px;
 }
@@ -507,32 +471,708 @@ body.tema--escuro #page-overview .grade-esteira .esteira__etapa--critico .esteir
     border-color: rgba(239, 68, 68, 0.35);
 }
 
-/* RESPONSIVIDADE DA ESTEIRA */
+/* =========================================================
+   ESTILIZAÇÃO DOS 4 CARDS DA ÁREA PRIMÁRIA (MODO CLARO E ESCURO)
+========================================================= */
 
-@media (max-width: 1250px) {
-    #page-overview .grade-esteira {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+/* Estrutura e Hover dos Cards */
+#page-overview .grade-esteira .card-area-primaria,
+.grade-esteira .card-area-primaria {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 0;
+    min-height: 110px;
+    padding: 16px 12px;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-@media (max-width: 600px) {
-    #page-overview .grade-esteira {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+#page-overview .grade-esteira .card-area-primaria:hover,
+.grade-esteira .card-area-primaria:hover,
+#page-overview .grade-esteira .esteira__etapa:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+}
+
+#page-overview .grade-esteira .card-area-primaria .card-area-primaria__titulo {
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.25;
+    text-align: center;
+    color: #475569;
+}
+
+#page-overview .grade-esteira .card-area-primaria .card-area-primaria__valor {
+    font-size: 1.85rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #0F172A;
+}
+
+#page-overview .grade-esteira .card-area-primaria .esteira__tempo {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #64748B;
+    line-height: 1.2;
+}
+
+/* Status Badges das Etapas */
+.esteira__status--normal {
+    color: #15803D !important;
+    background-color: #DCFCE7 !important;
+    border: 1px solid #BBF7D0 !important;
+}
+
+.esteira__status--atencao {
+    color: #B45309 !important;
+    background-color: #FEF3C7 !important;
+    border: 1px solid #FDE68A !important;
+}
+
+.esteira__status--critico {
+    color: #B91C1C !important;
+    background-color: #FEE2E2 !important;
+    border: 1px solid #FECACA !important;
+}
+
+/* Card 1 — Total na Área Primária (Cinza/Ardósia) */
+#page-overview .grade-esteira .card-area-primaria--total,
+.card-area-primaria--total {
+    background-color: #F1F5F9 !important;
+    border: 1px solid #CBD5E1 !important;
+    border-top: 3px solid #64748B !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria--total,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--total,
+.dark #page-overview .grade-esteira .card-area-primaria--total {
+    background-color: rgba(100, 116, 139, 0.16) !important;
+    border: 1px solid rgba(148, 163, 184, 0.35) !important;
+    border-top: 3px solid #94A3B8 !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria--total .card-area-primaria__titulo,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--total .card-area-primaria__titulo,
+.dark #page-overview .grade-esteira .card-area-primaria--total .card-area-primaria__titulo {
+    color: #CBD5E1 !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria--total .card-area-primaria__valor,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--total .card-area-primaria__valor,
+.dark #page-overview .grade-esteira .card-area-primaria--total .card-area-primaria__valor {
+    color: #F8FAFC !important;
+}
+
+/* Card 2 — Sem passar no Coletor (Azul) */
+#page-overview .grade-esteira .card-area-primaria--sem-coletor,
+.card-area-primaria--sem-coletor {
+    background-color: #EFF6FF !important;
+    border: 1px solid #BFDBFE !important;
+    border-top: 3px solid #2563EB !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria--sem-coletor,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--sem-coletor,
+.dark #page-overview .grade-esteira .card-area-primaria--sem-coletor {
+    background-color: rgba(37, 99, 235, 0.16) !important;
+    border: 1px solid rgba(59, 130, 246, 0.35) !important;
+    border-top: 3px solid #60A5FA !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria--sem-coletor .card-area-primaria__titulo,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--sem-coletor .card-area-primaria__titulo,
+.dark #page-overview .grade-esteira .card-area-primaria--sem-coletor .card-area-primaria__titulo {
+    color: #93C5FD !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria--sem-coletor .card-area-primaria__valor,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--sem-coletor .card-area-primaria__valor,
+.dark #page-overview .grade-esteira .card-area-primaria--sem-coletor .card-area-primaria__valor {
+    color: #F8FAFC !important;
+}
+
+/* Card 3 — Entre Coletor e Balança (Vermelho/Vinho suave) */
+#page-overview .grade-esteira .card-area-primaria--coletor-balanca,
+.card-area-primaria--coletor-balanca {
+    background-color: #FFF1F2 !important;
+    border: 1px solid #FECDD3 !important;
+    border-top: 3px solid #E11D48 !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria--coletor-balanca,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--coletor-balanca,
+.dark #page-overview .grade-esteira .card-area-primaria--coletor-balanca {
+    background-color: rgba(225, 29, 72, 0.16) !important;
+    border: 1px solid rgba(244, 63, 94, 0.35) !important;
+    border-top: 3px solid #FB7185 !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria--coletor-balanca .card-area-primaria__titulo,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--coletor-balanca .card-area-primaria__titulo,
+.dark #page-overview .grade-esteira .card-area-primaria--coletor-balanca .card-area-primaria__titulo {
+    color: #FDA4AF !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria--coletor-balanca .card-area-primaria__valor,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--coletor-balanca .card-area-primaria__valor,
+.dark #page-overview .grade-esteira .card-area-primaria--coletor-balanca .card-area-primaria__valor {
+    color: #F8FAFC !important;
+}
+
+/* Card 4 — Entre Balança e PAN (Verde) */
+#page-overview .grade-esteira .card-area-primaria--balanca-pan,
+.card-area-primaria--balanca-pan {
+    background-color: #F0FDF4 !important;
+    border: 1px solid #BBF7D0 !important;
+    border-top: 3px solid #16A34A !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria--balanca-pan,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--balanca-pan,
+.dark #page-overview .grade-esteira .card-area-primaria--balanca-pan {
+    background-color: rgba(22, 163, 74, 0.16) !important;
+    border: 1px solid rgba(34, 197, 94, 0.35) !important;
+    border-top: 3px solid #4ADE80 !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria--balanca-pan .card-area-primaria__titulo,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--balanca-pan .card-area-primaria__titulo,
+.dark #page-overview .grade-esteira .card-area-primaria--balanca-pan .card-area-primaria__titulo {
+    color: #86EFAC !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria--balanca-pan .card-area-primaria__valor,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--balanca-pan .card-area-primaria__valor,
+.dark #page-overview .grade-esteira .card-area-primaria--balanca-pan .card-area-primaria__valor {
+    color: #F8FAFC !important;
+}
+
+/* Status Badges no Modo Escuro */
+body.tema--escuro .esteira__status--normal,
+[data-theme="dark"] .esteira__status--normal,
+.dark .esteira__status--normal {
+    color: #4ADE80 !important;
+    background-color: rgba(34, 197, 94, 0.2) !important;
+    border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+body.tema--escuro .esteira__status--atencao,
+[data-theme="dark"] .esteira__status--atencao,
+.dark .esteira__status--atencao {
+    color: #FBBF24 !important;
+    background-color: rgba(245, 158, 11, 0.2) !important;
+    border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+body.tema--escuro .esteira__status--critico,
+[data-theme="dark"] .esteira__status--critico,
+.dark .esteira__status--critico {
+    color: #F87171 !important;
+    background-color: rgba(239, 68, 68, 0.2) !important;
+    border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+/* Tempo no Modo Escuro */
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria .esteira__tempo,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria .esteira__tempo,
+.dark #page-overview .grade-esteira .card-area-primaria .esteira__tempo {
+    color: #94A3B8 !important;
 }
 
 /* =========================================================
-   MONITOR VERTICAL DE SALA DE CONTROLE (1080x1920 PORTRAIT)
+   RESPONSIVIDADE: TELAS VERTICAIS E TABLETS (<= 1200px)
 ========================================================= */
 
-@media (min-width: 900px) and (max-width: 1200px) and (orientation: portrait) {
-    #page-overview .grade-indicadores--executivo {
+@media (max-width: 1200px), (orientation: portrait) and (max-width: 1200px) {
+    #page-overview .grade-indicadores--executivo,
+    .grade-indicadores {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 14px !important;
+    }
+
+    .grade-bercos {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 14px !important;
+    }
+
+    #page-overview .grade-esteira,
+    .grade-esteira {
+        grid-template-columns: repeat(2, 1fr) !important;
         gap: 14px !important;
     }
 
     #page-overview .grade-paineis--graficos {
         grid-template-columns: 1fr !important;
         gap: 16px !important;
+    }
+}
+
+/* =========================================================
+   RESPONSIVIDADE: MOBILE E TELAS PEQUENAS (<= 768px)
+========================================================= */
+
+@media (max-width: 768px) {
+    #page-overview .grade-indicadores--executivo,
+    .grade-indicadores,
+    .grade-bercos,
+    #page-overview .grade-esteira,
+    .grade-esteira {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+
+    .visao-geral__cabecalho {
+        align-items: flex-start !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+
+    .berco {
+        padding: 16px !important;
+    }
+}
+
+/* =========================================================
+   BLOCO: FLUXOS OPERACIONAIS · COPI
+========================================================= */
+
+.fluxos-operacionais {
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    border-radius: 12px;
+    background: var(--cor-superficie);
+    border: 1px solid var(--cor-borda);
+    box-shadow: var(--sombra-padrao);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.fluxos-operacionais__cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--cor-borda);
+}
+
+.fluxos-operacionais__titulos {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.fluxos-operacionais__titulo {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--cor-texto);
+    margin: 0;
+    line-height: 1.3;
+}
+
+.fluxos-operacionais__subtitulo {
+    font-size: 0.78rem;
+    color: var(--cor-texto-secundario);
+    margin: 0;
+}
+
+/* Segmented Control / Pílula */
+.fluxos-operacionais__abas {
+    display: inline-flex;
+    align-items: center;
+    background: var(--cor-fundo);
+    border: 1px solid var(--cor-borda);
+    border-radius: 20px;
+    padding: 3px;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.fluxo-aba-btn {
+    border: none;
+    background: transparent;
+    color: var(--cor-texto-secundario);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    outline: none;
+    user-select: none;
+    font-family: inherit;
+}
+
+.fluxo-aba-btn:hover:not(.fluxo-aba-btn--ativo) {
+    color: var(--cor-texto);
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.fluxo-aba-btn--ativo {
+    background: var(--cor-superficie) !important;
+    color: var(--cor-primaria) !important;
+    font-weight: 700;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Painel da Aba */
+.fluxo-conteudo-aba {
+    display: block;
+}
+
+.fluxo-conteudo-aba[hidden] {
+    display: none !important;
+}
+
+.fluxo-subcabecalho {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.fluxo-subcabecalho__badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--cor-primaria);
+    background: var(--cor-primaria-suave);
+    padding: 3px 8px;
+    border-radius: 6px;
+}
+
+/* Linha de Etapas (Desktop >= 1201px: linha horizontal fluida) */
+.fluxo-etapas {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 6px;
+    width: 100%;
+}
+
+.fluxo-etapa {
+    flex: 1 1 0;
+    min-width: 0;
+    background: var(--cor-fundo-secundario);
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.fluxo-etapa:hover {
+    border-color: #94a3b8;
+    transform: translateY(-1px);
+}
+
+.fluxo-etapa__numero {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--cor-primaria-suave);
+    color: var(--cor-primaria);
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.fluxo-etapa__info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.fluxo-etapa__nome {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--cor-texto);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fluxo-etapa__desc {
+    font-size: 0.68rem;
+    color: var(--cor-texto-secundario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Destaque COPI */
+.fluxo-etapa--copi {
+    background: #f0f7ff;
+    border-color: #93c5fd;
+    box-shadow: 0 1px 4px rgba(37, 99, 235, 0.08);
+}
+
+.fluxo-etapa--copi .fluxo-etapa__numero {
+    background: var(--cor-primaria);
+    color: #ffffff;
+}
+
+.fluxo-etapa__tag-copi {
+    position: absolute;
+    top: -6px;
+    right: 6px;
+    background: var(--cor-primaria);
+    color: #ffffff;
+    font-size: 0.58rem;
+    font-weight: 800;
+    padding: 1px 4px;
+    border-radius: 3px;
+    letter-spacing: 0.4px;
+    line-height: 1.1;
+}
+
+/* Seta separadora */
+.fluxo-seta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cor-texto-desabilitado);
+    font-size: 0.85rem;
+    font-weight: 700;
+    user-select: none;
+    flex-shrink: 0;
+    padding: 0 1px;
+}
+
+/* Rodapé com badges */
+.fluxo-rodape {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--cor-borda);
+}
+
+.fluxo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--cor-texto-secundario);
+    background: var(--cor-fundo);
+    border: 1px solid var(--cor-borda);
+    padding: 3px 9px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.fluxo-badge--destaque {
+    background: var(--cor-primaria-suave);
+    color: var(--cor-primaria);
+    border-color: transparent;
+    font-weight: 600;
+}
+
+/* =========================================================
+   TEMA ESCURO: FLUXOS OPERACIONAIS
+========================================================= */
+
+body.tema--escuro .fluxos-operacionais,
+[data-theme="dark"] .fluxos-operacionais,
+.dark .fluxos-operacionais {
+    background: var(--cor-superficie);
+    border-color: var(--cor-borda);
+}
+
+body.tema--escuro .fluxos-operacionais__cabecalho,
+[data-theme="dark"] .fluxos-operacionais__cabecalho,
+.dark .fluxos-operacionais__cabecalho {
+    border-color: var(--cor-borda);
+}
+
+body.tema--escuro .fluxos-operacionais__abas,
+[data-theme="dark"] .fluxos-operacionais__abas,
+.dark .fluxos-operacionais__abas {
+    background: #191c22;
+    border-color: var(--cor-borda);
+}
+
+body.tema--escuro .fluxo-aba-btn:hover:not(.fluxo-aba-btn--ativo),
+[data-theme="dark"] .fluxo-aba-btn:hover:not(.fluxo-aba-btn--ativo),
+.dark .fluxo-aba-btn:hover:not(.fluxo-aba-btn--ativo) {
+    color: var(--cor-texto);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body.tema--escuro .fluxo-aba-btn--ativo,
+[data-theme="dark"] .fluxo-aba-btn--ativo,
+.dark .fluxo-aba-btn--ativo {
+    background: #242830 !important;
+    color: #60a5fa !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+body.tema--escuro .fluxo-subcabecalho__badge,
+[data-theme="dark"] .fluxo-subcabecalho__badge,
+.dark .fluxo-subcabecalho__badge {
+    background: #1e293b;
+    color: #60a5fa;
+}
+
+body.tema--escuro .fluxo-etapa,
+[data-theme="dark"] .fluxo-etapa,
+.dark .fluxo-etapa {
+    background: #191c22;
+    border-color: var(--cor-borda);
+}
+
+body.tema--escuro .fluxo-etapa:hover,
+[data-theme="dark"] .fluxo-etapa:hover,
+.dark .fluxo-etapa:hover {
+    border-color: #475569;
+}
+
+body.tema--escuro .fluxo-etapa__numero,
+[data-theme="dark"] .fluxo-etapa__numero,
+.dark .fluxo-etapa__numero {
+    background: #1e293b;
+    color: #60a5fa;
+}
+
+body.tema--escuro .fluxo-etapa--copi,
+[data-theme="dark"] .fluxo-etapa--copi,
+.dark .fluxo-etapa--copi {
+    background: #172554;
+    border-color: #2563eb;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+body.tema--escuro .fluxo-etapa--copi .fluxo-etapa__numero,
+[data-theme="dark"] .fluxo-etapa--copi .fluxo-etapa__numero,
+.dark .fluxo-etapa--copi .fluxo-etapa__numero {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+body.tema--escuro .fluxo-etapa__tag-copi,
+[data-theme="dark"] .fluxo-etapa__tag-copi,
+.dark .fluxo-etapa__tag-copi {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+body.tema--escuro .fluxo-seta,
+[data-theme="dark"] .fluxo-seta,
+.dark .fluxo-seta {
+    color: #64748b;
+}
+
+body.tema--escuro .fluxo-rodape,
+[data-theme="dark"] .fluxo-rodape,
+.dark .fluxo-rodape {
+    border-color: var(--cor-borda);
+}
+
+body.tema--escuro .fluxo-badge,
+[data-theme="dark"] .fluxo-badge,
+.dark .fluxo-badge {
+    background: #191c22;
+    border-color: var(--cor-borda);
+    color: var(--cor-texto-secundario);
+}
+
+body.tema--escuro .fluxo-badge--destaque,
+[data-theme="dark"] .fluxo-badge--destaque,
+.dark .fluxo-badge--destaque {
+    background: #1e293b;
+    color: #60a5fa;
+    border-color: transparent;
+}
+
+/* =========================================================
+   RESPONSIVIDADE: FLUXOS OPERACIONAIS
+========================================================= */
+
+@media (max-width: 1200px), (orientation: portrait) and (max-width: 1200px) {
+    .fluxos-operacionais__cabecalho {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .fluxos-operacionais__abas {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .fluxo-etapas {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    .fluxo-seta {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .fluxos-operacionais {
+        padding: 12px 14px;
+    }
+
+    .fluxos-operacionais__abas {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        border-radius: 12px;
+        padding: 4px;
+    }
+
+    .fluxo-aba-btn {
+        flex: 1 1 auto;
+        text-align: center;
+        padding: 6px 8px;
+        font-size: 0.72rem;
+    }
+
+    .fluxo-etapas {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    .fluxo-etapa {
+        padding: 8px;
+    }
+
+    .fluxo-rodape {
+        gap: 6px;
+    }
+
+    .fluxo-badge {
+        font-size: 0.68rem;
+        padding: 2px 7px;
+    }
+}
+
+@media (max-width: 440px) {
+    .fluxo-etapas {
+        grid-template-columns: 1fr !important;
     }
 }

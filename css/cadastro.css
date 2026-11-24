@@ -441,11 +441,17 @@ body.tema--escuro .cadastro__item-local .btn-remover-registro:hover,
 }
 
 /* =========================================================
-   MONITOR VERTICAL DE SALA DE CONTROLE (1080x1920 PORTRAIT)
+   RESPONSIVIDADE: TELAS VERTICAIS E TABLETS (<= 1200px)
 ========================================================= */
 
-@media (min-width: 900px) and (max-width: 1200px) and (orientation: portrait) {
+@media (max-width: 1200px), (orientation: portrait) and (max-width: 1200px) {
   .cadastro__formulario {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .cadastro__formulario {
+    grid-template-columns: 1fr !important;
   }
 }

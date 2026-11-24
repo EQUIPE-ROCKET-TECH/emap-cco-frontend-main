@@ -702,10 +702,10 @@ body.tema--escuro .modal-relatorio__tabela tr:hover th,
 }
 
 /* =========================================================
-   MONITOR VERTICAL DE SALA DE CONTROLE (1080x1920 PORTRAIT)
+   RESPONSIVIDADE: TELAS VERTICAIS E TABLETS (<= 1200px)
 ========================================================= */
 
-@media (min-width: 900px) and (max-width: 1200px) and (orientation: portrait) {
+@media (max-width: 1200px), (orientation: portrait) and (max-width: 1200px) {
   dialog.modal-relatorio,
   #report-details-modal {
     width: 94vw !important;

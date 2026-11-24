@@ -1,24 +1,30 @@
-/* RESPONSIVIDADE - TELAS MÉDIAS */
+/* RESPONSIVIDADE - TELAS VERTICAIS E TABLETS (<= 1200px) */
 
-@media (max-width: 1250px) {
+@media (max-width: 1200px), (orientation: portrait) and (max-width: 1200px) {
 
   .barra-lateral {
 
-    width: 205px;
+    width: 195px;
+
+    padding: 20px 10px 16px;
 
   }
 
   .conteudo-principal {
 
-    margin-left: 205px;
+    margin-left: 195px;
 
     padding-inline: 18px;
 
+    max-width: calc(100vw - 195px);
+
   }
 
-  .grade-indicadores {
+  .grade-indicadores,
+  .grade-esteira,
+  .grade-bercos {
 
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
 
   }
 
@@ -54,9 +60,9 @@
 
 }
 
-/* RESPONSIVIDADE - TABLETS */
+/* RESPONSIVIDADE - MOBILE E TELAS PEQUENAS (<= 768px) */
 
-@media (max-width: 850px) {
+@media (max-width: 768px) {
 
   .barra-lateral {
 
@@ -164,6 +170,14 @@
   .grade-configuracoes {
 
     grid-template-columns: 1fr;
+
+  }
+
+  .grade-indicadores,
+  .grade-esteira,
+  .grade-bercos {
+
+    grid-template-columns: 1fr !important;
 
   }
 

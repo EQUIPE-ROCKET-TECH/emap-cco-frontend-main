@@ -58,6 +58,7 @@ let cacheTodosVeiculosAPI = null;
 let veiculosAtivosAPI = null;
 let ultimoResumoAPI = null;
 let ultimosBercosAPI = [];
+let fluxoOperacionalAtivo = "convencional"; // "convencional" | "mecanizado" | "expedicao"
 let ultimasEtapasAPI = [];
 let alertasAtivosAPI = [];
 let ultimosAlertasBrutos = [];
@@ -71,6 +72,7 @@ let alertasResolvidosMetaLocal = carregarAlertasResolvidosMetaLocal();
 let alertasEditadosLocal = carregarAlertasEditadosLocal();
 const mapaAlertasRenderizados = new Map();
 let alertaPendenteResolucao = null;
+let abaAlertasAtiva = "ativos"; // "ativos" | "editados"
 
 function carregarAlertasEditadosLocal() {
   try {
@@ -157,9 +159,89 @@ function obterChaveUnicaAlerta(alerta) {
   return `${tipoChave || "ALERTA"}::${placa || "SEM_PLACA"}`;
 }
 
+function avaliarStatusEdicaoAlerta(chaveAlerta, edicao, alertaBruto = null) {
+  if (!edicao || typeof edicao !== "object") {
+    return { ehPeso: false, ehTempo: false, sanado: false };
+  }
+
+  const tipoRaw =
+    alertaBruto && typeof alertaBruto === "object"
+      ? String(alertaBruto.tipo_anomalia ?? alertaBruto.tipo_alerta ?? "").toUpperCase()
+      : String(edicao.tipo || "").toUpperCase();
+  const excessoKg =
+    alertaBruto && typeof alertaBruto === "object"
+      ? Number(alertaBruto.excesso_peso_kg ?? alertaBruto.excesso_peso ?? 0)
+      : 0;
+
+  const valorAtualStr = String(edicao.valorAtual || "").trim();
+  const ehPeso =
+    String(chaveAlerta || "").startsWith("SOBREPESO::") ||
+    tipoRaw.includes("SOBREPESO") ||
+    tipoRaw.includes("PESO") ||
+    excessoKg > 0 ||
+    /\bkg\b/i.test(valorAtualStr);
+  const ehTempo =
+    String(chaveAlerta || "").startsWith("RETENCAO_PRC::") ||
+    tipoRaw.includes("PRC") ||
+    tipoRaw.includes("RETENCAO") ||
+    /\bmin\b/i.test(valorAtualStr);
+
+  if (ehPeso && valorAtualStr) {
+    const pesoEditNum = converterPesoParaNumero(valorAtualStr);
+    const limiteConfigSobrepeso = Number(configOperacionalCCO?.limiteSobrepesoKg) || 48500;
+    const limiteBrutoNum =
+      alertaBruto && typeof alertaBruto === "object" && Number(alertaBruto.limite_permitido) > 0
+        ? Number(alertaBruto.limite_permitido)
+        : null;
+    const limiteEdicaoNum = converterPesoParaNumero(
+      String(edicao?.original?.limite || edicao?.limite || "").split("·")[0]
+    );
+    const limiteBaseNum = limiteBrutoNum || limiteEdicaoNum || limiteConfigSobrepeso;
+    const sanado = pesoEditNum !== null && pesoEditNum <= limiteBaseNum;
+    return { ehPeso: true, ehTempo: false, valorNum: pesoEditNum, limiteBaseNum, sanado };
+  }
+
+  if (ehTempo && valorAtualStr) {
+    const matchMin = valorAtualStr.replace(/\./g, "").match(/(\d+(?:[.,]\d+)?)/);
+    const minsNum = matchMin ? Number(matchMin[1].replace(",", ".")) : null;
+    const limiteConfigPrc = Number(configOperacionalCCO?.limiteRetencaoPrcMin) || 120;
+    const limiteBrutoMin =
+      alertaBruto && typeof alertaBruto === "object" && Number(alertaBruto.limite_permitido) > 0
+        ? Number(alertaBruto.limite_permitido)
+        : null;
+    const matchLimEd = String(edicao?.original?.limite || edicao?.limite || "")
+      .replace(/\./g, "")
+      .match(/(\d+(?:[.,]\d+)?)/);
+    const limiteEdMin = matchLimEd ? Number(matchLimEd[1].replace(",", ".")) : null;
+    const limiteBaseNum =
+      limiteBrutoMin || (Number.isFinite(limiteEdMin) && limiteEdMin > 0 ? limiteEdMin : null) || limiteConfigPrc;
+    const sanado = minsNum !== null && Number.isFinite(minsNum) && minsNum <= limiteBaseNum;
+    return { ehPeso: false, ehTempo: true, valorNum: minsNum, limiteBaseNum, sanado };
+  }
+
+  return { ehPeso, ehTempo, sanado: false };
+}
+
+function alertaFoiSanadoPorEdicao(alerta) {
+  const chave = obterChaveUnicaAlerta(alerta);
+  const edicao = alertasEditadosLocal?.[chave];
+  if (!edicao) return false;
+  return Boolean(
+    avaliarStatusEdicaoAlerta(chave, edicao, typeof alerta === "object" ? alerta : null).sanado
+  );
+}
+
 function filtrarAlertasNaoResolvidos(listaAlertas) {
   const lista = Array.isArray(listaAlertas) ? listaAlertas : [];
-  return lista.filter(alerta => !alertasResolvidosLocal.has(obterChaveUnicaAlerta(alerta)));
+  return lista.filter(alerta => {
+    if (alertasResolvidosLocal.has(obterChaveUnicaAlerta(alerta))) {
+      return false;
+    }
+    if (alertaFoiSanadoPorEdicao(alerta)) {
+      return false;
+    }
+    return true;
+  });
 }
 
 function atualizarBotaoRestaurarAlertas() {
@@ -1392,6 +1474,99 @@ function pertenceAoGrupoAreaPrimaria(stage, grupo) {
   return etapas.some(etapaAlvo => coincidirEtapa(stage, etapaAlvo));
 }
 
+function ehVeiculoExpedicao(item) {
+  if (!item) return false;
+  return (
+    coincidirDestino(item.flow, "Expedição") ||
+    coincidirOperacao(item.operation, "Expedição") ||
+    normalizarTexto(item.stage).includes("gate in")
+  );
+}
+
+function ehVeiculoMecanizado(item) {
+  if (!item) return false;
+  return coincidirDestino(item.flow, "Berço 101");
+}
+
+function ehVeiculoConvencional(item) {
+  if (!item) return false;
+  if (ehVeiculoExpedicao(item)) return false;
+  if (ehVeiculoMecanizado(item)) return false;
+  return coincidirOperacao(item.operation, "Recebimento");
+}
+
+function pertenceAoGrupoExpedicao(stage, grupo) {
+  if (!grupo) return false;
+  if (grupo === "total") return true;
+  if (!stage) return false;
+  const norm = normalizarTexto(stage);
+  if (grupo === "sem_coletor") {
+    return (
+      pertenceAoGrupoAreaPrimaria(stage, "sem_coletor") ||
+      norm.includes("gate in") ||
+      norm.includes("triagem")
+    );
+  }
+  if (grupo === "coletor_balanca") {
+    return (
+      pertenceAoGrupoAreaPrimaria(stage, "coletor_balanca") ||
+      norm.includes("carregamento") ||
+      norm.includes("box")
+    );
+  }
+  if (grupo === "balanca_pan") {
+    return (
+      pertenceAoGrupoAreaPrimaria(stage, "balanca_pan") ||
+      coincidirEtapa(stage, "Gate-out")
+    );
+  }
+  return false;
+}
+
+function pertenceAoCardAreaPrimaria(item, grupo, fluxo = "convencional") {
+  if (!item || !grupo) return false;
+  const fluxoNorm = normalizarFluxoOperacional(fluxo);
+  if (fluxoNorm === "expedicao") {
+    if (!ehVeiculoExpedicao(item)) return false;
+    return pertenceAoGrupoExpedicao(item.stage, grupo);
+  }
+  if (fluxoNorm === "mecanizado") {
+    return ehVeiculoMecanizado(item);
+  }
+  if (!ehVeiculoConvencional(item)) return false;
+  return pertenceAoGrupoAreaPrimaria(item.stage, grupo);
+}
+
+function obterTempoMinutosVeiculo(v) {
+  if (!v) return null;
+  const raw = v.durationMin ?? v.tempo_permanencia_min ?? v.tempo_permanencia;
+  if (raw !== null && raw !== undefined && raw !== "" && Number.isFinite(Number(raw))) {
+    return Number(raw);
+  }
+  if (typeof extrairMinutosDeTexto === "function" && v.duration) {
+    const extraido = extrairMinutosDeTexto(v.duration);
+    if (Number.isFinite(extraido)) return extraido;
+  }
+  return null;
+}
+
+function calcularMediaTempoVeiculos(lista) {
+  const tempos = (Array.isArray(lista) ? lista : [])
+    .map(obterTempoMinutosVeiculo)
+    .filter(n => n !== null && Number.isFinite(n) && n >= 0);
+  if (!tempos.length) return 0;
+  return tempos.reduce((acc, val) => acc + val, 0) / tempos.length;
+}
+
+function calcularStatusTempoAreaPrimaria(media, limite) {
+  const m = Number(media) || 0;
+  const l = Number(limite) || 0;
+  if (l <= 0) return "NORMAL";
+  if (m > l) return "CRITICO";
+  if (m >= l * 0.8) return "ATENCAO";
+  return "NORMAL";
+}
+
 function coincidirOperacao(itemOp, filtroOp) {
   if (!filtroOp || filtroOp === "all") return true;
   const opItem = normalizarTexto(itemOp);
@@ -1732,12 +1907,30 @@ function buscarAlertaPorPlaca(placa) {
 }
 
 const LIMIARES_ATENCAO_SLA_MIN = {
-  "Fila PRC": 96,
-  "Operação": 72,
-  "PAN": 48,
-  "Balança Tara": 36,
-  "Balança Bruto": 24
+  "Fila PRC": 60,
+  "Pátio": 60,
+  "Operação": 35,
+  "PAN": 25,
+  "Balança Tara": 25,
+  "Balança Bruto": 25
 };
+
+function obterLimiteEtapaConfigurado(etapaCanon, limiteRetencaoPrc) {
+  if (!etapaCanon) return undefined;
+  const etapasAPI = Array.isArray(ultimasEtapasAPI) ? ultimasEtapasAPI : [];
+  const matchAPI = etapasAPI.find(item => {
+    const nome = normalizarRotuloEtapa(item?.etapa ?? item?.nome ?? item?.[0] ?? "");
+    return nome && nome === etapaCanon;
+  });
+  const limiteAPI = Number(matchAPI?.tempo_limite_min ?? matchAPI?.tempo_limite ?? 0);
+  if (Number.isFinite(limiteAPI) && limiteAPI > 0) {
+    return limiteAPI;
+  }
+  if (etapaCanon === "Fila PRC" || etapaCanon === "Pátio") {
+    return Math.min(60, Math.round(limiteRetencaoPrc * 0.8));
+  }
+  return LIMIARES_ATENCAO_SLA_MIN[etapaCanon];
+}
 
 function resolverAlertaVeiculo(item) {
   const limiteSobrepeso = Number(configOperacionalCCO?.limiteSobrepesoKg) || 48500;
@@ -1771,15 +1964,33 @@ function resolverAlertaVeiculo(item) {
 
   const excessoInformado =
     alertaMatch?.excesso_peso_kg ?? item?.excesso_peso_kg ?? item?.excesso_peso ?? null;
-  const pesoRealEstimado = item?._pesoEditadoManualmente
-    ? pesoNum
-    : pesoNum !== null && pesoNum > 35000
-    ? pesoNum
+  let pesoFoiEditado = Boolean(item?._pesoEditadoManualmente);
+  let pesoEfetivoNum = pesoNum;
+  if (!pesoFoiEditado && placa) {
+    const edicoesPlaca = obterEdicoesAlertaPorPlaca(placa);
+    for (const { chave: chaveEd, edicao } of edicoesPlaca) {
+      if (
+        edicao?.valorAtual &&
+        edicao.valorAtual !== "—" &&
+        (chaveEd.startsWith("SOBREPESO::") || /\bkg\b/i.test(edicao.valorAtual))
+      ) {
+        const pesoEditado = converterPesoParaNumero(edicao.valorAtual);
+        if (pesoEditado !== null) {
+          pesoEfetivoNum = pesoEditado;
+          pesoFoiEditado = true;
+        }
+      }
+    }
+  }
+  const pesoRealEstimado = pesoFoiEditado
+    ? pesoEfetivoNum
+    : pesoEfetivoNum !== null && pesoEfetivoNum > 35000
+    ? pesoEfetivoNum
     : excessoInformado !== null && Number(excessoInformado) > 0
     ? 48500 + Number(excessoInformado)
-    : pesoNum;
+    : pesoEfetivoNum;
 
-  const ehSobrepeso = item?._pesoEditadoManualmente
+  const ehSobrepeso = pesoFoiEditado
     ? pesoRealEstimado !== null && pesoRealEstimado > limiteSobrepeso
     : (pesoRealEstimado !== null && pesoRealEstimado > limiteSobrepeso) ||
       ((tipoAnomalia.includes("SOBREPESO") ||
@@ -1835,6 +2046,7 @@ function resolverAlertaVeiculo(item) {
     !tipoAnomalia.includes("SOBREPESO") &&
     !tipoAnomalia.includes("PRC") &&
     !tipoAnomalia.includes("RETENCAO") &&
+    !(pesoFoiEditado && !ehSobrepeso && !tipoAnomalia) &&
     (alertaMatch || item?.possui_alerta === true || item?.status === "Parado")
   ) {
     const rotulo =
@@ -1867,11 +2079,8 @@ function resolverAlertaVeiculo(item) {
 
   const possuiCritico = badgesVisiveis.some(b => b.nivel === "critico");
   if (!possuiCritico) {
-    const limiarAtencao =
-      etapaCanon === "Fila PRC"
-        ? Math.round(limiteRetencaoPrc * 0.8)
-        : LIMIARES_ATENCAO_SLA_MIN[etapaCanon];
-    if (limiarAtencao !== undefined && tempoMin >= limiarAtencao) {
+    const limiarAtencao = obterLimiteEtapaConfigurado(etapaCanon, limiteRetencaoPrc);
+    if (limiarAtencao !== undefined && tempoMin > limiarAtencao) {
       const labelSla = idiomaAtual === "en-US" ? "SLA Warning" : "Atenção SLA";
       badgesVisiveis.push({
         tipo: "ATENCAO_SLA",
@@ -2307,16 +2516,209 @@ async function carregarAlertasVeiculos() {
   }
 }
 
+function atualizarAbasAlertasUI(qtdAtivos, qtdEditados) {
+  const isEn = idiomaAtual === "en-US";
+  const btnAtivos = document.getElementById("tab-alertas-ativos");
+  const btnEditados = document.getElementById("tab-alertas-editados");
+
+  if (btnAtivos) {
+    const ativo = abaAlertasAtiva !== "editados";
+    btnAtivos.textContent = isEn ? `Active (${qtdAtivos})` : `Ativos (${qtdAtivos})`;
+    btnAtivos.classList.toggle("alertas__aba-btn--ativo", ativo);
+    btnAtivos.setAttribute("aria-selected", ativo ? "true" : "false");
+  }
+
+  if (btnEditados) {
+    const ativo = abaAlertasAtiva === "editados";
+    btnEditados.textContent = isEn ? `Edited (${qtdEditados})` : `Editados (${qtdEditados})`;
+    btnEditados.classList.toggle("alertas__aba-btn--ativo", ativo);
+    btnEditados.setAttribute("aria-selected", ativo ? "true" : "false");
+  }
+}
+
+function renderizarItensAlertasEditadosHTML(entradasEditadas, listaBruta) {
+  const isEn = idiomaAtual === "en-US";
+  if (!entradasEditadas.length) {
+    return `
+      <div class="alertas__item alertas__item--vazio-editados">
+        <span class="alertas__icone">✎</span>
+        <div class="alertas__conteudo">
+          <strong>${isEn ? "No edited alerts" : "Nenhum alerta editado"}</strong>
+          <p>${
+            isEn
+              ? "Alerts adjusted by the operator will appear here."
+              : "Alertas ajustados pelo operador aparecerão nesta aba."
+          }</p>
+        </div>
+      </div>
+    `;
+  }
+
+  const fonteVeiculos =
+    typeof obterFonteVeiculosCompleta === "function"
+      ? obterFonteVeiculosCompleta()
+      : cacheTodosVeiculosAPI || veiculosAtivosAPI || [];
+  const labelEditar = isEn ? "Edit" : "Editar";
+
+  return entradasEditadas
+    .map(([chaveAlerta, edicao]) => {
+      const alertaBruto =
+        (Array.isArray(listaBruta) ? listaBruta : []).find(
+          a => obterChaveUnicaAlerta(a) === chaveAlerta
+        ) || null;
+      const placaExtraida =
+        (alertaBruto && typeof alertaBruto === "object"
+          ? alertaBruto.placa ?? alertaBruto.plate
+          : "") ||
+        (chaveAlerta.includes("::") ? chaveAlerta.split("::")[1] : "") ||
+        "—";
+      const placaNorm = normalizarTexto(placaExtraida);
+      const veiculoRel = placaNorm
+        ? fonteVeiculos.find(v => normalizarTexto(v.plate) === placaNorm)
+        : null;
+
+      const statusEd = avaliarStatusEdicaoAlerta(chaveAlerta, edicao, alertaBruto);
+      const tituloTipo = obterNomeTipoAlertaPorChave(chaveAlerta, edicao);
+      const etapaOriginal = edicao?.original?.etapa || "—";
+      const valorOriginal = edicao?.original?.valorAtual || "—";
+      const limiteOriginal = edicao?.original?.limite || "—";
+
+      const etapaBruta = edicao?.etapa || etapaOriginal;
+      const itemParaExibicao = {
+        ...(veiculoRel || {}),
+        flow:
+          (alertaBruto && typeof alertaBruto === "object"
+            ? alertaBruto.flow ?? alertaBruto.destino ?? alertaBruto.berco ?? alertaBruto.berco_destino
+            : "") ||
+          veiculoRel?.flow ||
+          veiculoRel?.destino ||
+          "",
+        operation:
+          (alertaBruto && typeof alertaBruto === "object"
+            ? alertaBruto.operacao ?? alertaBruto.operation
+            : "") ||
+          veiculoRel?.operation ||
+          veiculoRel?.operacao ||
+          "",
+        stage: etapaBruta
+      };
+      const etapaExibida =
+        etapaBruta && etapaBruta !== "—"
+          ? formatarRotuloEtapaParaExibicao(itemParaExibicao) || etapaBruta
+          : "—";
+
+      let valorExibido = edicao?.valorAtual || valorOriginal;
+      let limiteExibido = edicao?.limite || limiteOriginal;
+
+      if (statusEd.ehPeso && statusEd.valorNum !== null) {
+        valorExibido = `${formatarNumero(statusEd.valorNum, 0)} kg`;
+        const limiteBaseTexto = `${formatarNumero(statusEd.limiteBaseNum, 0)} kg`;
+        const excesso = statusEd.valorNum - statusEd.limiteBaseNum;
+        limiteExibido =
+          excesso > 0
+            ? `${limiteBaseTexto} · +${formatarNumero(excesso, 0)} kg`
+            : limiteBaseTexto;
+      } else if (statusEd.ehTempo && statusEd.valorNum !== null) {
+        valorExibido = `${formatarNumero(statusEd.valorNum, 0)} min`;
+        if (statusEd.limiteBaseNum) {
+          limiteExibido = `${formatarNumero(statusEd.limiteBaseNum, 0)} min`;
+        }
+      }
+
+      const historicoPartes = [];
+      if (valorOriginal && valorOriginal !== "—" && valorOriginal !== valorExibido) {
+        historicoPartes.push(`${valorOriginal} → ${valorExibido}`);
+      } else if (Array.isArray(edicao?.alteracoes) && edicao.alteracoes.length) {
+        historicoPartes.push(
+          ...edicao.alteracoes.filter(a => !String(a).startsWith("Obs:"))
+        );
+      }
+      if (edicao?.observacao) {
+        historicoPartes.push(`Obs: ${edicao.observacao}`);
+      }
+
+      const resumoHistorico = historicoPartes.length
+        ? `${isEn ? "History" : "Histórico"}: ${historicoPartes.join(" · ")}`
+        : `${isEn ? "Edited" : "Editado"}`;
+
+      const temPlacaValida = placaExtraida && placaExtraida !== "—";
+      const resumoAlerta = statusEd.sanado
+        ? `${isEn ? "Normalized" : "Regularizado"} (${valorExibido})`
+        : `${tituloTipo} (${valorExibido})`;
+      const attrsInterativos = temPlacaValida
+        ? `data-alert-plate="${escaparHtml(placaExtraida)}" data-placa="${escaparHtml(placaExtraida)}" data-alert-summary="${escaparHtml(resumoAlerta)}" role="button" tabindex="0" title="${escaparHtml(
+            isEn
+              ? `Click to inspect vehicle ${placaExtraida} in Movements`
+              : `Clique para inspecionar o veículo ${placaExtraida} em Movimentações`
+          )}"`
+        : "";
+      const classeClicavel = temPlacaValida ? " alertas__item--clicavel" : "";
+      const classeItem = statusEd.sanado
+        ? `alertas__item alertas__item--regularizado${classeClicavel}`
+        : `alertas__item alertas__item--critico${classeClicavel}`;
+      const iconeItem = statusEd.sanado ? "✓" : "!";
+      const badgeStatusHtml = statusEd.sanado
+        ? `<span class="alertas__regularizado-badge">${isEn ? "Normalized" : "Regularizado"}</span>`
+        : `<span class="alertas__editado-badge">${isEn ? "Edited" : "Editado"}</span><span class="alertas__nivel">${escaparHtml(t("alerts.badge_critical"))}</span>`;
+
+      mapaAlertasRenderizados.set(chaveAlerta, {
+        chave: chaveAlerta,
+        tipo: tituloTipo,
+        placa: placaExtraida,
+        etapa: etapaExibida,
+        valorAtual: valorExibido,
+        limite: limiteExibido,
+        original: {
+          etapa: etapaOriginal,
+          valorAtual: valorOriginal,
+          limite: limiteOriginal
+        },
+        edicao
+      });
+
+      const tituloLinha = temPlacaValida
+        ? `${tituloTipo} · ${isEn ? "Plate" : "Placa"} ${placaExtraida}`
+        : tituloTipo;
+
+      return `
+        <div class="${classeItem}" ${attrsInterativos}>
+          <span class="alertas__icone">${iconeItem}</span>
+          <div class="alertas__conteudo">
+            <strong>${escaparHtml(tituloLinha)}</strong>
+            <p>
+              ${isEn ? "Stage" : "Etapa"}: <strong>${escaparHtml(etapaExibida)}</strong> ·
+              ${isEn ? "Current value" : "Valor atual"}: <strong>${escaparHtml(valorExibido)}</strong>
+              (${isEn ? "Limit" : "Limite"}: ${escaparHtml(limiteExibido)})
+            </p>
+            <p class="alertas__edicao-resumo">${escaparHtml(resumoHistorico)}</p>
+          </div>
+          <div class="alertas__acoes">
+            ${badgeStatusHtml}
+            <button type="button" class="alertas__resolver-btn" data-action="edit-alert" data-alert-key="${escaparHtml(chaveAlerta)}">✎ ${escaparHtml(labelEditar)}</button>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
 function renderizarListaAlertasDOM(listaAlertas) {
   const listaBruta = Array.isArray(listaAlertas) ? listaAlertas : [];
   ultimosAlertasBrutos = listaBruta;
   const lista = filtrarAlertasNaoResolvidos(listaBruta);
+  const entradasEditadas = Object.entries(alertasEditadosLocal || {})
+    .filter(([, edicao]) => edicao && typeof edicao === "object")
+    .sort(([, a], [, b]) =>
+      String(b?.atualizadoEm || "").localeCompare(String(a?.atualizadoEm || ""))
+    );
+
   const containerLista = document.querySelector(".alertas__lista");
   const contadorAlertas = document.querySelector(".alertas__contador");
   const kpiAlertas = document.getElementById("kpi-alertas");
 
   mapaAlertasRenderizados.clear();
   atualizarBotaoRestaurarAlertas();
+  atualizarAbasAlertasUI(lista.length, entradasEditadas.length);
 
   const qtdVeiculosUnicos = contarVeiculosComAlertaUnicos(lista);
 
@@ -2334,6 +2736,11 @@ function renderizarListaAlertasDOM(listaAlertas) {
   }
 
   if (!containerLista) return;
+
+  if (abaAlertasAtiva === "editados") {
+    containerLista.innerHTML = renderizarItensAlertasEditadosHTML(entradasEditadas, listaBruta);
+    return;
+  }
 
   if (lista.length === 0) {
     containerLista.innerHTML = `
@@ -2667,48 +3074,310 @@ function formatarStatusOperacional(statusOperacional) {
   return "NORMAL";
 }
 
-function renderizarCardsAreaPrimaria(listaEtapas) {
+function normalizarFluxoOperacional(tab) {
+  const valor = String(tab || "").trim().toLowerCase();
+  if (valor === "mecanizado" || valor === "expedicao") return valor;
+  return "convencional";
+}
+
+function atualizarCabecalhoAreaPrimaria(fluxo) {
+  const tituloEl = document.getElementById("area-primaria-titulo");
+  const subtituloEl = document.getElementById("area-primaria-subtitulo");
+  const en = idiomaAtual === "en-US";
+
+  const textos = {
+    convencional: {
+      titulo: en
+        ? "Primary Area Monitoring · Conventional Mode"
+        : "Monitoramento Área Primária · Modal Convencional",
+      subtitulo: en
+        ? "Vehicle turnaround by operational flow stage"
+        : "Giro de veículos por etapa de fluxo operacional"
+    },
+    mecanizado: {
+      titulo: en
+        ? "Primary Area Monitoring · Mechanized Mode"
+        : "Monitoramento Área Primária · Modal Mecanizado",
+      subtitulo: en
+        ? "Real-time conveyor unloading performance"
+        : "Desempenho da descarga por esteira em tempo real"
+    },
+    expedicao: {
+      titulo: en
+        ? "Primary Area Monitoring · Road Dispatch"
+        : "Monitoramento Área Primária · Expedição Rodoviária",
+      subtitulo: en
+        ? "Vehicle turnaround by road dispatch stage"
+        : "Giro de veículos por etapa da expedição rodoviária"
+    }
+  };
+
+  const selecionado = textos[normalizarFluxoOperacional(fluxo)] || textos.convencional;
+  if (tituloEl) tituloEl.textContent = selecionado.titulo;
+  if (subtituloEl) subtituloEl.textContent = selecionado.subtitulo;
+}
+
+function obterRotuloStatusAreaPrimaria(status) {
+  if (status === "CRITICO") return idiomaAtual === "en-US" ? "CRITICAL" : "CRÍTICO";
+  if (status === "ATENCAO") return idiomaAtual === "en-US" ? "ATTENTION" : "ATENÇÃO";
+  return "NORMAL";
+}
+
+function obterClasseStatusAreaPrimaria(status) {
+  if (status === "CRITICO") return "esteira__status--critico";
+  if (status === "ATENCAO") return "esteira__status--atencao";
+  return "esteira__status--normal";
+}
+
+function renderizarCardsAreaPrimariaMecanizado(gradeEsteira) {
+  const lista = Array.isArray(ultimosBercosAPI) ? ultimosBercosAPI : [];
+  const itemB101 = lista.find(p => coincidirDestino(p?.berco_destino ?? p?.nome, "Berço 101"));
+
+  let ritmo = 472;
+  let meta = 458;
+  let volumeTon = 6380;
+  let correiasAtivas = 5;
+  let correiasTotal = 5;
+
+  if (itemB101) {
+    const pranchaApi = Number(itemB101.prancha_atual_th ?? itemB101.prancha_th);
+    const metaApi = Number(itemB101.meta_contratual_th ?? itemB101.meta_th);
+    const volApi = itemB101.volume_acumulado_ton !== undefined && itemB101.volume_acumulado_ton !== null
+      ? Number(itemB101.volume_acumulado_ton)
+      : (itemB101.volume_total_movimentado_kg ? Number(itemB101.volume_total_movimentado_kg) / 1000 : NaN);
+
+    if (Number.isFinite(pranchaApi) && pranchaApi > 0) ritmo = pranchaApi;
+    if (Number.isFinite(metaApi) && metaApi > 0) meta = metaApi;
+    if (Number.isFinite(volApi) && volApi > 0) volumeTon = volApi;
+    if (Number.isFinite(Number(itemB101.correias_ativas))) correiasAtivas = Number(itemB101.correias_ativas);
+    if (Number.isFinite(Number(itemB101.total_correias)) && Number(itemB101.total_correias) > 0) {
+      correiasTotal = Number(itemB101.total_correias);
+    }
+  } else {
+    const cardB101 = document.querySelector('.grade-bercos .berco[data-berco-filter="Berço 101"]');
+    if (cardB101) {
+      const prodTxt = cardB101.querySelector(".berco__produtividade strong")?.textContent || "";
+      const metaTxt = cardB101.querySelector(".berco__referencia strong")?.textContent || "";
+      const prodNum = Number(prodTxt.replace(/[^\d.,]/g, "").replace(/\./g, "").replace(",", "."));
+      const metaNum = Number(metaTxt.replace(/[^\d.,]/g, "").replace(/\./g, "").replace(",", "."));
+      if (Number.isFinite(prodNum) && prodNum > 0) ritmo = prodNum;
+      if (Number.isFinite(metaNum) && metaNum > 0) meta = metaNum;
+
+      const detalhes = cardB101.querySelectorAll(".berco__detalhes strong");
+      if (detalhes.length >= 1) {
+        const volTxt = detalhes[0].textContent || "";
+        const volNum = Number(volTxt.replace(/[^\d.,]/g, "").replace(/\./g, "").replace(",", "."));
+        if (Number.isFinite(volNum) && volNum > 0) volumeTon = volNum;
+      }
+    }
+  }
+
+  const eficiencia = itemB101 && Number.isFinite(Number(itemB101.atingimento_percentual ?? itemB101.atingimento))
+    ? Number(itemB101.atingimento_percentual ?? itemB101.atingimento)
+    : (meta > 0 ? (ritmo / meta) * 100 : 100);
+
+  const statusPorMeta = (pct) => {
+    if (pct < 75) return "CRITICO";
+    if (pct < 95) return "ATENCAO";
+    return "NORMAL";
+  };
+
+  const statusRitmo = statusPorMeta(eficiencia);
+  const statusVolume = volumeTon > 0 ? "NORMAL" : "ATENCAO";
+  const statusCorreias = correiasAtivas === 0
+    ? "CRITICO"
+    : (correiasAtivas < correiasTotal ? "ATENCAO" : "NORMAL");
+  const statusEficiencia = statusPorMeta(eficiencia);
+
+  const en = idiomaAtual === "en-US";
+  const cards = [
+    {
+      classe: "card-area-primaria--total",
+      titulo: en ? "Current Rate (BF1)" : "Ritmo Atual (BF1)",
+      valor: `${formatarNumero(ritmo, 0)} t/h`,
+      referencia: en ? `Target: ${formatarNumero(meta, 0)} t/h` : `Meta: ${formatarNumero(meta, 0)} t/h`,
+      status: statusRitmo,
+      tooltip: en ? "Click to inspect Berth 101 in Movements" : "Clique para inspecionar o Berço 101 em Movimentações"
+    },
+    {
+      classe: "card-area-primaria--sem-coletor",
+      titulo: en ? "Unloaded Volume" : "Volume Descarregado",
+      valor: `${formatarNumero(volumeTon, 0)} t`,
+      referencia: en ? "Shift accumulated" : "Acumulado no turno",
+      status: statusVolume,
+      tooltip: en ? "Click to inspect Berth 101 in Movements" : "Clique para inspecionar o Berço 101 em Movimentações"
+    },
+    {
+      classe: "card-area-primaria--coletor-balanca",
+      titulo: en ? "Active Conveyors" : "Correias Ativas",
+      valor: `${correiasAtivas} / ${correiasTotal}`,
+      referencia: "TC01 · TC02 · TC03/04 · TC05",
+      status: statusCorreias,
+      tooltip: en ? "Click to inspect Berth 101 in Movements" : "Clique para inspecionar o Berço 101 em Movimentações"
+    },
+    {
+      classe: "card-area-primaria--balanca-pan",
+      titulo: en ? "Line Efficiency" : "Eficiência da Linha",
+      valor: `${formatarNumero(eficiencia, 0)}%`,
+      referencia: en ? "BF1 vs. Target rate" : "BF1 vs. Prancha meta",
+      status: statusEficiencia,
+      tooltip: en ? "Click to inspect Berth 101 in Movements" : "Clique para inspecionar o Berço 101 em Movimentações"
+    }
+  ];
+
+  gradeEsteira.innerHTML = cards.map(card => `
+    <article class="esteira__etapa card-area-primaria ${card.classe}" data-berco-inspect="Berço 101" title="${escaparHtml(card.tooltip)}">
+      <span class="card-area-primaria__titulo">${escaparHtml(card.titulo)}</span>
+      <strong class="card-area-primaria__valor">${escaparHtml(card.valor)}</strong>
+      <small class="esteira__tempo">${escaparHtml(card.referencia)}</small>
+      <span class="esteira__status ${obterClasseStatusAreaPrimaria(card.status)}">${escaparHtml(obterRotuloStatusAreaPrimaria(card.status))}</span>
+    </article>
+  `).join("");
+}
+
+function renderizarCardsAreaPrimariaExpedicao(gradeEsteira, todosVeiculos) {
+  const chavesVistas = new Set();
+  const veiculosExpedicao = (Array.isArray(todosVeiculos) ? todosVeiculos : []).filter(item => {
+    if (!ehVeiculoExpedicao(item)) return false;
+    const chave = obterChaveRegistroVeiculo(item) || normalizarTexto(item?.plate);
+    if (!chave) return true;
+    if (chavesVistas.has(chave)) return false;
+    chavesVistas.add(chave);
+    return true;
+  });
+
+  const triagem = veiculosExpedicao.filter(v => pertenceAoGrupoExpedicao(v.stage, "sem_coletor"));
+  const carregamento = veiculosExpedicao.filter(v => pertenceAoGrupoExpedicao(v.stage, "coletor_balanca"));
+  const balancaSaida = veiculosExpedicao.filter(v => pertenceAoGrupoExpedicao(v.stage, "balanca_pan"));
+
+  const totalQtd = veiculosExpedicao.length;
+  const triagemQtd = triagem.length;
+  const carregamentoQtd = carregamento.length;
+  const balancaSaidaQtd = balancaSaida.length;
+
+  const totalTempo = calcularMediaTempoVeiculos(veiculosExpedicao);
+  const totalLim = 45;
+  const triagemTempo = calcularMediaTempoVeiculos(triagem);
+  const triagemLim = 30;
+  const carregamentoTempo = calcularMediaTempoVeiculos(carregamento);
+  const carregamentoLim = 35;
+  const balancaSaidaTempo = calcularMediaTempoVeiculos(balancaSaida);
+  const balancaSaidaLim = 25;
+
+  const en = idiomaAtual === "en-US";
+  const lblMedio = en ? "Avg" : "Médio";
+  const lblLimite = "Lim";
+
+  const cards = [
+    {
+      grupo: "total",
+      classe: "card-area-primaria--total",
+      titulo: en ? "Total in Dispatch" : "Total em Expedição",
+      valor: totalQtd,
+      tempo: totalTempo,
+      limite: totalLim,
+      status: calcularStatusTempoAreaPrimaria(totalTempo, totalLim),
+      tooltip: en ? "Click to inspect Road Dispatch vehicles" : "Clique para filtrar veículos da Expedição Rodoviária"
+    },
+    {
+      grupo: "sem_coletor",
+      classe: "card-area-primaria--sem-coletor",
+      titulo: en ? "Awaiting Gate In / Triage" : "Aguardando Gate In / Triagem",
+      valor: triagemQtd,
+      tempo: triagemTempo,
+      limite: triagemLim,
+      status: calcularStatusTempoAreaPrimaria(triagemTempo, triagemLim),
+      tooltip: en ? "Click to inspect Road Dispatch vehicles" : "Clique para filtrar veículos da Expedição Rodoviária"
+    },
+    {
+      grupo: "coletor_balanca",
+      classe: "card-area-primaria--coletor-balanca",
+      titulo: en ? "Loading (Box)" : "Em Carregamento (Box)",
+      valor: carregamentoQtd,
+      tempo: carregamentoTempo,
+      limite: carregamentoLim,
+      status: calcularStatusTempoAreaPrimaria(carregamentoTempo, carregamentoLim),
+      tooltip: en ? "Click to inspect Road Dispatch vehicles" : "Clique para filtrar veículos da Expedição Rodoviária"
+    },
+    {
+      grupo: "balanca_pan",
+      classe: "card-area-primaria--balanca-pan",
+      titulo: en ? "Between Scale & Exit (PAN)" : "Entre Balança e Saída (PAN)",
+      valor: balancaSaidaQtd,
+      tempo: balancaSaidaTempo,
+      limite: balancaSaidaLim,
+      status: calcularStatusTempoAreaPrimaria(balancaSaidaTempo, balancaSaidaLim),
+      tooltip: en ? "Click to inspect Road Dispatch vehicles" : "Clique para filtrar veículos da Expedição Rodoviária"
+    }
+  ];
+
+  gradeEsteira.innerHTML = cards.map(card => `
+    <article class="esteira__etapa card-area-primaria ${card.classe}" data-group-filter="${card.grupo}" data-fluxo-filter="expedicao" data-limite-min="${card.limite}" title="${escaparHtml(card.tooltip)}">
+      <span class="card-area-primaria__titulo">${escaparHtml(card.titulo)}</span>
+      <strong class="card-area-primaria__valor">${card.valor}</strong>
+      <small class="esteira__tempo">${lblMedio}: ${escaparHtml(formatarNumero(card.tempo, 1))} min / ${lblLimite}: ${card.limite} min</small>
+      <span class="esteira__status ${obterClasseStatusAreaPrimaria(card.status)}">${escaparHtml(obterRotuloStatusAreaPrimaria(card.status))}</span>
+    </article>
+  `).join("");
+}
+
+function renderizarCardsAreaPrimaria(listaEtapas, opcoes = {}) {
   const gradeEsteira = document.querySelector(".grade-esteira");
   if (!gradeEsteira) return;
 
+  const fluxoAtual = normalizarFluxoOperacional(fluxoOperacionalAtivo);
+  atualizarCabecalhoAreaPrimaria(fluxoAtual);
+
+  const todosVeiculos = typeof obterFonteVeiculosCompleta === "function" ? obterFonteVeiculosCompleta() : [];
+
+  if (fluxoAtual === "mecanizado") {
+    renderizarCardsAreaPrimariaMecanizado(gradeEsteira);
+  } else if (fluxoAtual === "expedicao") {
+    renderizarCardsAreaPrimariaExpedicao(gradeEsteira, todosVeiculos);
+  } else {
+    renderizarCardsAreaPrimariaConvencional(gradeEsteira, listaEtapas, todosVeiculos);
+  }
+
+  if (opcoes && opcoes.animarTransicao) {
+    gradeEsteira.classList.remove("grade-esteira--animando");
+    void gradeEsteira.offsetWidth;
+    gradeEsteira.classList.add("grade-esteira--animando");
+  }
+
+  if (typeof atualizarBadgesFluxoConvencional === "function") {
+    atualizarBadgesFluxoConvencional(todosVeiculos);
+  }
+  if (typeof atualizarBotaoFluxoExpedicao === "function") {
+    atualizarBotaoFluxoExpedicao(todosVeiculos);
+  }
+}
+
+function renderizarCardsAreaPrimariaConvencional(gradeEsteira, listaEtapas, todosVeiculos) {
   const etapas = Array.isArray(listaEtapas) && listaEtapas.length > 0
     ? listaEtapas
     : (Array.isArray(ultimasEtapasAPI) && ultimasEtapasAPI.length > 0 ? ultimasEtapasAPI : []);
 
-  const todosVeiculos = typeof obterFonteVeiculosCompleta === "function" ? obterFonteVeiculosCompleta() : [];
+  const veiculosConvencionais = (Array.isArray(todosVeiculos) ? todosVeiculos : []).filter(ehVeiculoConvencional);
+  const gSemColetorLista = veiculosConvencionais.filter(v => pertenceAoGrupoAreaPrimaria(v.stage, "sem_coletor"));
+  const gColetorBalancaLista = veiculosConvencionais.filter(v => pertenceAoGrupoAreaPrimaria(v.stage, "coletor_balanca"));
+  const gBalancaPanLista = veiculosConvencionais.filter(v => pertenceAoGrupoAreaPrimaria(v.stage, "balanca_pan"));
+  const gTotalLista = veiculosConvencionais.filter(v => pertenceAoGrupoAreaPrimaria(v.stage, "total"));
 
-  const gSemColetorQtd = todosVeiculos.filter(v => pertenceAoGrupoAreaPrimaria(v.stage, "sem_coletor")).length;
-  const gColetorBalancaQtd = todosVeiculos.filter(v => pertenceAoGrupoAreaPrimaria(v.stage, "coletor_balanca")).length;
-  const gBalancaPanQtd = todosVeiculos.filter(v => pertenceAoGrupoAreaPrimaria(v.stage, "balanca_pan")).length;
-  const gTotalQtd = gSemColetorQtd + gColetorBalancaQtd + gBalancaPanQtd;
+  const gSemColetorQtd = gSemColetorLista.length;
+  const gColetorBalancaQtd = gColetorBalancaLista.length;
+  const gBalancaPanQtd = gBalancaPanLista.length;
+  const gTotalQtd = gTotalLista.length;
 
   const dadosGrupos = {
-    sem_coletor: {
-      somaPonderadaTempo: 0,
-      pesoTotalTempo: 0,
-      tempoLimite: 30,
-      tempoPadrao: 18.0
-    },
-    coletor_balanca: {
-      somaPonderadaTempo: 0,
-      pesoTotalTempo: 0,
-      tempoLimite: 30,
-      tempoPadrao: 32.0
-    },
-    balanca_pan: {
-      somaPonderadaTempo: 0,
-      pesoTotalTempo: 0,
-      tempoLimite: 25,
-      tempoPadrao: 22.0
-    }
+    sem_coletor: { tempoLimite: 30 },
+    coletor_balanca: { tempoLimite: 30 },
+    balanca_pan: { tempoLimite: 25 }
   };
 
   if (etapas.length > 0) {
     etapas.forEach(item => {
       const nomeEtapaBruto = item.etapa ?? item.nome ?? item[0] ?? "";
       const nomeEtapa = normalizarRotuloEtapa(nomeEtapaBruto) || nomeEtapaBruto;
-      const qtdItem = Number(item.quantidade_veiculos ?? item.qtd ?? item[1] ?? 0);
-      const tempoMedioItem = Number(item.tempo_medio_permanencia_min ?? item.tempo_medio ?? (Array.isArray(item) ? 0 : 0));
       const tempoLimiteItem = Number(item.tempo_limite_min ?? item.tempo_limite ?? 0);
 
       let grupoAlvo = null;
@@ -2720,82 +3389,34 @@ function renderizarCardsAreaPrimaria(listaEtapas) {
         grupoAlvo = dadosGrupos.balanca_pan;
       }
 
-      if (grupoAlvo) {
-        if (tempoMedioItem > 0) {
-          const peso = qtdItem > 0 ? qtdItem : 1;
-          grupoAlvo.somaPonderadaTempo += tempoMedioItem * peso;
-          grupoAlvo.pesoTotalTempo += peso;
-        }
-        if (tempoLimiteItem > 0) {
-          grupoAlvo.tempoLimite = tempoLimiteItem;
-        }
+      if (grupoAlvo && tempoLimiteItem > 0) {
+        grupoAlvo.tempoLimite = tempoLimiteItem;
       }
     });
   }
 
-  const temDadosAPI = etapas.length > 0;
-
-  const gSemColetorTempo = temDadosAPI && dadosGrupos.sem_coletor.pesoTotalTempo > 0
-    ? dadosGrupos.sem_coletor.somaPonderadaTempo / dadosGrupos.sem_coletor.pesoTotalTempo
-    : 18.0;
+  const gSemColetorTempo = calcularMediaTempoVeiculos(gSemColetorLista);
   const gSemColetorLim = dadosGrupos.sem_coletor.tempoLimite || 30;
 
-  const gColetorBalancaTempo = temDadosAPI && dadosGrupos.coletor_balanca.pesoTotalTempo > 0
-    ? dadosGrupos.coletor_balanca.somaPonderadaTempo / dadosGrupos.coletor_balanca.pesoTotalTempo
-    : 32.0;
+  const gColetorBalancaTempo = calcularMediaTempoVeiculos(gColetorBalancaLista);
   const gColetorBalancaLim = dadosGrupos.coletor_balanca.tempoLimite || 30;
 
-  const gBalancaPanTempo = temDadosAPI && dadosGrupos.balanca_pan.pesoTotalTempo > 0
-    ? dadosGrupos.balanca_pan.somaPonderadaTempo / dadosGrupos.balanca_pan.pesoTotalTempo
-    : 22.0;
+  const gBalancaPanTempo = calcularMediaTempoVeiculos(gBalancaPanLista);
   const gBalancaPanLim = dadosGrupos.balanca_pan.tempoLimite || 25;
 
-  const somaTotalPonderada =
-    dadosGrupos.sem_coletor.somaPonderadaTempo +
-    dadosGrupos.coletor_balanca.somaPonderadaTempo +
-    dadosGrupos.balanca_pan.somaPonderadaTempo;
-  const pesoTotalPonderado =
-    dadosGrupos.sem_coletor.pesoTotalTempo +
-    dadosGrupos.coletor_balanca.pesoTotalTempo +
-    dadosGrupos.balanca_pan.pesoTotalTempo;
-
-  const gTotalTempo = temDadosAPI && pesoTotalPonderado > 0
-    ? somaTotalPonderada / pesoTotalPonderado
-    : 24.5;
+  const gTotalTempo = calcularMediaTempoVeiculos(gTotalLista);
   const gTotalLim = 45;
 
-  // Cálculo de status diretamente a partir da média e do limite exibidos no próprio card:
-  // - Se media > limite: CRÍTICO
-  // - Se media >= limite * 0.8: ATENÇÃO
-  // - Caso contrário: NORMAL
-  const calcularStatusCard = (media, limite) => {
-    const m = Number(media) || 0;
-    const l = Number(limite) || 0;
-    if (l <= 0) return "NORMAL";
-    if (m > l) return "CRITICO";
-    if (m >= l * 0.8) return "ATENCAO";
-    return "NORMAL";
-  };
-
-  const gTotalStatus = calcularStatusCard(gTotalTempo, gTotalLim);
-  const gSemColetorStatus = calcularStatusCard(gSemColetorTempo, gSemColetorLim);
-  const gColetorBalancaStatus = calcularStatusCard(gColetorBalancaTempo, gColetorBalancaLim);
-  const gBalancaPanStatus = calcularStatusCard(gBalancaPanTempo, gBalancaPanLim);
+  const gTotalStatus = calcularStatusTempoAreaPrimaria(gTotalTempo, gTotalLim);
+  const gSemColetorStatus = calcularStatusTempoAreaPrimaria(gSemColetorTempo, gSemColetorLim);
+  const gColetorBalancaStatus = calcularStatusTempoAreaPrimaria(gColetorBalancaTempo, gColetorBalancaLim);
+  const gBalancaPanStatus = calcularStatusTempoAreaPrimaria(gBalancaPanTempo, gBalancaPanLim);
 
   const lblMedio = idiomaAtual === "en-US" ? "Avg" : "Médio";
   const lblLimite = idiomaAtual === "en-US" ? "Lim" : "Lim";
 
-  const rotuloStatus = (status) => {
-    if (status === "CRITICO") return idiomaAtual === "en-US" ? "CRITICAL" : "CRÍTICO";
-    if (status === "ATENCAO") return idiomaAtual === "en-US" ? "ATTENTION" : "ATENÇÃO";
-    return "NORMAL";
-  };
-
-  const statusClasse = (status) => {
-    if (status === "CRITICO") return "esteira__status--critico";
-    if (status === "ATENCAO") return "esteira__status--atencao";
-    return "esteira__status--normal";
-  };
+  const rotuloStatus = obterRotuloStatusAreaPrimaria;
+  const statusClasse = obterClasseStatusAreaPrimaria;
 
   const tituloTotal = t("primary_area.total") || "Total na Área Primária";
   const descTotal = t("primary_area.total_title") || "Clique para filtrar todos os veículos na Área Primária";
@@ -2810,41 +3431,34 @@ function renderizarCardsAreaPrimaria(listaEtapas) {
   const descBalancaPan = t("primary_area.between_scale_pan_title") || "Clique para filtrar veículos de Balança (Tara/Bruto) e PAN";
 
   gradeEsteira.innerHTML = `
-    <article class="esteira__etapa card-area-primaria card-area-primaria--total" data-group-filter="total" title="${escaparHtml(descTotal)}">
+    <article class="esteira__etapa card-area-primaria card-area-primaria--total" data-group-filter="total" data-fluxo-filter="convencional" data-limite-min="${gTotalLim}" title="${escaparHtml(descTotal)}">
       <span class="card-area-primaria__titulo">${escaparHtml(tituloTotal)}</span>
       <strong class="card-area-primaria__valor">${gTotalQtd}</strong>
       <small class="esteira__tempo">${lblMedio}: ${escaparHtml(formatarNumero(gTotalTempo, 1))} min / ${lblLimite}: ${gTotalLim} min</small>
       <span class="esteira__status ${statusClasse(gTotalStatus)}">${escaparHtml(rotuloStatus(gTotalStatus))}</span>
     </article>
 
-    <article class="esteira__etapa card-area-primaria card-area-primaria--sem-coletor" data-group-filter="sem_coletor" title="${escaparHtml(descSemColetor)}">
+    <article class="esteira__etapa card-area-primaria card-area-primaria--sem-coletor" data-group-filter="sem_coletor" data-fluxo-filter="convencional" data-limite-min="${gSemColetorLim}" title="${escaparHtml(descSemColetor)}">
       <span class="card-area-primaria__titulo">${escaparHtml(tituloSemColetor)}</span>
       <strong class="card-area-primaria__valor">${gSemColetorQtd}</strong>
       <small class="esteira__tempo">${lblMedio}: ${escaparHtml(formatarNumero(gSemColetorTempo, 1))} min / ${lblLimite}: ${gSemColetorLim} min</small>
       <span class="esteira__status ${statusClasse(gSemColetorStatus)}">${escaparHtml(rotuloStatus(gSemColetorStatus))}</span>
     </article>
 
-    <article class="esteira__etapa card-area-primaria card-area-primaria--coletor-balanca" data-group-filter="coletor_balanca" title="${escaparHtml(descColetorBalanca)}">
+    <article class="esteira__etapa card-area-primaria card-area-primaria--coletor-balanca" data-group-filter="coletor_balanca" data-fluxo-filter="convencional" data-limite-min="${gColetorBalancaLim}" title="${escaparHtml(descColetorBalanca)}">
       <span class="card-area-primaria__titulo">${escaparHtml(tituloColetorBalanca)}</span>
       <strong class="card-area-primaria__valor">${gColetorBalancaQtd}</strong>
       <small class="esteira__tempo">${lblMedio}: ${escaparHtml(formatarNumero(gColetorBalancaTempo, 1))} min / ${lblLimite}: ${gColetorBalancaLim} min</small>
       <span class="esteira__status ${statusClasse(gColetorBalancaStatus)}">${escaparHtml(rotuloStatus(gColetorBalancaStatus))}</span>
     </article>
 
-    <article class="esteira__etapa card-area-primaria card-area-primaria--balanca-pan" data-group-filter="balanca_pan" title="${escaparHtml(descBalancaPan)}">
+    <article class="esteira__etapa card-area-primaria card-area-primaria--balanca-pan" data-group-filter="balanca_pan" data-fluxo-filter="convencional" data-limite-min="${gBalancaPanLim}" title="${escaparHtml(descBalancaPan)}">
       <span class="card-area-primaria__titulo">${escaparHtml(tituloBalancaPan)}</span>
       <strong class="card-area-primaria__valor">${gBalancaPanQtd}</strong>
       <small class="esteira__tempo">${lblMedio}: ${escaparHtml(formatarNumero(gBalancaPanTempo, 1))} min / ${lblLimite}: ${gBalancaPanLim} min</small>
       <span class="esteira__status ${statusClasse(gBalancaPanStatus)}">${escaparHtml(rotuloStatus(gBalancaPanStatus))}</span>
     </article>
   `;
-
-  if (typeof atualizarBadgesFluxoConvencional === "function") {
-    atualizarBadgesFluxoConvencional(todosVeiculos);
-  }
-  if (typeof atualizarBotaoFluxoExpedicao === "function") {
-    atualizarBotaoFluxoExpedicao(todosVeiculos);
-  }
 }
 
 async function carregarEtapasOperacao() {
@@ -3004,6 +3618,9 @@ function renderizarBercosResumoFallback(pontosOperacionais) {
   }
   if (typeof atualizarPranchaExpedicaoFluxo === "function") {
     atualizarPranchaExpedicaoFluxo();
+  }
+  if (normalizarFluxoOperacional(fluxoOperacionalAtivo) === "mecanizado" && typeof renderizarCardsAreaPrimaria === "function") {
+    renderizarCardsAreaPrimaria(ultimasEtapasAPI);
   }
 }
 
@@ -3780,23 +4397,34 @@ function atualizarBannerInspecaoMovimentacoes() {
     }
   }
 
+  if (resumo.filtroGrupo) {
+    const listaGrupoBanner = filteredMovements();
+    resumo.totalVeiculos = listaGrupoBanner.length;
+    if (resumo.limiteMin > 0) {
+      const mediaRealBanner = calcularMediaTempoVeiculos(listaGrupoBanner);
+      const statusRealBanner = calcularStatusTempoAreaPrimaria(mediaRealBanner, resumo.limiteMin);
+      const lblMedioBanner = idiomaAtual === "en-US" ? "Avg" : "Médio";
+      resumo.tempoOuPrancha = `${lblMedioBanner}: ${formatarNumero(mediaRealBanner, 1)} min / Lim: ${resumo.limiteMin} min`;
+      resumo.status = obterRotuloStatusAreaPrimaria(statusRealBanner);
+    }
+  }
+
   const statusUpper = normalizarTexto(resumo.status).toUpperCase();
   const classeBadge =
-    statusUpper.includes("CRITICO")
+    statusUpper.includes("CRITICO") || statusUpper.includes("CRITICAL")
       ? "situacao--parado"
-      : statusUpper.includes("ATENCAO") || statusUpper.includes("ABAIXO")
+      : statusUpper.includes("ATENCAO") || statusUpper.includes("ATTENTION") || statusUpper.includes("ABAIXO")
       ? "situacao--andamento"
       : "situacao--concluido";
 
   banner.hidden = false;
   let metricasHtml = "";
   if (resumo.filtroGrupo) {
-    resumo.totalVeiculos = filteredMovements().length;
     metricasHtml = `<span>Total agregado no card: <strong>${escaparHtml(resumo.totalVeiculos)} veículo(s)</strong></span>
        <span>·</span>
        <span>${escaparHtml(resumo.tempoOuPrancha)}</span>
        <span>·</span>
-       <span>Registros exibidos: <strong>${escaparHtml(filteredMovements().length)} veículo(s)</strong></span>`;
+       <span>Registros exibidos: <strong>${escaparHtml(resumo.totalVeiculos)} veículo(s)</strong></span>`;
   } else if (resumo.ehAlerta) {
     metricasHtml = `<span>Ocorrência: <strong>${escaparHtml(resumo.tempoOuPrancha)}</strong></span>
        <span>·</span>
@@ -3814,7 +4442,9 @@ function atualizarBannerInspecaoMovimentacoes() {
 
   const rotuloLimpar = idiomaAtual === "en-US" ? "Clear filter and view all" : "Limpar filtro e ver todos";
   const rotuloInspecao = resumo.filtroGrupo
-    ? (idiomaAtual === "en-US" ? "Inspecting Primary Area" : "Inspecionando Área Primária")
+    ? resumo.filtroFluxo === "expedicao"
+      ? (idiomaAtual === "en-US" ? "Inspecting Road Dispatch" : "Inspecionando Expedição Rodoviária")
+      : (idiomaAtual === "en-US" ? "Inspecting Primary Area" : "Inspecionando Área Primária")
     : `Inspecionando ${escaparHtml(resumo.tipo)}`;
 
   banner.innerHTML = `
@@ -3922,7 +4552,7 @@ function inspecionarAlertaPorPlaca(alertCard) {
   }
 }
 
-function inspecionarGrupoAreaPrimaria(groupFilter, tituloGrupo, tempoOuPrancha = "Monitoramento em tempo real", status = "NORMAL") {
+function inspecionarGrupoAreaPrimaria(groupFilter, tituloGrupo, tempoOuPrancha = "Monitoramento em tempo real", status = "NORMAL", fluxo = null, limiteMin = 0) {
   if (!groupFilter) return;
 
   const selectUnidade = document.getElementById("movement-unidade");
@@ -3932,14 +4562,22 @@ function inspecionarGrupoAreaPrimaria(groupFilter, tituloGrupo, tempoOuPrancha =
   const selectCarrier = document.getElementById("movement-carrier");
   const selectOp = document.getElementById("movement-operation");
 
-  const totalVeiculos = typeof obterFonteVeiculosCompleta === "function"
-    ? obterFonteVeiculosCompleta().filter(v => pertenceAoGrupoAreaPrimaria(v.stage, groupFilter)).length
-    : 0;
+  const filtroFluxo = normalizarFluxoOperacional(fluxo || fluxoOperacionalAtivo);
+  const veiculosGrupo = typeof obterFonteVeiculosCompleta === "function"
+    ? obterFonteVeiculosCompleta().filter(v => pertenceAoCardAreaPrimaria(v, groupFilter, filtroFluxo))
+    : [];
+  const totalVeiculos = veiculosGrupo.length;
+  const limitesPadrao = filtroFluxo === "expedicao"
+    ? { total: 45, sem_coletor: 30, coletor_balanca: 35, balanca_pan: 25 }
+    : { total: 45, sem_coletor: 30, coletor_balanca: 30, balanca_pan: 25, balanca_apenas: 25, pan_apenas: 25 };
+  const limiteResolvido = Number(limiteMin) > 0 ? Number(limiteMin) : (limitesPadrao[groupFilter] || 0);
 
   contextoInspecaoCard = {
-    tipo: "Área Primária",
+    tipo: filtroFluxo === "expedicao" ? "Expedição Rodoviária" : "Área Primária",
     nome: tituloGrupo || groupFilter,
     filtroGrupo: groupFilter,
+    filtroFluxo,
+    limiteMin: limiteResolvido,
     etapasPermitidas: obterEtapasDoGrupoAreaPrimaria(groupFilter),
     totalVeiculos,
     tempoOuPrancha,
@@ -4001,6 +4639,28 @@ document.addEventListener("click", event => {
     return;
   }
 
+  const btnAlertTab = event.target.closest("[data-alert-tab]");
+  if (btnAlertTab) {
+    const novaAba = btnAlertTab.getAttribute("data-alert-tab") === "editados" ? "editados" : "ativos";
+    if (abaAlertasAtiva !== novaAba) {
+      abaAlertasAtiva = novaAba;
+      renderizarListaAlertasDOM(alertasAtivosAPI.length ? alertasAtivosAPI : ultimosAlertasBrutos);
+    }
+    return;
+  }
+
+  const btnEditAlert = event.target.closest("[data-action='edit-alert']");
+  if (btnEditAlert) {
+    event.stopPropagation();
+    const chaveAlerta = btnEditAlert.getAttribute("data-alert-key") || "";
+    const alertaInfo = mapaAlertasRenderizados.get(chaveAlerta);
+    if (alertaInfo) {
+      abrirModalConfirmacaoResolucaoAlerta(alertaInfo);
+      alternarModoEdicaoAlerta(true);
+    }
+    return;
+  }
+
   const btnResolveAlert = event.target.closest("[data-action='resolve-alert']");
   if (btnResolveAlert) {
     event.stopPropagation();
@@ -4052,7 +4712,8 @@ document.addEventListener("click", event => {
       cardArea?.querySelector(".esteira__tempo")?.textContent?.trim() || "Fluxo Convencional · COPI";
     const status =
       cardArea?.querySelector(".esteira__status")?.textContent?.trim() || "NORMAL";
-    inspecionarGrupoAreaPrimaria(groupFilter, tituloGrupo, tempoOuPrancha, status);
+    const limiteMin = Number(cardArea?.dataset?.limiteMin || 0);
+    inspecionarGrupoAreaPrimaria(groupFilter, tituloGrupo, tempoOuPrancha, status, "convencional", limiteMin);
     return;
   }
 
@@ -4072,6 +4733,12 @@ document.addEventListener("click", event => {
     const selectCarrier = document.getElementById("movement-carrier");
     const selectOp = document.getElementById("movement-operation");
 
+    const bercoInspect = etapaCard.dataset.bercoInspect;
+    if (bercoInspect) {
+      inspecionarBercoOuDestino(bercoInspect);
+      return;
+    }
+
     const groupFilter = etapaCard.dataset.groupFilter;
     if (groupFilter) {
       const tituloGrupo =
@@ -4082,8 +4749,10 @@ document.addEventListener("click", event => {
         etapaCard.querySelector(".esteira__tempo")?.textContent?.trim() || "Monitoramento em tempo real";
       const status =
         etapaCard.querySelector(".esteira__status")?.textContent?.trim() || "NORMAL";
+      const fluxoFilter = etapaCard.dataset.fluxoFilter || normalizarFluxoOperacional(fluxoOperacionalAtivo);
+      const limiteMin = Number(etapaCard.dataset.limiteMin || 0);
 
-      inspecionarGrupoAreaPrimaria(groupFilter, tituloGrupo, tempoOuPrancha, status);
+      inspecionarGrupoAreaPrimaria(groupFilter, tituloGrupo, tempoOuPrancha, status, fluxoFilter, limiteMin);
       return;
     }
 
@@ -4320,8 +4989,8 @@ function renderMovementRows(list, targetId) {
   target.innerHTML = list
     .map(item => {
       const alertaInfo = resolverAlertaVeiculo(item);
-      const temAlerta = alertaInfo.temAlerta;
-      const classeLinha = temAlerta
+      const temAlertaCritico = Boolean(alertaInfo.temAlerta);
+      const classeLinha = temAlertaCritico
         ? "tabela__linha--parado tabela__linha--alerta"
         : "";
       const chave = obterChaveRegistroVeiculo(item);
@@ -4658,6 +5327,14 @@ function aplicarEdicoesAlertasEmVeiculos(lista = []) {
             atualizado.excesso_peso_kg =
               pesoEditado > limiteSobrepeso ? pesoEditado - limiteSobrepeso : 0;
             atualizado.sobrepeso = pesoEditado > limiteSobrepeso;
+            if (pesoEditado <= limiteSobrepeso) {
+              const tipoAtual = String(atualizado.tipo_alerta ?? "").toUpperCase();
+              if (!tipoAtual || tipoAtual.includes("SOBREPESO")) {
+                atualizado.possui_alerta = false;
+              }
+            } else {
+              atualizado.possui_alerta = true;
+            }
             atualizado._pesoEditadoManualmente = true;
           }
         } else if (ehTempo) {
@@ -4730,7 +5407,11 @@ function filteredMovements() {
 
     let matchEtapa = true;
     if (contextoInspecaoCard?.filtroGrupo) {
-      matchEtapa = pertenceAoGrupoAreaPrimaria(item.stage, contextoInspecaoCard.filtroGrupo);
+      matchEtapa = pertenceAoCardAreaPrimaria(
+        item,
+        contextoInspecaoCard.filtroGrupo,
+        contextoInspecaoCard.filtroFluxo || "convencional"
+      );
     } else {
       matchEtapa = coincidirEtapa(item.stage, etapa);
     }
@@ -6298,7 +6979,8 @@ function recalcularContadoresOverviewDelta(veiculo, delta) {
   document.querySelectorAll(".grade-esteira .esteira__etapa").forEach(card => {
     const groupFilter = card.dataset.groupFilter;
     if (groupFilter) {
-      if (pertenceAoGrupoAreaPrimaria(veiculo.stage, groupFilter)) {
+      const fluxoCard = card.dataset.fluxoFilter || normalizarFluxoOperacional(fluxoOperacionalAtivo);
+      if (pertenceAoCardAreaPrimaria(veiculo, groupFilter, fluxoCard)) {
         const strong = card.querySelector(".card-area-primaria__valor, strong");
         if (strong) {
           const qtdAtual = Number(String(strong.textContent).replace(/\D/g, "")) || 0;
@@ -7358,6 +8040,37 @@ function salvarEdicaoAlertaPendente() {
   alertasEditadosLocal[alertaPendenteResolucao.chave] = edicao;
   salvarAlertasEditadosLocal();
 
+  const limiteConfigSobrepeso = Number(configOperacionalCCO?.limiteSobrepesoKg) || 48500;
+  const limiteConfigPrc = Number(configOperacionalCCO?.limiteRetencaoPrcMin) || 120;
+  const pesoEfetivoSalvo = ehAlertaPeso ? converterPesoParaNumero(novoValor) : null;
+  const matchTempoSalvo = ehAlertaTempo
+    ? String(novoValor).replace(/\./g, "").match(/(\d+(?:[.,]\d+)?)/)
+    : null;
+  const tempoEfetivoSalvo = matchTempoSalvo ? Number(matchTempoSalvo[1].replace(",", ".")) : null;
+  const continuaAcimaDoLimite =
+    (ehAlertaPeso && pesoEfetivoSalvo !== null && pesoEfetivoSalvo > limiteConfigSobrepeso) ||
+    (ehAlertaTempo && tempoEfetivoSalvo !== null && Number.isFinite(tempoEfetivoSalvo) && tempoEfetivoSalvo > limiteConfigPrc);
+
+  if (continuaAcimaDoLimite && alertaPendenteResolucao.chave) {
+    let removeuResolvido = false;
+    if (alertasResolvidosLocal.has(alertaPendenteResolucao.chave)) {
+      alertasResolvidosLocal.delete(alertaPendenteResolucao.chave);
+      delete alertasResolvidosMetaLocal[alertaPendenteResolucao.chave];
+      removeuResolvido = true;
+    }
+    const placaNorm = normalizarTexto(alertaPendenteResolucao.placa || "");
+    const chaveSobrepesoPlaca = placaNorm ? `SOBREPESO::${placaNorm}` : "";
+    if (chaveSobrepesoPlaca && alertasResolvidosLocal.has(chaveSobrepesoPlaca)) {
+      alertasResolvidosLocal.delete(chaveSobrepesoPlaca);
+      delete alertasResolvidosMetaLocal[chaveSobrepesoPlaca];
+      removeuResolvido = true;
+    }
+    if (removeuResolvido) {
+      salvarAlertasResolvidosLocal();
+      salvarAlertasResolvidosMetaLocal();
+    }
+  }
+
   alertaPendenteResolucao = {
     ...alertaPendenteResolucao,
     etapa: novaEtapa,
@@ -8291,12 +9004,13 @@ function atualizarBadgesFluxoConvencional(veiculosLista) {
   const todosVeiculos = Array.isArray(veiculosLista)
     ? veiculosLista
     : (typeof obterFonteVeiculosCompleta === "function" ? obterFonteVeiculosCompleta() : []);
+  const veiculosConvencionais = todosVeiculos.filter(ehVeiculoConvencional);
 
   const contagensEtapas = {
-    prc: todosVeiculos.filter(v => coincidirEtapa(v.stage, "Fila PRC") || coincidirEtapa(v.stage, "Pátio")).length,
-    funil: todosVeiculos.filter(v => coincidirEtapa(v.stage, "Operação")).length,
-    balanca: todosVeiculos.filter(v => coincidirEtapa(v.stage, "Balança Tara") || coincidirEtapa(v.stage, "Balança Bruto")).length,
-    pan_saida: todosVeiculos.filter(v => coincidirEtapa(v.stage, "PAN")).length
+    prc: veiculosConvencionais.filter(v => coincidirEtapa(v.stage, "Fila PRC") || coincidirEtapa(v.stage, "Pátio")).length,
+    funil: veiculosConvencionais.filter(v => coincidirEtapa(v.stage, "Operação")).length,
+    balanca: veiculosConvencionais.filter(v => coincidirEtapa(v.stage, "Balança Tara") || coincidirEtapa(v.stage, "Balança Bruto")).length,
+    pan_saida: veiculosConvencionais.filter(v => coincidirEtapa(v.stage, "PAN")).length
   };
 
   painel.querySelectorAll(".fluxo-etapa[data-fluxo-etapa]").forEach(node => {
@@ -8375,7 +9089,7 @@ function atualizarBotaoFluxoExpedicao(veiculosLista) {
 
   const chavesVistas = new Set();
   const qtdExpedicao = todosVeiculos.filter(item => {
-    if (!coincidirDestino(item?.flow, "Expedição")) return false;
+    if (!ehVeiculoExpedicao(item)) return false;
     const chave = obterChaveRegistroVeiculo(item) || normalizarTexto(item?.plate);
     if (!chave) return true;
     if (chavesVistas.has(chave)) return false;
@@ -8403,6 +9117,8 @@ function configurarAbasFluxosOperacionais() {
         const targetTab = btn.getAttribute("data-tab");
         if (!targetTab) return;
 
+        fluxoOperacionalAtivo = normalizarFluxoOperacional(targetTab);
+
         tabButtons.forEach(b => {
           const isCurrent = b === btn;
           b.classList.toggle("fluxo-aba-btn--ativo", isCurrent);
@@ -8419,6 +9135,10 @@ function configurarAbasFluxosOperacionais() {
             panel.setAttribute("hidden", "");
           }
         });
+
+        if (typeof renderizarCardsAreaPrimaria === "function") {
+          renderizarCardsAreaPrimaria(ultimasEtapasAPI, { animarTransicao: true });
+        }
       });
     });
   }

@@ -264,7 +264,7 @@
 
         <!-- MONITORAMENTO ÁREA PRIMÁRIA · MODAL CONVENCIONAL -->
           <div class="visao-geral__secao">
-            <div class="visao-geral__cabecalho-bloco"><h2 class="visao-geral__titulo" data-i18n="overview.conveyor_title">Monitoramento Área Primária · Modal Convencional</h2><p class="visao-geral__subtitulo" data-i18n="overview.conveyor_subtitle">Giro de veículos por etapa de fluxo operacional</p></div>
+            <div class="visao-geral__cabecalho-bloco"><h2 class="visao-geral__titulo" id="area-primaria-titulo" data-i18n="overview.conveyor_title">Monitoramento Área Primária · Modal Convencional</h2><p class="visao-geral__subtitulo" id="area-primaria-subtitulo" data-i18n="overview.conveyor_subtitle">Giro de veículos por etapa de fluxo operacional</p></div>
 
             <div class="grade-esteira">
 
@@ -590,10 +590,31 @@
               </div>
 
               <div class="alertas__cabecalho-acoes">
+                <div class="alertas__abas" role="tablist" aria-label="Filtro de alertas">
+                  <button
+                    type="button"
+                    class="alertas__aba-btn alertas__aba-btn--ativo"
+                    id="tab-alertas-ativos"
+                    role="tab"
+                    aria-selected="true"
+                    data-alert-tab="ativos"
+                  >
+                    Ativos (0)
+                  </button>
+                  <button
+                    type="button"
+                    class="alertas__aba-btn"
+                    id="tab-alertas-editados"
+                    role="tab"
+                    aria-selected="false"
+                    data-alert-tab="editados"
+                  >
+                    Editados (0)
+                  </button>
+                </div>
                 <button type="button" class="alertas__restaurar-btn" id="btn-restaurar-alertas" hidden>
                   Restaurar resolvidos (0)
                 </button>
-                <span class="alertas__contador">3 ativos</span>
               </div>
             </div>
 

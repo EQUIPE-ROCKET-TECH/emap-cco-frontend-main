@@ -6,6 +6,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>COPI | Acompanhamento da Movimentação Rodoviária</title>
   <link rel="stylesheet" href="css/main.css">
+  <script>
+    (function () {
+      try {
+        var sessaoRaw =
+          localStorage.getItem("cco_sessao_operador") ||
+          sessionStorage.getItem("cco_sessao_operador");
+        if (!sessaoRaw) {
+          window.location.replace("login.html");
+          return;
+        }
+        var sessao = JSON.parse(sessaoRaw);
+        if (!sessao || !sessao.usuario) {
+          window.location.replace("login.html");
+        }
+      } catch (e) {
+        window.location.replace("login.html");
+      }
+    })();
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="script.js" defer></script>
 </head>
@@ -13,9 +32,9 @@
 <body>
   <div class="aplicacao">
     <aside class="barra-lateral">
-      <a class="marca" href="https://copiporto.com.br" target="_blank" rel="noopener noreferrer" title="COPI - Operações Integradas" aria-label="COPI - Operações Integradas">
+      <div class="marca" title="COPI - Operações Integradas">
         <img class="barra-lateral__imagem" src="logoCOPI.png" alt="COPI - Operações Integradas">
-      </a>
+      </div>
 
       <nav class="menu" aria-label="Menu principal" data-i18n-aria="nav.aria">
         <button class="menu__link menu__link--ativo" data-page="overview" data-i18n="nav.overview">
@@ -69,11 +88,14 @@
               <small id="current-time">Atualizado agora</small>
             </div>
           </div>
-          <div class="usuario__avatar">CCO</div>
+          <div class="usuario__avatar" id="header-user-avatar">CCO</div>
           <div class="usuario__identificacao">
-            <strong>CCO</strong>
-            <small data-i18n="header.control_center">Centro de Controle</small>
+            <strong id="header-user-name">CCO</strong>
+            <small id="header-user-role" data-i18n="header.control_center">Centro de Controle</small>
           </div>
+          <a href="login.html" class="usuario__acao-login" id="btn-logout-login" data-i18n="header.logout">
+            Sair
+          </a>
         </div>
       </header>
 
@@ -216,11 +238,11 @@
 
               <div class="berco__produtividade">
                 <strong>312 t/h</strong>
-                <span>104% da meta</span>
+                <span>125% da meta</span>
               </div>
 
               <p class="berco__referencia">
-                Prancha meta: <strong>300 t/h</strong>
+                Prancha meta: <strong>250 t/h</strong>
               </p>
 
               <span class="berco__status berco__status--positivo">
@@ -306,17 +328,18 @@
                 </div>
 
                 <div class="fluxo-etapas">
-                  <div class="fluxo-etapa">
+                  <div class="fluxo-etapa fluxo-etapa--clicavel" role="button" tabindex="0" data-fluxo-etapa="prc" data-fluxo-grupo="sem_coletor" title="Clique para filtrar veículos em Fila PRC / Pátio">
                     <span class="fluxo-etapa__numero">1</span>
                     <div class="fluxo-etapa__info">
                       <strong class="fluxo-etapa__nome">PRC</strong>
                       <span class="fluxo-etapa__desc">1ª pesagem</span>
                     </div>
+                    <span class="fluxo-etapa__qtd" data-fluxo-qtd="prc" aria-label="Veículos ativos">0</span>
                   </div>
 
                   <div class="fluxo-seta" aria-hidden="true">→</div>
 
-                  <div class="fluxo-etapa">
+                  <div class="fluxo-etapa fluxo-etapa--clicavel" role="button" tabindex="0" data-fluxo-etapa="pan_entrada" data-fluxo-grupo="balanca_pan" title="Clique para filtrar veículos em Balança e PAN">
                     <span class="fluxo-etapa__numero">2</span>
                     <div class="fluxo-etapa__info">
                       <strong class="fluxo-etapa__nome">PAN</strong>
@@ -326,7 +349,7 @@
 
                   <div class="fluxo-seta" aria-hidden="true">→</div>
 
-                  <div class="fluxo-etapa">
+                  <div class="fluxo-etapa fluxo-etapa--clicavel" role="button" tabindex="0" data-fluxo-etapa="berco" data-fluxo-grupo="coletor_balanca" title="Clique para filtrar veículos em Operação (Berço / Funil)">
                     <span class="fluxo-etapa__numero">3</span>
                     <div class="fluxo-etapa__info">
                       <strong class="fluxo-etapa__nome">Berço</strong>
@@ -336,7 +359,7 @@
 
                   <div class="fluxo-seta" aria-hidden="true">→</div>
 
-                  <div class="fluxo-etapa fluxo-etapa--copi">
+                  <div class="fluxo-etapa fluxo-etapa--copi fluxo-etapa--clicavel" role="button" tabindex="0" data-fluxo-etapa="registro" data-fluxo-grupo="coletor_balanca" title="Clique para filtrar veículos em Operação (Registro COPI)">
                     <span class="fluxo-etapa__tag-copi">COPI</span>
                     <span class="fluxo-etapa__numero">4</span>
                     <div class="fluxo-etapa__info">
@@ -347,33 +370,36 @@
 
                   <div class="fluxo-seta" aria-hidden="true">→</div>
 
-                  <div class="fluxo-etapa fluxo-etapa--copi">
+                  <div class="fluxo-etapa fluxo-etapa--copi fluxo-etapa--clicavel" role="button" tabindex="0" data-fluxo-etapa="funil" data-fluxo-grupo="coletor_balanca" title="Clique para filtrar veículos em Operação (Carregamento Funil)">
                     <span class="fluxo-etapa__tag-copi">COPI</span>
                     <span class="fluxo-etapa__numero">5</span>
                     <div class="fluxo-etapa__info">
                       <strong class="fluxo-etapa__nome">Funil</strong>
-                      <span class="fluxo-etapa__desc">Carregamento</span>
+                      <span class="fluxo-etapa__desc">Carga no funil</span>
                     </div>
+                    <span class="fluxo-etapa__qtd" data-fluxo-qtd="funil" aria-label="Veículos ativos">0</span>
                   </div>
 
                   <div class="fluxo-seta" aria-hidden="true">→</div>
 
-                  <div class="fluxo-etapa">
+                  <div class="fluxo-etapa fluxo-etapa--clicavel" role="button" tabindex="0" data-fluxo-etapa="balanca" data-fluxo-grupo="balanca_pan" title="Clique para filtrar veículos em Balança (Tara/Bruto)">
                     <span class="fluxo-etapa__numero">6</span>
                     <div class="fluxo-etapa__info">
                       <strong class="fluxo-etapa__nome">Balança</strong>
                       <span class="fluxo-etapa__desc">2ª pesagem e ticket</span>
                     </div>
+                    <span class="fluxo-etapa__qtd" data-fluxo-qtd="balanca" aria-label="Veículos ativos">0</span>
                   </div>
 
                   <div class="fluxo-seta" aria-hidden="true">→</div>
 
-                  <div class="fluxo-etapa">
+                  <div class="fluxo-etapa fluxo-etapa--clicavel" role="button" tabindex="0" data-fluxo-etapa="pan_saida" data-fluxo-grupo="balanca_pan" title="Clique para filtrar veículos em Balança e PAN">
                     <span class="fluxo-etapa__numero">7</span>
                     <div class="fluxo-etapa__info">
                       <strong class="fluxo-etapa__nome">PAN</strong>
                       <span class="fluxo-etapa__desc">Saída para destino</span>
                     </div>
+                    <span class="fluxo-etapa__qtd" data-fluxo-qtd="pan_saida" aria-label="Veículos ativos">0</span>
                   </div>
                 </div>
 
@@ -469,7 +495,8 @@
                   <span class="fluxo-badge">BF1: volume real (t/h)</span>
                   <span class="fluxo-badge">Elipse: correias</span>
                   <span class="fluxo-badge">iPort: entrada de carga</span>
-                  <span class="fluxo-badge fluxo-badge--destaque">Berço 101: Carvão 458 t/h | Fertilizantes 390 t/h | Ureia 320 t/h</span>
+                  <span class="fluxo-badge fluxo-badge--destaque" id="fluxo-mecanizado-ritmo-b101">Ritmo atual Berço 101: -- t/h · Meta: 458 t/h</span>
+                  <span class="fluxo-badge">Berço 101: Carvão 458 t/h | Fertilizantes 390 t/h | Ureia 320 t/h</span>
                 </div>
               </div>
 
@@ -477,9 +504,12 @@
               <div class="fluxo-conteudo-aba" id="painel-fluxo-expedicao" role="tabpanel" aria-labelledby="tab-btn-expedicao" data-tab-content="expedicao" hidden>
                 <div class="fluxo-subcabecalho">
                   <span class="fluxo-subcabecalho__badge">Armazém Porto</span>
+                  <button type="button" class="fluxo-acao-btn" id="btn-fluxo-expedicao-veiculos" data-fluxo-berco="Expedição" title="Clique para inspecionar veículos da Expedição em Movimentações">
+                    Inspecionar veículos da Expedição →
+                  </button>
                 </div>
 
-                <div class="fluxo-etapas">
+                <div class="fluxo-etapas fluxo-etapas--expedicao" data-fluxo-berco="Expedição">
                   <div class="fluxo-etapa">
                     <span class="fluxo-etapa__numero">1</span>
                     <div class="fluxo-etapa__info">
@@ -544,7 +574,7 @@
                 <div class="fluxo-rodape">
                   <span class="fluxo-badge">Carregamento ≈ 13 min</span>
                   <span class="fluxo-badge">Permanência ≈ 30 min</span>
-                  <span class="fluxo-badge fluxo-badge--destaque">Prancha: 250 t/h (Ureia: 200 t/h)</span>
+                  <span class="fluxo-badge fluxo-badge--destaque" id="fluxo-expedicao-prancha">Prancha: 250 t/h (Ureia: 200 t/h)</span>
                   <span class="fluxo-badge">Sistema: iPort</span>
                 </div>
               </div>
@@ -559,7 +589,12 @@
                 <p data-i18n="alerts.subtitle">Ocorrências que exigem atenção imediata</p>
               </div>
 
-              <span class="alertas__contador">3 ativos</span>
+              <div class="alertas__cabecalho-acoes">
+                <button type="button" class="alertas__restaurar-btn" id="btn-restaurar-alertas" hidden>
+                  Restaurar resolvidos (0)
+                </button>
+                <span class="alertas__contador">3 ativos</span>
+              </div>
             </div>
 
             <div class="alertas__lista">
@@ -1113,6 +1148,23 @@
             </div>
           </article>
         </div>
+
+        <article class="configuracao__card-parametros configuracao__card-sessao">
+          <div class="configuracao__sessao-conteudo">
+            <div class="configuracao__card-topo configuracao__sessao-topo">
+              <h3 data-i18n="settings.session.title">Sessão do operador</h3>
+              <p data-i18n="settings.session.desc">Operador autenticado neste terminal e encerramento de acesso.</p>
+              <div class="configuracao__sessao-usuario">
+                <strong id="settings-session-user">CCO</strong>
+                <span aria-hidden="true">·</span>
+                <span id="settings-session-role" data-i18n="header.control_center">Centro de Controle</span>
+              </div>
+            </div>
+            <button type="button" class="configuracao__botao-sair" id="btn-logout-settings" data-i18n="settings.session.logout">
+              Sair
+            </button>
+          </div>
+        </article>
       </section>
 
       <section class="pagina" id="page-vehicles">
@@ -1339,6 +1391,77 @@
         <button type="button" class="botao botao--perigo" id="confirm-delete-submit">
           Sim, remover
         </button>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog class="modal-confirmar-exclusao modal-resolver-alerta" id="confirm-resolve-alert-modal" closedby="any" aria-labelledby="confirm-resolve-alert-title">
+    <div class="modal-confirmar-exclusao__caixa">
+      <span class="modal-confirmar-exclusao__badge modal-resolver-alerta__badge">CONFIRMAÇÃO · RESOLUÇÃO DE ALERTA</span>
+      <h3 id="confirm-resolve-alert-title">Deseja resolver este alerta operacional?</h3>
+      <p id="confirm-resolve-alert-desc" class="modal-confirmar-exclusao__desc">
+        Confirme a baixa deste alerta na Visão Geral. Ele permanecerá oculto mesmo após atualizações automáticas.
+      </p>
+      <div class="modal-resolver-alerta__aviso-editado" id="confirm-resolve-alert-edited-notice" hidden></div>
+      <div class="modal-resolver-alerta__detalhes" id="confirm-resolve-alert-details"></div>
+      <form class="modal-resolver-alerta__form" id="confirm-resolve-alert-form" hidden>
+        <label class="modal-resolver-alerta__field">
+          <span id="edit-alert-stage-label">Etapa</span>
+          <input type="text" id="edit-alert-stage" autocomplete="off" />
+        </label>
+        <label class="modal-resolver-alerta__field">
+          <span id="edit-alert-value-label">Valor atual</span>
+          <input type="text" id="edit-alert-value" autocomplete="off" />
+        </label>
+        <label class="modal-resolver-alerta__field">
+          <span id="edit-alert-note-label">Observação (opcional)</span>
+          <input type="text" id="edit-alert-note" placeholder="Ex.: Repesagem concluída" autocomplete="off" />
+        </label>
+      </form>
+      <footer class="modal-confirmar-exclusao__rodape" id="confirm-resolve-alert-actions-view">
+        <button type="button" class="botao botao--claro" id="confirm-resolve-alert-cancel">
+          Cancelar
+        </button>
+        <button type="button" class="botao botao--claro" id="confirm-resolve-alert-edit">
+          Editar
+        </button>
+        <button type="button" class="botao botao--primario" id="confirm-resolve-alert-submit">
+          Confirmar resolução
+        </button>
+      </footer>
+      <footer class="modal-confirmar-exclusao__rodape" id="confirm-resolve-alert-actions-edit" hidden>
+        <button type="button" class="botao botao--claro" id="confirm-resolve-alert-back">
+          Voltar
+        </button>
+        <button type="button" class="botao botao--primario" id="confirm-resolve-alert-save">
+          Salvar edição
+        </button>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog class="modal-confirmar-exclusao modal-historico-edicao" id="alert-edit-history-modal" closedby="any" aria-labelledby="alert-edit-history-title">
+    <div class="modal-confirmar-exclusao__caixa">
+      <span class="modal-confirmar-exclusao__badge modal-resolver-alerta__badge" id="alert-edit-history-badge">HISTÓRICO · ALERTA EDITADO</span>
+      <h3 id="alert-edit-history-title">Alterações registradas no alerta</h3>
+      <div class="modal-historico-edicao__corpo" id="alert-edit-history-body"></div>
+      <footer class="modal-confirmar-exclusao__rodape">
+        <button type="button" class="botao botao--primario" id="alert-edit-history-close">
+          Fechar
+        </button>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog class="modal-confirmar-exclusao modal-restaurar-alertas" id="restore-alerts-modal" closedby="any" aria-labelledby="restore-alerts-title">
+    <div class="modal-confirmar-exclusao__caixa">
+      <span class="modal-confirmar-exclusao__badge modal-resolver-alerta__badge" id="restore-alerts-badge">RESTAURAÇÃO · ALERTAS RESOLVIDOS</span>
+      <h3 id="restore-alerts-title">Restaurar alertas resolvidos</h3>
+      <p class="modal-confirmar-exclusao__desc" id="restore-alerts-desc">Selecione individualmente qual alerta deseja reativar ou restaure todos de uma vez.</p>
+      <div class="modal-restauracao__lista modal-restaurar-alertas__lista" id="restore-alerts-list"></div>
+      <footer class="modal-confirmar-exclusao__rodape">
+        <button type="button" class="botao botao--claro" id="restore-alerts-close">Fechar</button>
+        <button type="button" class="botao botao--primario" id="restore-all-alerts-submit">Restaurar todos</button>
       </footer>
     </div>
   </dialog>

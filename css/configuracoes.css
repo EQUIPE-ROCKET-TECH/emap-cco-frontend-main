@@ -428,3 +428,98 @@ body.tema--escuro .configuracao__resumo-ativo,
     grid-template-columns: 1fr !important;
   }
 }
+
+.configuracao__card-sessao {
+  margin-top: 16px;
+  margin-bottom: 0;
+}
+
+.configuracao__sessao-conteudo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.configuracao__sessao-topo {
+  margin-bottom: 0;
+}
+
+.configuracao__sessao-usuario {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  font-size: 12px;
+  color: #475569;
+}
+
+.configuracao__sessao-usuario strong {
+  color: #0F172A;
+  font-weight: 700;
+}
+
+.configuracao__botao-sair {
+  width: auto;
+  min-width: auto;
+  height: auto;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid #FECACA;
+  background: #FEF2F2;
+  color: #B91C1C;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.configuracao__botao-sair:hover {
+  background: #FEE2E2;
+  border-color: #FCA5A5;
+  color: #991B1B;
+  transform: translateY(-1px);
+}
+
+.configuracao__botao-sair:active {
+  transform: translateY(0) scale(0.98);
+}
+
+body.tema--escuro .configuracao__sessao-usuario,
+[data-theme="dark"] .configuracao__sessao-usuario,
+.dark .configuracao__sessao-usuario {
+  background: #242830;
+  border-color: #30343D;
+  color: #94A3B8;
+}
+
+body.tema--escuro .configuracao__sessao-usuario strong,
+[data-theme="dark"] .configuracao__sessao-usuario strong,
+.dark .configuracao__sessao-usuario strong {
+  color: #F1F2F4;
+}
+
+body.tema--escuro .configuracao__botao-sair,
+[data-theme="dark"] .configuracao__botao-sair,
+.dark .configuracao__botao-sair {
+  background: rgba(220, 38, 38, 0.15);
+  border-color: rgba(248, 113, 113, 0.35);
+  color: #FCA5A5;
+}
+
+body.tema--escuro .configuracao__botao-sair:hover,
+[data-theme="dark"] .configuracao__botao-sair:hover,
+.dark .configuracao__botao-sair:hover {
+  background: rgba(220, 38, 38, 0.28);
+  border-color: rgba(252, 165, 165, 0.55);
+  color: #FECACA;
+}

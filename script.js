@@ -60,7 +60,122 @@ let ultimoResumoAPI = null;
 let ultimosBercosAPI = [];
 let ultimasEtapasAPI = [];
 let alertasAtivosAPI = [];
+let ultimosAlertasBrutos = [];
 var contextoInspecaoCard = null;
+
+const STORAGE_KEY_ALERTAS_RESOLVIDOS = "cco_alertas_resolvidos_v1";
+const STORAGE_KEY_ALERTAS_RESOLVIDOS_META = "cco_alertas_resolvidos_meta_v1";
+const STORAGE_KEY_ALERTAS_EDITADOS = "cco_alertas_editados_v1";
+const alertasResolvidosLocal = carregarAlertasResolvidosLocal();
+let alertasResolvidosMetaLocal = carregarAlertasResolvidosMetaLocal();
+let alertasEditadosLocal = carregarAlertasEditadosLocal();
+const mapaAlertasRenderizados = new Map();
+let alertaPendenteResolucao = null;
+
+function carregarAlertasEditadosLocal() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_ALERTAS_EDITADOS);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function salvarAlertasEditadosLocal() {
+  try {
+    localStorage.setItem(
+      STORAGE_KEY_ALERTAS_EDITADOS,
+      JSON.stringify(alertasEditadosLocal)
+    );
+  } catch (e) {
+    console.warn("Não foi possível salvar alertas editados no localStorage:", e);
+  }
+}
+
+function carregarAlertasResolvidosLocal() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_ALERTAS_RESOLVIDOS);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? new Set(parsed.map(String)) : new Set();
+  } catch (e) {
+    return new Set();
+  }
+}
+
+function salvarAlertasResolvidosLocal() {
+  try {
+    localStorage.setItem(
+      STORAGE_KEY_ALERTAS_RESOLVIDOS,
+      JSON.stringify(Array.from(alertasResolvidosLocal))
+    );
+  } catch (e) {
+    console.warn("Não foi possível salvar alertas resolvidos no localStorage:", e);
+  }
+}
+
+function carregarAlertasResolvidosMetaLocal() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_ALERTAS_RESOLVIDOS_META);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function salvarAlertasResolvidosMetaLocal() {
+  try {
+    localStorage.setItem(
+      STORAGE_KEY_ALERTAS_RESOLVIDOS_META,
+      JSON.stringify(alertasResolvidosMetaLocal)
+    );
+  } catch (e) {
+    console.warn("Não foi possível salvar metadados de alertas resolvidos no localStorage:", e);
+  }
+}
+
+function obterChaveUnicaAlerta(alerta) {
+  if (typeof alerta === "string") {
+    return `STR::${normalizarTexto(alerta)}`;
+  }
+  if (!alerta || typeof alerta !== "object") {
+    return `RAW::${String(alerta ?? "")}`;
+  }
+  const placa = normalizarTexto(alerta.placa ?? alerta.plate ?? "");
+  const tipoRaw = String(alerta.tipo_anomalia ?? alerta.tipo_alerta ?? "").toUpperCase();
+  const excessoKg = Number(alerta.excesso_peso_kg ?? alerta.excesso_peso ?? 0);
+  let tipoChave = normalizarTexto(tipoRaw);
+  if (tipoRaw.includes("SOBREPESO") || excessoKg > 0) {
+    tipoChave = "SOBREPESO";
+  } else if (tipoRaw.includes("PRC") || tipoRaw.includes("RETENCAO")) {
+    tipoChave = "RETENCAO_PRC";
+  }
+  return `${tipoChave || "ALERTA"}::${placa || "SEM_PLACA"}`;
+}
+
+function filtrarAlertasNaoResolvidos(listaAlertas) {
+  const lista = Array.isArray(listaAlertas) ? listaAlertas : [];
+  return lista.filter(alerta => !alertasResolvidosLocal.has(obterChaveUnicaAlerta(alerta)));
+}
+
+function atualizarBotaoRestaurarAlertas() {
+  const btn = document.getElementById("btn-restaurar-alertas");
+  if (!btn) return;
+  const qtd = alertasResolvidosLocal.size;
+  if (qtd > 0) {
+    btn.hidden = false;
+    btn.textContent =
+      idiomaAtual === "en-US"
+        ? `Restore resolved (${qtd})`
+        : `Restaurar resolvidos (${qtd})`;
+  } else {
+    btn.hidden = true;
+  }
+}
 
 /* =========================================
    INTERNACIONALIZAÇÃO (I18N · PT-BR / EN-US)
@@ -93,6 +208,7 @@ const I18N_DICTIONARY = {
 
     "header.label": "Operação",
     "header.control_center": "Centro de Controle",
+    "header.logout": "Sair",
     "header.lang_aria": "Selecionar idioma",
     "header.lang_pt_aria": "Mudar idioma para Português (Brasil)",
     "header.lang_en_aria": "Switch language to English (US)",
@@ -379,6 +495,9 @@ const I18N_DICTIONARY = {
     "settings.saved_msg": "Configurações salvas! Limite Sobrepeso: {overweight} kg · Retenção PRC: {prc} min · Polling: {polling}s.",
     "settings.reset_msg": "Parâmetros operacionais restaurados para o padrão COPI001.",
     "settings.err_invalid": "Verifique os valores numéricos informados (Polling mínimo: 5s).",
+    "settings.session.title": "Sessão do operador",
+    "settings.session.desc": "Operador autenticado neste terminal e encerramento de acesso.",
+    "settings.session.logout": "Sair",
 
     "modal.iport_contract": "Contrato Oficial iPort · COPI001",
     "confirm_remove.title": "Confirmar remoção",
@@ -476,6 +595,7 @@ const I18N_DICTIONARY = {
 
     "header.label": "Operations",
     "header.control_center": "Control Center",
+    "header.logout": "Sign out",
     "header.lang_aria": "Select language",
     "header.lang_pt_aria": "Mudar idioma para Português (Brasil)",
     "header.lang_en_aria": "Switch language to English (US)",
@@ -762,6 +882,9 @@ const I18N_DICTIONARY = {
     "settings.saved_msg": "Settings saved! Overweight limit: {overweight} kg · PRC Retention: {prc} min · Polling: {polling}s.",
     "settings.reset_msg": "Operational parameters restored to COPI001 defaults.",
     "settings.err_invalid": "Check the numeric values entered (minimum Polling: 5s).",
+    "settings.session.title": "Operator session",
+    "settings.session.desc": "Authenticated operator on this terminal and access sign-out.",
+    "settings.session.logout": "Sign out",
 
     "modal.iport_contract": "Official iPort Contract · COPI001",
     "confirm_remove.title": "Confirm removal",
@@ -930,6 +1053,16 @@ function renderDashboard() {
   }
   if (typeof renderizarBercosResumoFallback === "function" && ultimosBercosAPI.length) {
     renderizarBercosResumoFallback(ultimosBercosAPI);
+  } else {
+    if (typeof atualizarRitmoBerco101FluxoMecanizado === "function") {
+      atualizarRitmoBerco101FluxoMecanizado();
+    }
+    if (typeof atualizarPranchaExpedicaoFluxo === "function") {
+      atualizarPranchaExpedicaoFluxo();
+    }
+    if (typeof atualizarBotaoFluxoExpedicao === "function") {
+      atualizarBotaoFluxoExpedicao();
+    }
   }
   if (typeof renderizarListaAlertasDOM === "function") {
     renderizarListaAlertasDOM(alertasAtivosAPI);
@@ -1236,7 +1369,9 @@ function coincidirEtapa(itemStage, filtroEtapa) {
 const ETAPAS_GRUPOS_AREA_PRIMARIA = {
   sem_coletor: ["Fila PRC", "Pátio"],
   coletor_balanca: ["Operação"],
-  balanca_pan: ["Balança Tara", "Balança Bruto", "PAN"]
+  balanca_pan: ["Balança Tara", "Balança Bruto", "PAN"],
+  balanca_apenas: ["Balança Tara", "Balança Bruto"],
+  pan_apenas: ["PAN"]
 };
 
 function obterEtapasDoGrupoAreaPrimaria(grupo) {
@@ -1461,9 +1596,13 @@ async function carregarResumoDashboard() {
       if (kpiAlertas && (exec.alertas_sobrepeso_ativos !== undefined || dados.alertas_criticos)) {
         let qtdAlertasUnicos = exec.alertas_sobrepeso_ativos ?? 0;
         if (Array.isArray(dados.alertas_criticos) && dados.alertas_criticos.length > 0) {
-          qtdAlertasUnicos = contarVeiculosComAlertaUnicos(dados.alertas_criticos);
+          qtdAlertasUnicos = contarVeiculosComAlertaUnicos(
+            filtrarAlertasNaoResolvidos(dados.alertas_criticos)
+          );
         } else if (Array.isArray(alertasAtivosAPI) && alertasAtivosAPI.length > 0) {
-          qtdAlertasUnicos = contarVeiculosComAlertaUnicos(alertasAtivosAPI);
+          qtdAlertasUnicos = contarVeiculosComAlertaUnicos(
+            filtrarAlertasNaoResolvidos(alertasAtivosAPI)
+          );
         }
         kpiAlertas.innerHTML = `${qtdAlertasUnicos} <small>${
           idiomaAtual === "en-US" ? "active alerts" : "alertas ativos"
@@ -1528,9 +1667,13 @@ async function carregarResumoDashboard() {
         if (labelAlertas) labelAlertas.textContent = idiomaAtual === "en-US" ? "Critical alerts" : "Alertas críticos";
         let qtdAlertasUnicos = totalAlertas;
         if (Array.isArray(dados.alertas_criticos) && dados.alertas_criticos.length > 0) {
-          qtdAlertasUnicos = contarVeiculosComAlertaUnicos(dados.alertas_criticos);
+          qtdAlertasUnicos = contarVeiculosComAlertaUnicos(
+            filtrarAlertasNaoResolvidos(dados.alertas_criticos)
+          );
         } else if (Array.isArray(alertasAtivosAPI) && alertasAtivosAPI.length > 0) {
-          qtdAlertasUnicos = contarVeiculosComAlertaUnicos(alertasAtivosAPI);
+          qtdAlertasUnicos = contarVeiculosComAlertaUnicos(
+            filtrarAlertasNaoResolvidos(alertasAtivosAPI)
+          );
         }
         kpiAlertas.innerHTML = `${qtdAlertasUnicos} <small>${
           idiomaAtual === "en-US" ? "active alerts" : "alertas ativos"
@@ -1628,19 +1771,21 @@ function resolverAlertaVeiculo(item) {
 
   const excessoInformado =
     alertaMatch?.excesso_peso_kg ?? item?.excesso_peso_kg ?? item?.excesso_peso ?? null;
-  const pesoRealEstimado =
-    pesoNum !== null && pesoNum > 35000
-      ? pesoNum
-      : excessoInformado !== null && Number(excessoInformado) > 0
-      ? 48500 + Number(excessoInformado)
-      : pesoNum;
+  const pesoRealEstimado = item?._pesoEditadoManualmente
+    ? pesoNum
+    : pesoNum !== null && pesoNum > 35000
+    ? pesoNum
+    : excessoInformado !== null && Number(excessoInformado) > 0
+    ? 48500 + Number(excessoInformado)
+    : pesoNum;
 
-  const ehSobrepeso =
-    (pesoRealEstimado !== null && pesoRealEstimado > limiteSobrepeso) ||
-    ((tipoAnomalia.includes("SOBREPESO") ||
-      item?.sobrepeso === true ||
-      normalizarTexto(item?.overweight).includes("sim")) &&
-      (pesoRealEstimado === null || pesoRealEstimado > limiteSobrepeso));
+  const ehSobrepeso = item?._pesoEditadoManualmente
+    ? pesoRealEstimado !== null && pesoRealEstimado > limiteSobrepeso
+    : (pesoRealEstimado !== null && pesoRealEstimado > limiteSobrepeso) ||
+      ((tipoAnomalia.includes("SOBREPESO") ||
+        item?.sobrepeso === true ||
+        normalizarTexto(item?.overweight).includes("sim")) &&
+        (pesoRealEstimado === null || pesoRealEstimado > limiteSobrepeso));
 
   const badges = [];
   let excessoKgCalculado = null;
@@ -1665,11 +1810,14 @@ function resolverAlertaVeiculo(item) {
     });
   }
 
-  const minsPrc = Number(alertaMatch?.tempo_permanencia ?? tempoMin) || 0;
-  const ehRetencaoPrc =
-    (etapaCanon === "Fila PRC" && minsPrc > limiteRetencaoPrc) ||
-    ((tipoAnomalia.includes("PRC") || tipoAnomalia.includes("RETENCAO")) &&
-      (minsPrc === 0 || minsPrc > limiteRetencaoPrc));
+  const minsPrc = item?._tempoEditadoManualmente
+    ? tempoMin
+    : Number(alertaMatch?.tempo_permanencia ?? tempoMin) || 0;
+  const ehRetencaoPrc = item?._tempoEditadoManualmente
+    ? etapaCanon === "Fila PRC" && minsPrc > limiteRetencaoPrc
+    : (etapaCanon === "Fila PRC" && minsPrc > limiteRetencaoPrc) ||
+      ((tipoAnomalia.includes("PRC") || tipoAnomalia.includes("RETENCAO")) &&
+        (minsPrc === 0 || minsPrc > limiteRetencaoPrc));
 
   if (ehRetencaoPrc) {
     const labelPrc = idiomaAtual === "en-US" ? "PRC Retention" : "Retenção PRC";
@@ -1706,7 +1854,18 @@ function resolverAlertaVeiculo(item) {
     });
   }
 
-  const possuiCritico = badges.some(b => b.nivel === "critico");
+  const placaNorm = normalizarTexto(placa);
+  const badgesVisiveis = badges.filter(b => {
+    if (b.nivel !== "critico" || !placaNorm) return true;
+    const chaveBadge = `${b.tipo}::${placaNorm}`;
+    if (alertasResolvidosLocal.has(chaveBadge)) return false;
+    if (b.tipo === "ALERTA" && alertasResolvidosLocal.has(`${normalizarTexto(b.rotulo)}::${placaNorm}`)) {
+      return false;
+    }
+    return true;
+  });
+
+  const possuiCritico = badgesVisiveis.some(b => b.nivel === "critico");
   if (!possuiCritico) {
     const limiarAtencao =
       etapaCanon === "Fila PRC"
@@ -1714,7 +1873,7 @@ function resolverAlertaVeiculo(item) {
         : LIMIARES_ATENCAO_SLA_MIN[etapaCanon];
     if (limiarAtencao !== undefined && tempoMin >= limiarAtencao) {
       const labelSla = idiomaAtual === "en-US" ? "SLA Warning" : "Atenção SLA";
-      badges.push({
+      badgesVisiveis.push({
         tipo: "ATENCAO_SLA",
         rotulo: `${labelSla} (${formatarNumero(tempoMin, 0)} min)`,
         classeBadge: "badge badge--atencao",
@@ -1723,15 +1882,15 @@ function resolverAlertaVeiculo(item) {
     }
   }
 
-  const principal = badges[0] || null;
+  const principal = badgesVisiveis[0] || null;
   return {
     temAlerta: possuiCritico,
-    temAtencao: badges.some(b => b.nivel === "atencao"),
+    temAtencao: badgesVisiveis.some(b => b.nivel === "atencao"),
     tipo: principal ? principal.tipo : null,
     rotulo: principal ? principal.rotulo : item?.status || "Em operação",
     classeBadge: principal ? principal.classeBadge : "",
     excessoKg: excessoKgCalculado,
-    badges
+    badges: badgesVisiveis
   };
 }
 
@@ -2088,6 +2247,12 @@ async function carregarVeiculos(filtros = {}) {
     }
 
     renderMovements(true);
+    if (typeof atualizarBadgesFluxoConvencional === "function") {
+      atualizarBadgesFluxoConvencional();
+    }
+    if (typeof atualizarBotaoFluxoExpedicao === "function") {
+      atualizarBotaoFluxoExpedicao();
+    }
     atualizarPainelTransportadorasOverview();
     if (typeof atualizarGraficoFluxoOverview === "function") {
       atualizarGraficoFluxoOverview();
@@ -2098,6 +2263,12 @@ async function carregarVeiculos(filtros = {}) {
   } catch (erro) {
     console.warn("⚠️ [API] Não foi possível carregar /veiculos:", erro.message);
     renderMovements(false);
+    if (typeof atualizarBadgesFluxoConvencional === "function") {
+      atualizarBadgesFluxoConvencional();
+    }
+    if (typeof atualizarBotaoFluxoExpedicao === "function") {
+      atualizarBotaoFluxoExpedicao();
+    }
     atualizarPainelTransportadorasOverview();
     if (typeof atualizarGraficoFluxoOverview === "function") {
       atualizarGraficoFluxoOverview();
@@ -2137,10 +2308,15 @@ async function carregarAlertasVeiculos() {
 }
 
 function renderizarListaAlertasDOM(listaAlertas) {
-  const lista = Array.isArray(listaAlertas) ? listaAlertas : [];
+  const listaBruta = Array.isArray(listaAlertas) ? listaAlertas : [];
+  ultimosAlertasBrutos = listaBruta;
+  const lista = filtrarAlertasNaoResolvidos(listaBruta);
   const containerLista = document.querySelector(".alertas__lista");
   const contadorAlertas = document.querySelector(".alertas__contador");
   const kpiAlertas = document.getElementById("kpi-alertas");
+
+  mapaAlertasRenderizados.clear();
+  atualizarBotaoRestaurarAlertas();
 
   const qtdVeiculosUnicos = contarVeiculosComAlertaUnicos(lista);
 
@@ -2165,33 +2341,70 @@ function renderizarListaAlertasDOM(listaAlertas) {
         <span class="alertas__icone">✓</span>
         <div class="alertas__conteudo">
           <strong>${idiomaAtual === "en-US" ? "Operation without critical alerts" : "Operação sem alertas críticos"}</strong>
-          <p>${escaparHtml(t("alerts.none"))}</p>
+          <p>${
+            idiomaAtual === "en-US"
+              ? "No active operational alerts at the moment."
+              : "Nenhum alerta operacional ativo no momento."
+          }</p>
         </div>
       </div>
     `;
     return;
   }
 
+  const labelResolver = idiomaAtual === "en-US" ? "Resolve" : "Resolver";
+
   containerLista.innerHTML = lista
     .map(alerta => {
+      const chaveAlerta = obterChaveUnicaAlerta(alerta);
+
       if (typeof alerta === "string") {
         const ehSobrepeso = alerta.toUpperCase().includes("SOBREPESO");
+        const tipoTexto = ehSobrepeso
+          ? idiomaAtual === "en-US"
+            ? "Overweight Detected"
+            : "Sobrepeso Detectado"
+          : idiomaAtual === "en-US"
+          ? "Operational / Queue Deviation"
+          : "Desvio Operacional / Fila";
+        const edicaoSalva = alertasEditadosLocal[chaveAlerta] || null;
+        const valorExibido = edicaoSalva?.valorAtual || alerta;
+        const badgeEditadoHtml = edicaoSalva
+          ? `<span class="alertas__editado-badge">${idiomaAtual === "en-US" ? "Edited" : "Editado"}</span>`
+          : "";
+        const resumoEditadoTexto =
+          edicaoSalva && Array.isArray(edicaoSalva.alteracoes) && edicaoSalva.alteracoes.length
+            ? `${idiomaAtual === "en-US" ? "Edited" : "Editado"} · ${edicaoSalva.alteracoes.join(" · ")}`
+            : "";
+        const resumoEditadoHtml = resumoEditadoTexto
+          ? `<p class="alertas__edicao-resumo">${escaparHtml(resumoEditadoTexto)}</p>`
+          : "";
+        mapaAlertasRenderizados.set(chaveAlerta, {
+          chave: chaveAlerta,
+          tipo: tipoTexto,
+          placa: "—",
+          etapa: edicaoSalva?.etapa || "—",
+          valorAtual: valorExibido,
+          limite: "—",
+          original: {
+            etapa: "—",
+            valorAtual: alerta
+          },
+          edicao: edicaoSalva
+        });
         return `
           <div class="alertas__item alertas__item--critico">
             <span class="alertas__icone">!</span>
             <div class="alertas__conteudo">
-              <strong>${
-                ehSobrepeso
-                  ? idiomaAtual === "en-US"
-                    ? "Overweight Detected"
-                    : "Sobrepeso Detectado"
-                  : idiomaAtual === "en-US"
-                  ? "Operational / Queue Deviation"
-                  : "Desvio Operacional / Fila"
-              }</strong>
-              <p>${escaparHtml(alerta)}</p>
+              <strong>${escaparHtml(tipoTexto)}</strong>
+              <p>${escaparHtml(valorExibido)}</p>
+              ${resumoEditadoHtml}
             </div>
-            <span class="alertas__nivel">${escaparHtml(t("alerts.badge_critical"))}</span>
+            <div class="alertas__acoes">
+              ${badgeEditadoHtml}
+              <span class="alertas__nivel">${escaparHtml(t("alerts.badge_critical"))}</span>
+              <button type="button" class="alertas__resolver-btn" data-action="resolve-alert" data-alert-key="${escaparHtml(chaveAlerta)}">${escaparHtml(labelResolver)}</button>
+            </div>
           </div>
         `;
       }
@@ -2202,22 +2415,60 @@ function renderizarListaAlertasDOM(listaAlertas) {
       const ehSobrepeso = tipoRaw.includes("SOBREPESO") || excessoKg > 0;
       const ehRetencao = tipoRaw.includes("PRC") || tipoRaw.includes("RETENCAO");
 
+      const placaNorm = normalizarTexto(placa);
+      const veiculoRel = (
+        typeof obterFonteVeiculosCompleta === "function"
+          ? obterFonteVeiculosCompleta()
+          : (cacheTodosVeiculosAPI || veiculosAtivosAPI || [])
+      ).find(v => normalizarTexto(v.plate) === placaNorm);
+
+      const etapaBruta =
+        alerta.etapa_atual ??
+        alerta.etapa ??
+        veiculoRel?.stage ??
+        (ehSobrepeso ? "Balança Bruto" : ehRetencao ? "Fila PRC" : "—");
+
+      const itemParaExibicao = {
+        ...(veiculoRel || {}),
+        flow:
+          alerta.flow ??
+          alerta.destino ??
+          alerta.berco ??
+          alerta.berco_destino ??
+          veiculoRel?.flow ??
+          veiculoRel?.destino ??
+          "",
+        operation:
+          alerta.operacao ??
+          alerta.operation ??
+          veiculoRel?.operation ??
+          veiculoRel?.operacao ??
+          "",
+        stage: etapaBruta
+      };
+
+      const rotuloRetencao = formatarRotuloAlertaParaExibicao(itemParaExibicao, {
+        rotulo: "Retenção PRC",
+        tipo: "RETENCAO_PRC"
+      });
+
       let tituloTipo = alerta.tipo_anomalia ?? alerta.tipo_alerta ?? "ALERTA OPERACIONAL";
       if (ehSobrepeso) {
         tituloTipo = "EXCESSO DE PESO NA BALANÇA";
       } else if (ehRetencao) {
-        tituloTipo = "RETENÇÃO NO PÁTIO PRC";
+        tituloTipo =
+          rotuloRetencao === "Retenção Gate in"
+            ? "RETENÇÃO GATE IN"
+            : "RETENÇÃO NO PÁTIO PRC";
       }
 
-      let etapaBruta = alerta.etapa_atual ?? alerta.etapa ?? "";
-      if (!etapaBruta) {
-        const placaNorm = normalizarTexto(placa);
-        const veiculoRel = (cacheTodosVeiculosAPI || veiculosAtivosAPI || []).find(
-          v => normalizarTexto(v.plate) === placaNorm
-        );
-        etapaBruta = veiculoRel?.stage || (ehSobrepeso ? "Balança Bruto" : ehRetencao ? "Fila PRC" : "—");
-      }
-      const etapaAtual = normalizarRotuloEtapa(etapaBruta) || etapaBruta || "—";
+      const etapaAtual =
+        (etapaBruta && etapaBruta !== "—"
+          ? formatarRotuloEtapaParaExibicao(itemParaExibicao)
+          : "") ||
+        normalizarRotuloEtapa(etapaBruta) ||
+        etapaBruta ||
+        "—";
 
       let valorAtualTexto = "—";
       let limiteTexto = "—";
@@ -2263,30 +2514,128 @@ function renderizarListaAlertasDOM(listaAlertas) {
             ? `${formatarNumero(limiteMin, 0)} min`
             : String(limiteMin);
         resumoAlerta =
-          tempoMin !== null ? `Retenção PRC (${valorAtualTexto})` : "Retenção PRC";
+          tempoMin !== null ? `${rotuloRetencao} (${valorAtualTexto})` : rotuloRetencao;
       } else {
         valorAtualTexto = alerta.valor_atual ?? "—";
         limiteTexto = alerta.limite_permitido ?? "—";
       }
 
-      const temPlacaValida = placa && placa !== "—";
-      const attrsInterativos = temPlacaValida
-        ? `data-alert-plate="${escaparHtml(placa)}" data-placa="${escaparHtml(placa)}" data-alert-summary="${escaparHtml(resumoAlerta)}" role="button" tabindex="0" title="Clique para inspecionar o veículo ${escaparHtml(placa)} em Movimentações"`
+      const edicaoSalva = alertasEditadosLocal[chaveAlerta] || null;
+      const etapaOriginal = etapaAtual;
+      const valorOriginal = valorAtualTexto;
+      const limiteOriginal = limiteTexto;
+
+      const etapaBrutaExibida = edicaoSalva?.etapa || etapaOriginal;
+      const etapaExibida =
+        edicaoSalva?.etapa && etapaBrutaExibida !== "—"
+          ? formatarRotuloEtapaParaExibicao({ ...itemParaExibicao, stage: etapaBrutaExibida }) ||
+            etapaBrutaExibida
+          : etapaOriginal;
+
+      let valorExibido = edicaoSalva?.valorAtual || valorOriginal;
+      let limiteExibido = edicaoSalva?.limite || limiteOriginal;
+      let resumoAlertaFinal = resumoAlerta;
+      let alteracoesNormalizadas = Array.isArray(edicaoSalva?.alteracoes)
+        ? [...edicaoSalva.alteracoes]
+        : [];
+
+      if (edicaoSalva?.valorAtual) {
+        if (ehSobrepeso || /\bkg\b/i.test(edicaoSalva.valorAtual)) {
+          const pesoEditNum = converterPesoParaNumero(edicaoSalva.valorAtual);
+          if (pesoEditNum !== null) {
+            valorExibido = `${formatarNumero(pesoEditNum, 0)} kg`;
+            const limiteConfigSobrepeso = Number(configOperacionalCCO?.limiteSobrepesoKg) || 48500;
+            const limiteBaseNum =
+              converterPesoParaNumero(String(limiteOriginal).split("·")[0]) ||
+              limiteConfigSobrepeso;
+            const limiteBaseTexto = `${formatarNumero(limiteBaseNum, 0)} kg`;
+            const excessoNovo = pesoEditNum - limiteBaseNum;
+            limiteExibido =
+              excessoNovo > 0
+                ? `${limiteBaseTexto} · +${formatarNumero(excessoNovo, 0)} kg`
+                : limiteBaseTexto;
+            resumoAlertaFinal =
+              excessoNovo > 0
+                ? `Sobrepeso (+${formatarNumero(excessoNovo, 0)} kg)`
+                : `Sobrepeso (${valorExibido})`;
+            if (valorExibido !== edicaoSalva.valorAtual) {
+              alteracoesNormalizadas = alteracoesNormalizadas.map(a =>
+                String(a).replace(edicaoSalva.valorAtual, valorExibido)
+              );
+            }
+          }
+        } else if (ehRetencao || /\bmin\b/i.test(edicaoSalva.valorAtual)) {
+          const matchMin = String(edicaoSalva.valorAtual)
+            .replace(/\./g, "")
+            .match(/(\d+(?:[.,]\d+)?)/);
+          if (matchMin) {
+            const minsNum = Number(matchMin[1].replace(",", "."));
+            if (Number.isFinite(minsNum)) {
+              valorExibido = `${formatarNumero(minsNum, 0)} min`;
+              resumoAlertaFinal = `${rotuloRetencao} (${valorExibido})`;
+              if (valorExibido !== edicaoSalva.valorAtual) {
+                alteracoesNormalizadas = alteracoesNormalizadas.map(a =>
+                  String(a).replace(edicaoSalva.valorAtual, valorExibido)
+                );
+              }
+            }
+          }
+        }
+      }
+
+      const temPlacaValidaFinal = placa && placa !== "—";
+      const attrsInterativosFinais = temPlacaValidaFinal
+        ? `data-alert-plate="${escaparHtml(placa)}" data-placa="${escaparHtml(placa)}" data-alert-summary="${escaparHtml(resumoAlertaFinal)}" role="button" tabindex="0" title="Clique para inspecionar o veículo ${escaparHtml(placa)} em Movimentações"`
         : "";
-      const classeClicavel = temPlacaValida ? " alertas__item--clicavel" : "";
+      const classeClicavelFinal = temPlacaValidaFinal ? " alertas__item--clicavel" : "";
+
+      const badgeEditadoHtml = edicaoSalva
+        ? `<span class="alertas__editado-badge">${idiomaAtual === "en-US" ? "Edited" : "Editado"}</span>`
+        : "";
+      const resumoEditadoTexto =
+        edicaoSalva && alteracoesNormalizadas.length
+          ? `${idiomaAtual === "en-US" ? "Edited" : "Editado"} · ${alteracoesNormalizadas.join(" · ")}`
+          : "";
+      const resumoEditadoHtml = resumoEditadoTexto
+        ? `<p class="alertas__edicao-resumo">${escaparHtml(resumoEditadoTexto)}</p>`
+        : "";
+
+      const edicaoParaModal = edicaoSalva
+        ? { ...edicaoSalva, alteracoes: alteracoesNormalizadas }
+        : null;
+
+      mapaAlertasRenderizados.set(chaveAlerta, {
+        chave: chaveAlerta,
+        tipo: tituloTipo,
+        placa,
+        etapa: etapaExibida,
+        valorAtual: valorExibido,
+        limite: limiteExibido,
+        original: {
+          etapa: etapaOriginal,
+          valorAtual: valorOriginal,
+          limite: limiteOriginal
+        },
+        edicao: edicaoParaModal
+      });
 
       return `
-        <div class="alertas__item alertas__item--critico${classeClicavel}" ${attrsInterativos}>
+        <div class="alertas__item alertas__item--critico${classeClicavelFinal}" ${attrsInterativosFinais}>
           <span class="alertas__icone">!</span>
           <div class="alertas__conteudo">
             <strong>${escaparHtml(tituloTipo)} · Placa ${escaparHtml(placa)}</strong>
             <p>
-              Etapa: <strong>${escaparHtml(etapaAtual)}</strong> ·
-              Valor atual: <strong>${escaparHtml(valorAtualTexto)}</strong>
-              (Limite: ${escaparHtml(limiteTexto)})
+              Etapa: <strong>${escaparHtml(etapaExibida)}</strong> ·
+              Valor atual: <strong>${escaparHtml(valorExibido)}</strong>
+              (Limite: ${escaparHtml(limiteExibido)})
             </p>
+            ${resumoEditadoHtml}
           </div>
-          <span class="alertas__nivel">Crítico</span>
+          <div class="alertas__acoes">
+            ${badgeEditadoHtml}
+            <span class="alertas__nivel">${escaparHtml(t("alerts.badge_critical"))}</span>
+            <button type="button" class="alertas__resolver-btn" data-action="resolve-alert" data-alert-key="${escaparHtml(chaveAlerta)}">${escaparHtml(labelResolver)}</button>
+          </div>
         </div>
       `;
     })
@@ -2489,6 +2838,13 @@ function renderizarCardsAreaPrimaria(listaEtapas) {
       <span class="esteira__status ${statusClasse(gBalancaPanStatus)}">${escaparHtml(rotuloStatus(gBalancaPanStatus))}</span>
     </article>
   `;
+
+  if (typeof atualizarBadgesFluxoConvencional === "function") {
+    atualizarBadgesFluxoConvencional(todosVeiculos);
+  }
+  if (typeof atualizarBotaoFluxoExpedicao === "function") {
+    atualizarBotaoFluxoExpedicao(todosVeiculos);
+  }
 }
 
 async function carregarEtapasOperacao() {
@@ -2596,7 +2952,14 @@ function renderizarBercosResumoFallback(pontosOperacionais) {
       elProdStrong.textContent = `${formatarNumero(prancha, 0)} t/h`;
     }
 
-    const atingimento = ponto.atingimento_percentual ?? ponto.atingimento ?? 100;
+    const ehExpedicao = nomePonto === "Expedição";
+    const metaRaw = ponto.meta_contratual_th ?? ponto.meta_th ?? 0;
+    // Norma/COPI define 250 t/h para Expedição Rodoviária, mesmo se API/fallback enviar 300
+    const meta = ehExpedicao ? 250 : metaRaw;
+    const atingimento = ehExpedicao
+      ? (meta > 0 ? (Number(prancha) / meta) * 100 : 0)
+      : (ponto.atingimento_percentual ?? ponto.atingimento ?? 100);
+
     const elProdSpan = card.querySelector(".berco__produtividade span");
     if (elProdSpan) {
       elProdSpan.textContent =
@@ -2605,7 +2968,6 @@ function renderizarBercosResumoFallback(pontosOperacionais) {
           : `${formatarNumero(atingimento, 1)}% da meta`;
     }
 
-    const meta = ponto.meta_contratual_th ?? ponto.meta_th ?? 0;
     const elRefStrong = card.querySelector(".berco__referencia strong");
     if (elRefStrong) {
       elRefStrong.textContent = `${formatarNumero(meta, 0)} t/h`;
@@ -2636,6 +2998,13 @@ function renderizarBercosResumoFallback(pontosOperacionais) {
   const nomesBercos = pontosOperacionais.map(p => p.nome).filter(Boolean);
   atualizarOpcoesSelect("movement-destino", nomesBercos, t("filter.all_masc"), DESTINOS_PADRAO);
   atualizarBannerInspecaoMovimentacoes();
+
+  if (typeof atualizarRitmoBerco101FluxoMecanizado === "function") {
+    atualizarRitmoBerco101FluxoMecanizado(pontosOperacionais);
+  }
+  if (typeof atualizarPranchaExpedicaoFluxo === "function") {
+    atualizarPranchaExpedicaoFluxo();
+  }
 }
 
 function renderizarEtapasResumoFallback(esteira) {
@@ -3209,12 +3578,18 @@ function extrairResumoCardBerco(bercoFiltro, cardEl) {
   );
 
   if (itemAPI) {
+    const ehExpedicao = coincidirDestino(bercoFiltro, "Expedição");
     const totalVeiculos = itemAPI.total_veiculos_ativos ?? itemAPI.veiculos_alocados ?? 0;
+    const pranchaAtual = itemAPI.prancha_atual_th ?? itemAPI.prancha_th;
+    const atingimentoExibido =
+      ehExpedicao && pranchaAtual !== undefined
+        ? formatarNumero((Number(pranchaAtual) / 250) * 100, 1)
+        : (itemAPI.atingimento_percentual ?? 100);
     const tempoOuPrancha =
       itemAPI.tempo_medio_atendimento_min !== undefined
         ? `Tempo médio: ${formatarNumero(itemAPI.tempo_medio_atendimento_min, 1)} min`
-        : itemAPI.prancha_atual_th !== undefined
-        ? `Prancha: ${itemAPI.prancha_atual_th} t/h (${itemAPI.atingimento_percentual ?? 100}% da meta)`
+        : pranchaAtual !== undefined
+        ? `Prancha: ${pranchaAtual} t/h (${atingimentoExibido}% da meta)`
         : "Operação ativa";
     const volume =
       itemAPI.volume_total_movimentado_kg !== undefined
@@ -3371,6 +3746,40 @@ function atualizarBannerInspecaoMovimentacoes() {
     };
   }
 
+  if (temInspecaoAlerta && resumo?.ehAlerta && placaVal) {
+    const placaNormBanner = normalizarTexto(placaVal);
+    const veiculoBanner = obterFonteVeiculosCompleta().find(
+      v => normalizarTexto(v.plate ?? v.placa) === placaNormBanner
+    );
+    if (veiculoBanner) {
+      const alertaBanner = resolverAlertaVeiculo(veiculoBanner);
+      const badgeCritico = (alertaBanner.badges || []).find(b => b.nivel === "critico");
+      if (badgeCritico) {
+        const rotuloLive = formatarRotuloAlertaParaExibicao(veiculoBanner, badgeCritico);
+        resumo = {
+          ...resumo,
+          nome: `Placa ${placaVal} — ${rotuloLive}`,
+          tempoOuPrancha: rotuloLive
+        };
+      } else {
+        const pesoBanner = converterPesoParaNumero(
+          veiculoBanner.grossWeight ??
+            veiculoBanner.peso_bruto_kg ??
+            veiculoBanner.peso_kg ??
+            veiculoBanner.pesoNumerico
+        );
+        if (pesoBanner !== null) {
+          const resumoPeso = `Peso atual (${formatarNumero(pesoBanner, 0)} kg)`;
+          resumo = {
+            ...resumo,
+            nome: `Placa ${placaVal} — ${resumoPeso}`,
+            tempoOuPrancha: resumoPeso
+          };
+        }
+      }
+    }
+  }
+
   const statusUpper = normalizarTexto(resumo.status).toUpperCase();
   const classeBadge =
     statusUpper.includes("CRITICO")
@@ -3513,10 +3922,99 @@ function inspecionarAlertaPorPlaca(alertCard) {
   }
 }
 
+function inspecionarGrupoAreaPrimaria(groupFilter, tituloGrupo, tempoOuPrancha = "Monitoramento em tempo real", status = "NORMAL") {
+  if (!groupFilter) return;
+
+  const selectUnidade = document.getElementById("movement-unidade");
+  const selectEtapa = document.getElementById("movement-etapa");
+  const selectDestino = document.getElementById("movement-destino");
+  const inputPlaca = document.getElementById("plate-filter");
+  const selectCarrier = document.getElementById("movement-carrier");
+  const selectOp = document.getElementById("movement-operation");
+
+  const totalVeiculos = typeof obterFonteVeiculosCompleta === "function"
+    ? obterFonteVeiculosCompleta().filter(v => pertenceAoGrupoAreaPrimaria(v.stage, groupFilter)).length
+    : 0;
+
+  contextoInspecaoCard = {
+    tipo: "Área Primária",
+    nome: tituloGrupo || groupFilter,
+    filtroGrupo: groupFilter,
+    etapasPermitidas: obterEtapasDoGrupoAreaPrimaria(groupFilter),
+    totalVeiculos,
+    tempoOuPrancha,
+    status
+  };
+
+  if (selectUnidade) selectUnidade.value = "all";
+  if (selectDestino) selectDestino.value = "all";
+  if (selectEtapa) selectEtapa.value = "all";
+  if (inputPlaca) inputPlaca.value = "";
+  if (selectCarrier) selectCarrier.value = "all";
+  if (selectOp) selectOp.value = "all";
+
+  showPage("movements");
+  renderMovements();
+}
+
+function inspecionarBercoOuDestino(bercoBruto, cardEl = null) {
+  const bercoFiltro = normalizarRotuloDestino(bercoBruto) || bercoBruto;
+  if (!bercoFiltro) return;
+
+  const selectUnidade = document.getElementById("movement-unidade");
+  const selectDestino = document.getElementById("movement-destino");
+  const selectEtapa = document.getElementById("movement-etapa");
+  const inputPlaca = document.getElementById("plate-filter");
+  const selectCarrier = document.getElementById("movement-carrier");
+  const selectOp = document.getElementById("movement-operation");
+
+  if (selectUnidade) selectUnidade.value = "all";
+  if (selectEtapa) selectEtapa.value = "all";
+  if (inputPlaca) inputPlaca.value = "";
+  if (selectCarrier) selectCarrier.value = "all";
+  if (selectOp) selectOp.value = "all";
+
+  if (selectDestino) {
+    selecionarOpcaoEquivalente(selectDestino, bercoFiltro);
+  }
+
+  const cardReferencia = cardEl || document.querySelector(`.grade-bercos .berco[data-berco-filter="${bercoFiltro}"]`);
+  contextoInspecaoCard = extrairResumoCardBerco(bercoFiltro, cardReferencia);
+  showPage("movements");
+  renderMovements();
+}
+
 document.addEventListener("click", event => {
   const btnClear = event.target.closest("[data-action='clear-movement-filters']");
   if (btnClear) {
     limparFiltrosMovimentacoes();
+    return;
+  }
+
+  const btnEditHistory = event.target.closest("[data-action='view-alert-edit-history']");
+  if (btnEditHistory) {
+    event.stopPropagation();
+    const placa = btnEditHistory.getAttribute("data-plate") || "";
+    if (placa) {
+      abrirModalHistoricoEdicaoAlerta(placa);
+    }
+    return;
+  }
+
+  const btnResolveAlert = event.target.closest("[data-action='resolve-alert']");
+  if (btnResolveAlert) {
+    event.stopPropagation();
+    const chaveAlerta = btnResolveAlert.getAttribute("data-alert-key") || "";
+    const alertaInfo = mapaAlertasRenderizados.get(chaveAlerta);
+    if (alertaInfo) {
+      abrirModalConfirmacaoResolucaoAlerta(alertaInfo);
+    }
+    return;
+  }
+
+  const btnRestaurarAlertas = event.target.closest("#btn-restaurar-alertas");
+  if (btnRestaurarAlertas) {
+    abrirModalRestaurarAlertas();
     return;
   }
 
@@ -3528,6 +4026,41 @@ document.addEventListener("click", event => {
       inspecionarAlertaPorPlaca(alertCard);
       return;
     }
+  }
+
+  const fluxoEtapaCard = event.target.closest(".fluxo-etapa--clicavel[data-fluxo-grupo]");
+  if (fluxoEtapaCard) {
+    const etapaId = fluxoEtapaCard.dataset.fluxoEtapa;
+    const groupFilterOriginal = fluxoEtapaCard.dataset.fluxoGrupo;
+    let groupFilter = groupFilterOriginal;
+    let tituloPersonalizado = "";
+    if (etapaId === "balanca") {
+      groupFilter = "balanca_apenas";
+      tituloPersonalizado = "6. Balança (Tara / Bruto)";
+    } else if (etapaId === "pan_saida") {
+      groupFilter = "pan_apenas";
+      tituloPersonalizado = "7. PAN (Saída)";
+    }
+
+    const cardArea = document.querySelector(`.grade-esteira .esteira__etapa[data-group-filter="${groupFilterOriginal}"]`);
+    const tituloGrupo =
+      tituloPersonalizado ||
+      cardArea?.querySelector(".card-area-primaria__titulo")?.textContent?.trim() ||
+      fluxoEtapaCard.querySelector(".fluxo-etapa__nome")?.textContent?.trim() ||
+      groupFilter;
+    const tempoOuPrancha =
+      cardArea?.querySelector(".esteira__tempo")?.textContent?.trim() || "Fluxo Convencional · COPI";
+    const status =
+      cardArea?.querySelector(".esteira__status")?.textContent?.trim() || "NORMAL";
+    inspecionarGrupoAreaPrimaria(groupFilter, tituloGrupo, tempoOuPrancha, status);
+    return;
+  }
+
+  const fluxoBercoEl = event.target.closest("[data-fluxo-berco]");
+  if (fluxoBercoEl) {
+    const bercoBruto = (fluxoBercoEl.dataset.fluxoBerco || "").trim();
+    inspecionarBercoOuDestino(bercoBruto);
+    return;
   }
 
   const etapaCard = event.target.closest(".esteira__etapa");
@@ -3545,37 +4078,12 @@ document.addEventListener("click", event => {
         etapaCard.querySelector(".card-area-primaria__titulo")?.textContent?.trim() ||
         etapaCard.querySelector("span")?.textContent?.trim() ||
         groupFilter;
-      const totalVeiculos = typeof obterFonteVeiculosCompleta === "function"
-        ? obterFonteVeiculosCompleta().filter(v => pertenceAoGrupoAreaPrimaria(v.stage, groupFilter)).length
-        : Number(
-            String(etapaCard.querySelector(".card-area-primaria__valor, strong")?.textContent || "0").replace(/\D/g, "")
-          ) || 0;
       const tempoOuPrancha =
         etapaCard.querySelector(".esteira__tempo")?.textContent?.trim() || "Monitoramento em tempo real";
       const status =
         etapaCard.querySelector(".esteira__status")?.textContent?.trim() || "NORMAL";
 
-      const etapasPermitidas = obterEtapasDoGrupoAreaPrimaria(groupFilter);
-
-      contextoInspecaoCard = {
-        tipo: "Área Primária",
-        nome: tituloGrupo,
-        filtroGrupo: groupFilter,
-        etapasPermitidas,
-        totalVeiculos,
-        tempoOuPrancha,
-        status
-      };
-
-      if (selectUnidade) selectUnidade.value = "all";
-      if (selectDestino) selectDestino.value = "all";
-      if (selectEtapa) selectEtapa.value = "all";
-      if (inputPlaca) inputPlaca.value = "";
-      if (selectCarrier) selectCarrier.value = "all";
-      if (selectOp) selectOp.value = "all";
-
-      showPage("movements");
-      renderMovements();
+      inspecionarGrupoAreaPrimaria(groupFilter, tituloGrupo, tempoOuPrancha, status);
       return;
     }
 
@@ -3610,38 +4118,31 @@ document.addEventListener("click", event => {
       bercoCard.querySelector(".berco__titulo")?.textContent ||
       ""
     ).trim();
-    const bercoFiltro = normalizarRotuloDestino(bercoBruto) || bercoBruto;
-    if (!bercoFiltro) return;
-
-    const selectUnidade = document.getElementById("movement-unidade");
-    const selectDestino = document.getElementById("movement-destino");
-    const selectEtapa = document.getElementById("movement-etapa");
-    const inputPlaca = document.getElementById("plate-filter");
-    const selectCarrier = document.getElementById("movement-carrier");
-    const selectOp = document.getElementById("movement-operation");
-
-    if (selectUnidade) selectUnidade.value = "all";
-    if (selectEtapa) selectEtapa.value = "all";
-    if (inputPlaca) inputPlaca.value = "";
-    if (selectCarrier) selectCarrier.value = "all";
-    if (selectOp) selectOp.value = "all";
-
-    if (selectDestino) {
-      selecionarOpcaoEquivalente(selectDestino, bercoFiltro);
-    }
-
-    contextoInspecaoCard = extrairResumoCardBerco(bercoFiltro, bercoCard);
-    showPage("movements");
-    renderMovements();
+    inspecionarBercoOuDestino(bercoBruto, bercoCard);
   }
 });
 
 document.addEventListener("keydown", event => {
   if (event.key !== "Enter" && event.key !== " ") return;
   const alertCard = event.target.closest(".alertas__item[data-alert-plate]");
-  if (!alertCard) return;
-  event.preventDefault();
-  inspecionarAlertaPorPlaca(alertCard);
+  if (alertCard) {
+    event.preventDefault();
+    inspecionarAlertaPorPlaca(alertCard);
+    return;
+  }
+
+  const fluxoEtapaCard = event.target.closest(".fluxo-etapa--clicavel[data-fluxo-grupo]");
+  if (fluxoEtapaCard) {
+    event.preventDefault();
+    fluxoEtapaCard.click();
+    return;
+  }
+
+  const fluxoBercoEl = event.target.closest(".fluxo-etapas--expedicao[data-fluxo-berco]");
+  if (fluxoBercoEl) {
+    event.preventDefault();
+    fluxoBercoEl.click();
+  }
 });
 
 /* =========================================
@@ -3703,6 +4204,50 @@ function obterDescricaoFiltroAtivo() {
   }
 
   return partes.length > 0 ? partes.join(" ") : "nesta etapa/berço";
+}
+
+function formatarRotuloEtapaParaExibicao(item) {
+  const etapaOriginal = item?.stage ?? "";
+  const destinoBruto =
+    item?.flow ?? item?.destino ?? item?.berco ?? item?.berco_destino ?? "";
+  const operacaoBruta = item?.operation ?? item?.operacao ?? "";
+  const ehExpedicao =
+    coincidirDestino(destinoBruto, "Expedição") ||
+    coincidirOperacao(operacaoBruta, "Expedição");
+  if (!ehExpedicao) {
+    return traduzirEtapa(etapaOriginal);
+  }
+
+  const etapaCanon = normalizarRotuloEtapa(etapaOriginal);
+  if (etapaCanon === "Fila PRC" || etapaCanon === "Pátio") return "Gate in";
+  if (etapaCanon === "Balança Tara") return "Balança (vazio)";
+  if (etapaCanon === "Operação") return "Carregamento";
+  if (etapaCanon === "Balança Bruto") return "Balança (carregado)";
+  if (etapaCanon === "PAN") return "PAN (Acesso)";
+  if (etapaCanon === "Gate-out") return "Gate out";
+
+  return traduzirEtapa(etapaOriginal);
+}
+
+function formatarRotuloAlertaParaExibicao(item, badge) {
+  const rotulo = badge?.rotulo ?? "";
+  if (!rotulo) return "";
+  const ehExpedicao = coincidirDestino(
+    item?.flow ?? item?.destino ?? item?.berco ?? item?.berco_destino ?? "",
+    "Expedição"
+  );
+  if (!ehExpedicao) return rotulo;
+
+  if (
+    badge?.tipo === "RETENCAO_PRC" ||
+    /reten[çc][ãa]o\s*prc/i.test(rotulo) ||
+    /prc\s*retention/i.test(rotulo)
+  ) {
+    return rotulo
+      .replace(/Reten[çc][ãa]o\s*PRC/gi, "Retenção Gate in")
+      .replace(/PRC\s*Retention/gi, "Gate in Retention");
+  }
+  return rotulo;
 }
 
 function renderMovementRows(list, targetId) {
@@ -3791,12 +4336,20 @@ function renderMovementRows(list, targetId) {
           : "Em trânsito";
       const badgeSituacaoOperacional = statusBadge(situacaoOperacional, false);
       const badgesAlertaHtml = (alertaInfo.badges || [])
-        .map(b => `<span class="${b.classeBadge}">${escaparHtml(b.rotulo)}</span>`)
+        .map(b => `<span class="${b.classeBadge}">${escaparHtml(formatarRotuloAlertaParaExibicao(item, b))}</span>`)
         .join("");
+      const edicoesPlaca = obterEdicoesAlertaPorPlaca(item.plate);
+      const badgeEditadoMovimentacaoHtml =
+        edicoesPlaca.length > 0
+          ? `<button type="button" class="badge-editado-movimentacao" data-action="view-alert-edit-history" data-plate="${escaparHtml(item.plate)}" title="${
+              idiomaAtual === "en-US" ? "View alert edit history" : "Ver histórico de edição do alerta"
+            }">✎ ${idiomaAtual === "en-US" ? "Edited" : "Editado"}</button>`
+          : "";
       const badgeSituacao = `
         <div class="celula-situacao-alertas">
           ${badgeSituacaoOperacional}
           ${badgesAlertaHtml}
+          ${badgeEditadoMovimentacaoHtml}
         </div>
       `;
 
@@ -3815,7 +4368,7 @@ function renderMovementRows(list, targetId) {
           <td>${mostrarValor(item.carrier)}</td>
           <td>${mostrarValor(traduzirOperacao(item.operation))}</td>
           <td>${mostrarValor(traduzirDestino(item.flow))}</td>
-          <td>${mostrarValor(traduzirEtapa(item.stage))}</td>
+          <td>${mostrarValor(formatarRotuloEtapaParaExibicao(item))}</td>
           <td>${formatarPesoExibicao(item, alertaInfo)}</td>
           <td>${mostrarValor(item.duration)}</td>
           <td>${badgeSituacao}</td>
@@ -4051,14 +4604,97 @@ function fecharModalDetalhesTicket() {
    FILTROS DAS MOVIMENTAÇÕES (REATIVIDADE)
 ========================================= */
 
+function deduplicarVeiculos(lista = []) {
+  const chavesVistas = new Set();
+  return (Array.isArray(lista) ? lista : []).filter(item => {
+    const chave = obterChaveRegistroVeiculo(item) || normalizarTexto(item?.plate);
+    if (!chave) return true;
+    if (chavesVistas.has(chave)) return false;
+    chavesVistas.add(chave);
+    return true;
+  });
+}
+
+function aplicarEdicoesAlertasEmVeiculos(lista = []) {
+  const arr = Array.isArray(lista) ? lista : [];
+  const chavesEditadas = Object.keys(alertasEditadosLocal || {});
+  if (!chavesEditadas.length) return arr;
+
+  const limiteSobrepeso = Number(configOperacionalCCO?.limiteSobrepesoKg) || 48500;
+
+  return arr.map(item => {
+    const placaNorm = normalizarTexto(item?.plate ?? item?.placa ?? "");
+    if (!placaNorm) return item;
+
+    const sufixo = `::${placaNorm}`;
+    const chavesDaPlaca = chavesEditadas.filter(k => k.endsWith(sufixo));
+    if (!chavesDaPlaca.length) return item;
+
+    let atualizado = { ...item };
+    chavesDaPlaca.forEach(chave => {
+      const edicao = alertasEditadosLocal[chave];
+      if (!edicao) return;
+
+      if (edicao.etapa && edicao.etapa !== "—") {
+        atualizado.stage = edicao.etapa;
+        atualizado.etapa = edicao.etapa;
+      }
+
+      if (edicao.valorAtual && edicao.valorAtual !== "—") {
+        const ehPeso =
+          chave.startsWith("SOBREPESO::") || /\bkg\b/i.test(edicao.valorAtual);
+        const ehTempo =
+          chave.startsWith("RETENCAO_PRC::") || /\bmin\b/i.test(edicao.valorAtual);
+
+        if (ehPeso) {
+          const pesoEditado = converterPesoParaNumero(edicao.valorAtual);
+          if (pesoEditado !== null) {
+            atualizado.grossWeight = pesoEditado;
+            atualizado.peso_bruto_kg = pesoEditado;
+            atualizado.peso_bruto = pesoEditado;
+            atualizado.peso_kg = pesoEditado;
+            atualizado.pesoNumerico = pesoEditado;
+            atualizado.peso = pesoEditado;
+            atualizado.excesso_peso_kg =
+              pesoEditado > limiteSobrepeso ? pesoEditado - limiteSobrepeso : 0;
+            atualizado.sobrepeso = pesoEditado > limiteSobrepeso;
+            atualizado._pesoEditadoManualmente = true;
+          }
+        } else if (ehTempo) {
+          const matchMin = String(edicao.valorAtual)
+            .replace(/\./g, "")
+            .match(/(\d+(?:[.,]\d+)?)/);
+          if (matchMin) {
+            const mins = Number(matchMin[1].replace(",", "."));
+            if (Number.isFinite(mins)) {
+              atualizado.durationMin = mins;
+              atualizado.tempo_permanencia = mins;
+              atualizado.duration = `${formatarNumero(mins, 0)} min`;
+              atualizado._tempoEditadoManualmente = true;
+            }
+          }
+        }
+      }
+    });
+
+    return atualizado;
+  });
+}
+
 function obterFonteVeiculosCompleta() {
   if (Array.isArray(cacheTodosVeiculosAPI) && cacheTodosVeiculosAPI.length > 0) {
-    return mesclarVeiculosComLocais(cacheTodosVeiculosAPI);
+    return aplicarEdicoesAlertasEmVeiculos(
+      deduplicarVeiculos(mesclarVeiculosComLocais(cacheTodosVeiculosAPI))
+    );
   }
   if (Array.isArray(veiculosAtivosAPI) && veiculosAtivosAPI.length > 0) {
-    return mesclarVeiculosComLocais(veiculosAtivosAPI);
+    return aplicarEdicoesAlertasEmVeiculos(
+      deduplicarVeiculos(mesclarVeiculosComLocais(veiculosAtivosAPI))
+    );
   }
-  return mesclarVeiculosComLocais(movements);
+  return aplicarEdicoesAlertasEmVeiculos(
+    deduplicarVeiculos(mesclarVeiculosComLocais(movements))
+  );
 }
 
 function filteredMovements() {
@@ -4078,7 +4714,7 @@ function filteredMovements() {
 
   const base = obterFonteVeiculosCompleta();
 
-  return base.filter(item => {
+  const filtrados = base.filter(item => {
     const itemUnidade = item.unidade ?? item.NomeEmpresa ?? "COPISI";
     const matchUnidade =
       !unidade ||
@@ -4108,6 +4744,8 @@ function filteredMovements() {
       matchEtapa
     );
   });
+
+  return deduplicarVeiculos(filtrados);
 }
 
 function atualizarBotaoRestaurarRemovidos() {
@@ -6543,6 +7181,687 @@ if (confirmDeleteModalEl) {
   });
 }
 
+function renderizarDetalhesModalResolucaoAlerta(alertaInfo) {
+  const detailsEl = document.getElementById("confirm-resolve-alert-details");
+  const editedNoticeEl = document.getElementById("confirm-resolve-alert-edited-notice");
+  const isEn = idiomaAtual === "en-US";
+
+  if (editedNoticeEl) {
+    const alteracoes = alertaInfo?.edicao?.alteracoes;
+    if (alertaInfo?.edicao && Array.isArray(alteracoes) && alteracoes.length > 0) {
+      editedNoticeEl.hidden = false;
+      editedNoticeEl.innerHTML = `<strong>${
+        isEn ? "Alert edited:" : "Alerta já editado:"
+      }</strong> ${escaparHtml(alteracoes.join(" · "))}`;
+    } else {
+      editedNoticeEl.hidden = true;
+      editedNoticeEl.innerHTML = "";
+    }
+  }
+
+  if (detailsEl) {
+    detailsEl.innerHTML = `
+      <div class="modal-resolver-alerta__campo modal-resolver-alerta__campo--largo">
+        <span>${isEn ? "Alert type" : "Tipo do alerta"}</span>
+        <strong>${escaparHtml(alertaInfo.tipo || "—")}</strong>
+      </div>
+      <div class="modal-resolver-alerta__campo">
+        <span>${isEn ? "Plate" : "Placa"}</span>
+        <strong>${escaparHtml(alertaInfo.placa || "—")}</strong>
+      </div>
+      <div class="modal-resolver-alerta__campo">
+        <span>${isEn ? "Stage" : "Etapa"}</span>
+        <strong>${escaparHtml(alertaInfo.etapa || "—")}</strong>
+      </div>
+      <div class="modal-resolver-alerta__campo">
+        <span>${isEn ? "Current value" : "Valor atual"}</span>
+        <strong>${escaparHtml(alertaInfo.valorAtual || "—")}</strong>
+      </div>
+      <div class="modal-resolver-alerta__campo">
+        <span>${isEn ? "Limit" : "Limite"}</span>
+        <strong>${escaparHtml(alertaInfo.limite || "—")}</strong>
+      </div>
+    `;
+  }
+}
+
+function alternarModoEdicaoAlerta(emEdicao) {
+  const detailsEl = document.getElementById("confirm-resolve-alert-details");
+  const editedNoticeEl = document.getElementById("confirm-resolve-alert-edited-notice");
+  const formEl = document.getElementById("confirm-resolve-alert-form");
+  const actionsViewEl = document.getElementById("confirm-resolve-alert-actions-view");
+  const actionsEditEl = document.getElementById("confirm-resolve-alert-actions-edit");
+
+  if (detailsEl) detailsEl.hidden = Boolean(emEdicao);
+  if (formEl) formEl.hidden = !emEdicao;
+  if (actionsViewEl) actionsViewEl.hidden = Boolean(emEdicao);
+  if (actionsEditEl) actionsEditEl.hidden = !emEdicao;
+
+  if (editedNoticeEl) {
+    if (emEdicao) {
+      editedNoticeEl.hidden = true;
+    } else if (
+      alertaPendenteResolucao?.edicao?.alteracoes &&
+      alertaPendenteResolucao.edicao.alteracoes.length > 0
+    ) {
+      editedNoticeEl.hidden = false;
+    }
+  }
+
+  if (emEdicao && alertaPendenteResolucao) {
+    const isEn = idiomaAtual === "en-US";
+    const stageLabel = document.getElementById("edit-alert-stage-label");
+    const valueLabel = document.getElementById("edit-alert-value-label");
+    const noteLabel = document.getElementById("edit-alert-note-label");
+    const stageInput = document.getElementById("edit-alert-stage");
+    const valueInput = document.getElementById("edit-alert-value");
+    const noteInput = document.getElementById("edit-alert-note");
+    const backBtn = document.getElementById("confirm-resolve-alert-back");
+    const saveBtn = document.getElementById("confirm-resolve-alert-save");
+
+    if (stageLabel) stageLabel.textContent = isEn ? "Stage" : "Etapa";
+    if (valueLabel) valueLabel.textContent = isEn ? "Current value" : "Valor atual";
+    if (noteLabel) noteLabel.textContent = isEn ? "Note (optional)" : "Observação (opcional)";
+    if (backBtn) backBtn.textContent = isEn ? "Back" : "Voltar";
+    if (saveBtn) saveBtn.textContent = isEn ? "Save edit" : "Salvar edição";
+
+    if (stageInput) stageInput.value = alertaPendenteResolucao.etapa || "";
+    if (valueInput) valueInput.value = alertaPendenteResolucao.valorAtual || "";
+    if (noteInput) {
+      noteInput.value = alertaPendenteResolucao.edicao?.observacao || "";
+      noteInput.placeholder = isEn ? "E.g.: Reweighing completed" : "Ex.: Repesagem concluída";
+    }
+  }
+}
+
+function salvarEdicaoAlertaPendente() {
+  if (!alertaPendenteResolucao) return;
+  const isEn = idiomaAtual === "en-US";
+  const stageInput = document.getElementById("edit-alert-stage");
+  const valueInput = document.getElementById("edit-alert-value");
+  const noteInput = document.getElementById("edit-alert-note");
+
+  const origEtapa = alertaPendenteResolucao.original?.etapa ?? alertaPendenteResolucao.etapa ?? "—";
+  const origValor = alertaPendenteResolucao.original?.valorAtual ?? alertaPendenteResolucao.valorAtual ?? "—";
+  const origLimite = alertaPendenteResolucao.original?.limite ?? alertaPendenteResolucao.limite ?? "—";
+
+  const novaEtapa = (stageInput?.value || "").trim() || origEtapa;
+  const valorDigitado = (valueInput?.value || "").trim();
+  const observacao = (noteInput?.value || "").trim();
+
+  let novoValor = valorDigitado || origValor;
+  let novoLimite = alertaPendenteResolucao.limite || origLimite;
+
+  const ehAlertaPeso =
+    alertaPendenteResolucao.chave?.startsWith("SOBREPESO::") ||
+    /\bkg\b/i.test(origValor) ||
+    /\bkg\b/i.test(valorDigitado);
+  const ehAlertaTempo =
+    alertaPendenteResolucao.chave?.startsWith("RETENCAO_PRC::") ||
+    /\bmin\b/i.test(origValor) ||
+    /\bmin\b/i.test(valorDigitado);
+
+  if (ehAlertaPeso && valorDigitado) {
+    const pesoNum = converterPesoParaNumero(valorDigitado);
+    if (pesoNum !== null) {
+      novoValor = `${formatarNumero(pesoNum, 0)} kg`;
+      const limiteConfigSobrepeso = Number(configOperacionalCCO?.limiteSobrepesoKg) || 48500;
+      const limiteBaseNum =
+        converterPesoParaNumero(String(origLimite).split("·")[0]) || limiteConfigSobrepeso;
+      const limiteBaseTexto = `${formatarNumero(limiteBaseNum, 0)} kg`;
+      novoLimite =
+        pesoNum > limiteBaseNum
+          ? `${limiteBaseTexto} · +${formatarNumero(pesoNum - limiteBaseNum, 0)} kg`
+          : limiteBaseTexto;
+    }
+  } else if (ehAlertaTempo && valorDigitado) {
+    const matchMin = valorDigitado.replace(/\./g, "").match(/(\d+(?:[.,]\d+)?)/);
+    if (matchMin) {
+      const mins = Number(matchMin[1].replace(",", "."));
+      if (Number.isFinite(mins)) {
+        novoValor = `${formatarNumero(mins, 0)} min`;
+      }
+    }
+  }
+
+  const alteracoes = [];
+  if (novaEtapa !== origEtapa) {
+    alteracoes.push(`${isEn ? "Stage" : "Etapa"}: ${origEtapa} → ${novaEtapa}`);
+  }
+  if (novoValor !== origValor) {
+    alteracoes.push(`${isEn ? "Current value" : "Valor atual"}: ${origValor} → ${novoValor}`);
+  }
+  if (observacao) {
+    alteracoes.push(`Obs: ${observacao}`);
+  }
+
+  if (alteracoes.length === 0) {
+    alternarModoEdicaoAlerta(false);
+    return;
+  }
+
+  const edicao = {
+    tipo: alertaPendenteResolucao.tipo || "",
+    etapa: novaEtapa,
+    valorAtual: novoValor,
+    limite: novoLimite,
+    observacao,
+    alteracoes,
+    original: {
+      etapa: origEtapa,
+      valorAtual: origValor,
+      limite: origLimite
+    },
+    atualizadoEm: new Date().toISOString()
+  };
+
+  alertasEditadosLocal[alertaPendenteResolucao.chave] = edicao;
+  salvarAlertasEditadosLocal();
+
+  alertaPendenteResolucao = {
+    ...alertaPendenteResolucao,
+    etapa: novaEtapa,
+    valorAtual: novoValor,
+    limite: novoLimite,
+    edicao
+  };
+
+  renderizarDetalhesModalResolucaoAlerta(alertaPendenteResolucao);
+  alternarModoEdicaoAlerta(false);
+  renderizarListaAlertasDOM(alertasAtivosAPI.length ? alertasAtivosAPI : ultimosAlertasBrutos);
+  if (typeof renderMovements === "function") {
+    renderMovements();
+  }
+  if (typeof atualizarBadgesFluxoConvencional === "function") {
+    atualizarBadgesFluxoConvencional();
+  }
+
+  if (typeof mostrarToast === "function") {
+    mostrarToast(
+      isEn
+        ? `Alert updated for ${alertaPendenteResolucao.placa || "vehicle"}.`
+        : `Edição salva para ${alertaPendenteResolucao.placa || "veículo"}.`
+    );
+  }
+}
+
+function abrirModalConfirmacaoResolucaoAlerta(alertaInfo) {
+  if (!alertaInfo) return;
+  alertaPendenteResolucao = alertaInfo;
+  const modal = document.getElementById("confirm-resolve-alert-modal");
+  if (!modal) {
+    confirmarResolucaoAlertaPendente();
+    return;
+  }
+
+  const titleEl = document.getElementById("confirm-resolve-alert-title");
+  const descEl = document.getElementById("confirm-resolve-alert-desc");
+  const badgeEl = modal.querySelector(".modal-resolver-alerta__badge");
+  const cancelBtn = document.getElementById("confirm-resolve-alert-cancel");
+  const editBtn = document.getElementById("confirm-resolve-alert-edit");
+  const submitBtn = document.getElementById("confirm-resolve-alert-submit");
+
+  if (badgeEl) {
+    badgeEl.textContent =
+      idiomaAtual === "en-US"
+        ? "CONFIRMATION · ALERT RESOLUTION"
+        : "CONFIRMAÇÃO · RESOLUÇÃO DE ALERTA";
+  }
+  if (titleEl) {
+    titleEl.textContent =
+      idiomaAtual === "en-US"
+        ? "Resolve this operational alert?"
+        : "Deseja resolver este alerta operacional?";
+  }
+  if (descEl) {
+    descEl.textContent =
+      idiomaAtual === "en-US"
+        ? "Confirm dismissing this alert from Overview. It will remain hidden across automatic updates."
+        : "Confirme a baixa deste alerta na Visão Geral. Ele permanecerá oculto mesmo após atualizações automáticas.";
+  }
+  if (cancelBtn) {
+    cancelBtn.textContent = idiomaAtual === "en-US" ? "Cancel" : "Cancelar";
+  }
+  if (editBtn) {
+    editBtn.textContent = idiomaAtual === "en-US" ? "Edit" : "Editar";
+  }
+  if (submitBtn) {
+    submitBtn.textContent =
+      idiomaAtual === "en-US" ? "Confirm resolution" : "Confirmar resolução";
+  }
+
+  renderizarDetalhesModalResolucaoAlerta(alertaInfo);
+  alternarModoEdicaoAlerta(false);
+
+  if (typeof modal.showModal === "function") {
+    if (!modal.open) modal.showModal();
+  } else {
+    modal.setAttribute("open", "");
+  }
+}
+
+function fecharModalConfirmacaoResolucaoAlerta() {
+  const modal = document.getElementById("confirm-resolve-alert-modal");
+  if (modal) {
+    if (typeof modal.close === "function" && modal.open) {
+      modal.close();
+    } else {
+      modal.removeAttribute("open");
+    }
+  }
+  alertaPendenteResolucao = null;
+}
+
+function confirmarResolucaoAlertaPendente() {
+  if (!alertaPendenteResolucao) return;
+  const { chave, tipo, placa, etapa, valorAtual } = alertaPendenteResolucao;
+  if (chave) {
+    alertasResolvidosLocal.add(chave);
+    salvarAlertasResolvidosLocal();
+    alertasResolvidosMetaLocal[chave] = {
+      tipo: tipo || "",
+      placa: placa || "",
+      etapa: etapa || "",
+      valorAtual: valorAtual || ""
+    };
+    salvarAlertasResolvidosMetaLocal();
+  }
+  fecharModalConfirmacaoResolucaoAlerta();
+  renderizarListaAlertasDOM(alertasAtivosAPI.length ? alertasAtivosAPI : ultimosAlertasBrutos);
+  if (typeof renderMovements === "function") {
+    renderMovements();
+  }
+  if (typeof mostrarToast === "function") {
+    mostrarToast(
+      idiomaAtual === "en-US"
+        ? `Alert resolved for ${placa || "vehicle"}.`
+        : `Alerta resolvido para ${placa || "veículo"}.`
+    );
+  }
+}
+
+function fecharModalRestaurarAlertas() {
+  const modal = document.getElementById("restore-alerts-modal");
+  if (!modal) return;
+  if (typeof modal.close === "function" && modal.open) {
+    modal.close();
+  } else {
+    modal.removeAttribute("open");
+  }
+}
+
+function renderizarListaRestaurarAlertas() {
+  const listaEl = document.getElementById("restore-alerts-list");
+  if (!listaEl) return;
+
+  const isEn = idiomaAtual === "en-US";
+  const chaves = Array.from(alertasResolvidosLocal);
+  const btnAll = document.getElementById("restore-all-alerts-submit");
+  if (btnAll) {
+    btnAll.disabled = chaves.length === 0;
+  }
+
+  if (!chaves.length) {
+    listaEl.innerHTML = `<p class="modal-confirmar-exclusao__desc">${
+      isEn ? "No resolved alerts at the moment." : "Nenhum alerta resolvido no momento."
+    }</p>`;
+    return;
+  }
+
+  const fonteAlertas = (alertasAtivosAPI && alertasAtivosAPI.length) ? alertasAtivosAPI : (ultimosAlertasBrutos || []);
+  const fonteVeiculos = typeof obterFonteVeiculosCompleta === "function" ? obterFonteVeiculosCompleta() : [];
+
+  listaEl.innerHTML = chaves
+    .map(chave => {
+      const meta = alertasResolvidosMetaLocal[chave] || null;
+      const edicao = alertasEditadosLocal?.[chave] || null;
+      const alertaBruto = fonteAlertas.find(a => obterChaveUnicaAlerta(a) === chave) || null;
+      const placa =
+        meta?.placa ||
+        (alertaBruto && typeof alertaBruto === "object" ? (alertaBruto.placa ?? alertaBruto.plate) : "") ||
+        (chave.includes("::") ? chave.split("::")[1] : "") ||
+        "—";
+
+      const placaNorm = normalizarTexto(placa);
+      const veiculoRel = placaNorm
+        ? fonteVeiculos.find(v => normalizarTexto(v.plate) === placaNorm)
+        : null;
+
+      const etapaBruta =
+        edicao?.etapa ||
+        meta?.etapa ||
+        (alertaBruto && typeof alertaBruto === "object" ? (alertaBruto.etapa_atual ?? alertaBruto.etapa) : "") ||
+        veiculoRel?.stage ||
+        "";
+
+      const itemParaExibicao = {
+        ...(veiculoRel || {}),
+        flow:
+          (alertaBruto && typeof alertaBruto === "object"
+            ? (alertaBruto.flow ?? alertaBruto.destino ?? alertaBruto.berco ?? alertaBruto.berco_destino)
+            : "") ||
+          veiculoRel?.flow ||
+          veiculoRel?.destino ||
+          "",
+        operation:
+          (alertaBruto && typeof alertaBruto === "object"
+            ? (alertaBruto.operacao ?? alertaBruto.operation)
+            : "") ||
+          veiculoRel?.operation ||
+          "",
+        stage: etapaBruta
+      };
+
+      const ehRetencao =
+        chave.startsWith("RETENCAO_PRC::") ||
+        /reten[çc][ãa]o|prc/i.test(meta?.tipo || edicao?.tipo || "");
+
+      let tipoExibido = obterNomeTipoAlertaPorChave(chave, edicao || meta);
+      if (ehRetencao) {
+        const rotuloRetencao = formatarRotuloAlertaParaExibicao(itemParaExibicao, {
+          rotulo: "Retenção PRC",
+          tipo: "RETENCAO_PRC"
+        });
+        if (rotuloRetencao === "Retenção Gate in") {
+          tipoExibido = isEn ? "GATE IN RETENTION" : "RETENÇÃO GATE IN";
+        }
+      }
+
+      const etapaExibida =
+        etapaBruta && etapaBruta !== "—"
+          ? formatarRotuloEtapaParaExibicao({ ...itemParaExibicao, stage: etapaBruta }) || etapaBruta
+          : "";
+
+      const valorExibido =
+        edicao?.valorAtual ||
+        meta?.valorAtual ||
+        (alertaBruto && typeof alertaBruto === "object" && alertaBruto.valor_atual !== undefined && alertaBruto.valor_atual !== null
+          ? String(alertaBruto.valor_atual)
+          : "");
+
+      const partesMeta = [placa, etapaExibida, valorExibido].filter(v => v && v !== "—");
+      const metaTexto = partesMeta.length ? partesMeta.join(" · ") : (placa || "—");
+
+      return `
+        <div class="modal-restaurar-alertas__item">
+          <div class="modal-restaurar-alertas__info">
+            <strong class="modal-restaurar-alertas__titulo">${escaparHtml(tipoExibido)}</strong>
+            <span class="modal-restaurar-alertas__meta">${escaparHtml(metaTexto)}</span>
+          </div>
+          <button
+            type="button"
+            class="botao botao--claro modal-restaurar-alertas__btn"
+            data-action="restore-single-alert"
+            data-alert-key="${escaparHtml(chave)}"
+          >${escaparHtml(isEn ? "Restore" : "Restaurar")}</button>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function abrirModalRestaurarAlertas() {
+  const modal = document.getElementById("restore-alerts-modal");
+  if (!modal) {
+    restaurarAlertasResolvidos();
+    return;
+  }
+
+  const isEn = idiomaAtual === "en-US";
+  const badgeEl = document.getElementById("restore-alerts-badge");
+  const titleEl = document.getElementById("restore-alerts-title");
+  const descEl = document.getElementById("restore-alerts-desc");
+  const closeBtn = document.getElementById("restore-alerts-close");
+  const allBtn = document.getElementById("restore-all-alerts-submit");
+
+  if (badgeEl) badgeEl.textContent = isEn ? "RESTORE · RESOLVED ALERTS" : "RESTAURAÇÃO · ALERTAS RESOLVIDOS";
+  if (titleEl) titleEl.textContent = isEn ? "Restore resolved alerts" : "Restaurar alertas resolvidos";
+  if (descEl) {
+    descEl.textContent = isEn
+      ? "Select individually which alert to reactivate or restore all at once."
+      : "Selecione individualmente qual alerta deseja reativar ou restaure todos de uma vez.";
+  }
+  if (closeBtn) closeBtn.textContent = isEn ? "Close" : "Fechar";
+  if (allBtn) allBtn.textContent = isEn ? "Restore all" : "Restaurar todos";
+
+  renderizarListaRestaurarAlertas();
+
+  if (typeof modal.showModal === "function") {
+    if (!modal.open) {
+      modal.showModal();
+    }
+  } else {
+    modal.setAttribute("open", "");
+  }
+}
+
+function restaurarAlertaResolvidoPorChave(chave) {
+  if (!chave || !alertasResolvidosLocal.has(chave)) return;
+
+  const meta = alertasResolvidosMetaLocal[chave] || null;
+  alertasResolvidosLocal.delete(chave);
+  delete alertasResolvidosMetaLocal[chave];
+  salvarAlertasResolvidosLocal();
+  salvarAlertasResolvidosMetaLocal();
+
+  renderizarListaAlertasDOM(alertasAtivosAPI.length ? alertasAtivosAPI : ultimosAlertasBrutos);
+  if (typeof renderMovements === "function") {
+    renderMovements();
+  }
+  renderizarListaRestaurarAlertas();
+
+  if (alertasResolvidosLocal.size === 0) {
+    fecharModalRestaurarAlertas();
+  }
+
+  if (typeof mostrarToast === "function") {
+    const placa = meta?.placa || (chave.includes("::") ? chave.split("::")[1] : "");
+    mostrarToast(
+      idiomaAtual === "en-US"
+        ? `Alert restored for ${placa || "vehicle"}.`
+        : `Alerta restaurado para ${placa || "veículo"}.`
+    );
+  }
+}
+
+function restaurarAlertasResolvidos() {
+  alertasResolvidosLocal.clear();
+  alertasResolvidosMetaLocal = {};
+  salvarAlertasResolvidosLocal();
+  salvarAlertasResolvidosMetaLocal();
+  renderizarListaAlertasDOM(alertasAtivosAPI.length ? alertasAtivosAPI : ultimosAlertasBrutos);
+  if (typeof renderMovements === "function") {
+    renderMovements();
+  }
+  if (typeof mostrarToast === "function") {
+    mostrarToast(
+      idiomaAtual === "en-US"
+        ? "Resolved alerts restored."
+        : "Alertas resolvidos restaurados."
+    );
+  }
+}
+
+const restoreAlertsModalEl = document.getElementById("restore-alerts-modal");
+const restoreAlertsListEl = document.getElementById("restore-alerts-list");
+const restoreAlertsCloseBtn = document.getElementById("restore-alerts-close");
+const restoreAllAlertsSubmitBtn = document.getElementById("restore-all-alerts-submit");
+
+if (restoreAlertsCloseBtn) {
+  restoreAlertsCloseBtn.addEventListener("click", fecharModalRestaurarAlertas);
+}
+
+if (restoreAllAlertsSubmitBtn) {
+  restoreAllAlertsSubmitBtn.addEventListener("click", () => {
+    restaurarAlertasResolvidos();
+    fecharModalRestaurarAlertas();
+  });
+}
+
+if (restoreAlertsListEl) {
+  restoreAlertsListEl.addEventListener("click", event => {
+    const btn = event.target.closest('[data-action="restore-single-alert"]');
+    if (!btn) return;
+    const chave = btn.getAttribute("data-alert-key") || "";
+    if (chave) {
+      restaurarAlertaResolvidoPorChave(chave);
+    }
+  });
+}
+
+if (restoreAlertsModalEl) {
+  restoreAlertsModalEl.addEventListener("click", event => {
+    if (event.target === restoreAlertsModalEl) {
+      fecharModalRestaurarAlertas();
+    }
+  });
+  restoreAlertsModalEl.addEventListener("cancel", () => {
+    fecharModalRestaurarAlertas();
+  });
+}
+
+const confirmResolveAlertModalEl = document.getElementById("confirm-resolve-alert-modal");
+const confirmResolveAlertSubmitBtn = document.getElementById("confirm-resolve-alert-submit");
+const confirmResolveAlertCancelBtn = document.getElementById("confirm-resolve-alert-cancel");
+const confirmResolveAlertEditBtn = document.getElementById("confirm-resolve-alert-edit");
+const confirmResolveAlertBackBtn = document.getElementById("confirm-resolve-alert-back");
+const confirmResolveAlertSaveBtn = document.getElementById("confirm-resolve-alert-save");
+
+if (confirmResolveAlertSubmitBtn) {
+  confirmResolveAlertSubmitBtn.addEventListener("click", confirmarResolucaoAlertaPendente);
+}
+
+if (confirmResolveAlertCancelBtn) {
+  confirmResolveAlertCancelBtn.addEventListener("click", fecharModalConfirmacaoResolucaoAlerta);
+}
+
+if (confirmResolveAlertEditBtn) {
+  confirmResolveAlertEditBtn.addEventListener("click", () => alternarModoEdicaoAlerta(true));
+}
+
+if (confirmResolveAlertBackBtn) {
+  confirmResolveAlertBackBtn.addEventListener("click", () => alternarModoEdicaoAlerta(false));
+}
+
+if (confirmResolveAlertSaveBtn) {
+  confirmResolveAlertSaveBtn.addEventListener("click", salvarEdicaoAlertaPendente);
+}
+
+if (confirmResolveAlertModalEl) {
+  confirmResolveAlertModalEl.addEventListener("click", event => {
+    if (event.target === confirmResolveAlertModalEl) {
+      fecharModalConfirmacaoResolucaoAlerta();
+    }
+  });
+  confirmResolveAlertModalEl.addEventListener("cancel", () => {
+    alertaPendenteResolucao = null;
+  });
+}
+
+function obterEdicoesAlertaPorPlaca(placa) {
+  const placaNorm = normalizarTexto(placa);
+  if (!placaNorm || !alertasEditadosLocal || typeof alertasEditadosLocal !== "object") {
+    return [];
+  }
+  const sufixo = `::${placaNorm}`;
+  return Object.entries(alertasEditadosLocal)
+    .filter(([chave, edicao]) => chave.endsWith(sufixo) && edicao && typeof edicao === "object")
+    .map(([chave, edicao]) => ({ chave, edicao }));
+}
+
+function obterNomeTipoAlertaPorChave(chave, edicao) {
+  if (edicao?.tipo) return edicao.tipo;
+  if (chave.startsWith("SOBREPESO::")) return "EXCESSO DE PESO NA BALANÇA";
+  if (chave.startsWith("RETENCAO_PRC::")) return "RETENÇÃO NO PÁTIO PRC";
+  return "ALERTA OPERACIONAL";
+}
+
+function abrirModalHistoricoEdicaoAlerta(placa) {
+  const modal = document.getElementById("alert-edit-history-modal");
+  const bodyEl = document.getElementById("alert-edit-history-body");
+  if (!modal || !bodyEl) return;
+
+  const isEn = idiomaAtual === "en-US";
+  const badgeEl = document.getElementById("alert-edit-history-badge");
+  const titleEl = document.getElementById("alert-edit-history-title");
+  const closeBtn = document.getElementById("alert-edit-history-close");
+
+  if (badgeEl) {
+    badgeEl.textContent = isEn ? "HISTORY · EDITED ALERT" : "HISTÓRICO · ALERTA EDITADO";
+  }
+  if (titleEl) {
+    titleEl.textContent = isEn ? "Recorded alert changes" : "Alterações registradas no alerta";
+  }
+  if (closeBtn) {
+    closeBtn.textContent = isEn ? "Close" : "Fechar";
+  }
+
+  const edicoes = obterEdicoesAlertaPorPlaca(placa);
+  if (!edicoes.length) {
+    bodyEl.innerHTML = `<p class="modal-confirmar-exclusao__desc">${
+      isEn ? "No edits recorded for this vehicle." : "Nenhuma edição registrada para este veículo."
+    }</p>`;
+  } else {
+    bodyEl.innerHTML = edicoes
+      .map(({ chave, edicao }) => {
+        const tipoAlerta = obterNomeTipoAlertaPorChave(chave, edicao);
+        const alteracoesLista = Array.isArray(edicao.alteracoes)
+          ? edicao.alteracoes.filter(a => !String(a).startsWith("Obs:"))
+          : [];
+        const itensHtml = alteracoesLista.length
+          ? alteracoesLista.map(item => `<li>${escaparHtml(item)}</li>`).join("")
+          : `<li>${isEn ? "Values updated" : "Valores atualizados"}</li>`;
+        const obsHtml = edicao.observacao
+          ? `<p class="modal-historico-edicao__obs"><strong>${
+              isEn ? "Note:" : "Observação:"
+            }</strong> ${escaparHtml(edicao.observacao)}</p>`
+          : "";
+        return `
+          <div class="modal-historico-edicao__bloco">
+            <div class="modal-historico-edicao__cabecalho">
+              <span class="modal-historico-edicao__tipo">${escaparHtml(tipoAlerta)}</span>
+              <span class="modal-historico-edicao__placa">${escaparHtml(placa)}</span>
+            </div>
+            <ul class="modal-historico-edicao__lista">${itensHtml}</ul>
+            ${obsHtml}
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  if (typeof modal.showModal === "function") {
+    if (!modal.open) modal.showModal();
+  } else {
+    modal.setAttribute("open", "");
+  }
+}
+
+function fecharModalHistoricoEdicaoAlerta() {
+  const modal = document.getElementById("alert-edit-history-modal");
+  if (!modal) return;
+  if (typeof modal.close === "function" && modal.open) {
+    modal.close();
+  } else {
+    modal.removeAttribute("open");
+  }
+}
+
+const alertEditHistoryModalEl = document.getElementById("alert-edit-history-modal");
+const alertEditHistoryCloseBtn = document.getElementById("alert-edit-history-close");
+
+if (alertEditHistoryCloseBtn) {
+  alertEditHistoryCloseBtn.addEventListener("click", fecharModalHistoricoEdicaoAlerta);
+}
+
+if (alertEditHistoryModalEl) {
+  alertEditHistoryModalEl.addEventListener("click", event => {
+    if (event.target === alertEditHistoryModalEl) {
+      fecharModalHistoricoEdicaoAlerta();
+    }
+  });
+}
+
 const movementRowsEl = document.getElementById("movement-rows");
 if (movementRowsEl) {
   movementRowsEl.addEventListener("click", event => {
@@ -6965,6 +8284,111 @@ if (languageSelectEl) {
    FLUXOS OPERACIONAIS · COPI (ABAS INTERNAS)
 ========================================= */
 
+function atualizarBadgesFluxoConvencional(veiculosLista) {
+  const painel = document.getElementById("painel-fluxo-convencional");
+  if (!painel) return;
+
+  const todosVeiculos = Array.isArray(veiculosLista)
+    ? veiculosLista
+    : (typeof obterFonteVeiculosCompleta === "function" ? obterFonteVeiculosCompleta() : []);
+
+  const contagensEtapas = {
+    prc: todosVeiculos.filter(v => coincidirEtapa(v.stage, "Fila PRC") || coincidirEtapa(v.stage, "Pátio")).length,
+    funil: todosVeiculos.filter(v => coincidirEtapa(v.stage, "Operação")).length,
+    balanca: todosVeiculos.filter(v => coincidirEtapa(v.stage, "Balança Tara") || coincidirEtapa(v.stage, "Balança Bruto")).length,
+    pan_saida: todosVeiculos.filter(v => coincidirEtapa(v.stage, "PAN")).length
+  };
+
+  painel.querySelectorAll(".fluxo-etapa[data-fluxo-etapa]").forEach(node => {
+    const etapaId = node.getAttribute("data-fluxo-etapa");
+    const badge =
+      node.querySelector(`.fluxo-etapa__qtd[data-fluxo-qtd="${etapaId}"]`) ||
+      node.querySelector(".fluxo-etapa__qtd");
+    if (!badge) return;
+
+    if (Object.prototype.hasOwnProperty.call(contagensEtapas, etapaId)) {
+      badge.textContent = String(contagensEtapas[etapaId]);
+      badge.hidden = false;
+    } else {
+      badge.textContent = "";
+      badge.hidden = true;
+    }
+  });
+}
+
+function atualizarRitmoBerco101FluxoMecanizado(pontosOperacionais) {
+  const badge = document.getElementById("fluxo-mecanizado-ritmo-b101");
+  if (!badge) return;
+
+  const lista = Array.isArray(pontosOperacionais) && pontosOperacionais.length
+    ? pontosOperacionais
+    : (Array.isArray(ultimosBercosAPI) ? ultimosBercosAPI : []);
+
+  const itemB101 = lista.find(p => coincidirDestino(p?.berco_destino ?? p?.nome, "Berço 101"));
+
+  let prancha = null;
+  let meta = 458;
+
+  if (itemB101) {
+    prancha = itemB101.prancha_atual_th ?? itemB101.prancha_th ?? null;
+    meta = itemB101.meta_contratual_th ?? itemB101.meta_th ?? 458;
+  } else {
+    const cardB101 = document.querySelector('.grade-bercos .berco[data-berco-filter="Berço 101"]');
+    if (cardB101) {
+      const prodTxt = cardB101.querySelector(".berco__produtividade strong")?.textContent || "";
+      const metaTxt = cardB101.querySelector(".berco__referencia strong")?.textContent || "";
+      const prodNum = Number(prodTxt.replace(/[^\d.,]/g, "").replace(",", "."));
+      const metaNum = Number(metaTxt.replace(/[^\d.,]/g, "").replace(",", "."));
+      if (Number.isFinite(prodNum) && prodTxt.trim()) prancha = prodNum;
+      if (Number.isFinite(metaNum) && metaNum > 0) meta = metaNum;
+    }
+  }
+
+  const pranchaStr = prancha !== null && Number.isFinite(Number(prancha))
+    ? formatarNumero(Number(prancha), 0)
+    : "--";
+  const metaStr = formatarNumero(Number(meta) || 458, 0);
+
+  badge.textContent =
+    idiomaAtual === "en-US"
+      ? `Berth 101 current rate: ${pranchaStr} t/h · Target: ${metaStr} t/h`
+      : `Ritmo atual Berço 101: ${pranchaStr} t/h · Meta: ${metaStr} t/h`;
+}
+
+function atualizarPranchaExpedicaoFluxo() {
+  const badge = document.getElementById("fluxo-expedicao-prancha");
+  if (badge) {
+    badge.textContent =
+      idiomaAtual === "en-US"
+        ? "Rate: 250 t/h (Urea: 200 t/h)"
+        : "Prancha: 250 t/h (Ureia: 200 t/h)";
+  }
+}
+
+function atualizarBotaoFluxoExpedicao(veiculosLista) {
+  const btn = document.getElementById("btn-fluxo-expedicao-veiculos");
+  if (!btn) return;
+
+  const todosVeiculos = Array.isArray(veiculosLista)
+    ? veiculosLista
+    : (typeof obterFonteVeiculosCompleta === "function" ? obterFonteVeiculosCompleta() : []);
+
+  const chavesVistas = new Set();
+  const qtdExpedicao = todosVeiculos.filter(item => {
+    if (!coincidirDestino(item?.flow, "Expedição")) return false;
+    const chave = obterChaveRegistroVeiculo(item) || normalizarTexto(item?.plate);
+    if (!chave) return true;
+    if (chavesVistas.has(chave)) return false;
+    chavesVistas.add(chave);
+    return true;
+  }).length;
+
+  btn.textContent =
+    idiomaAtual === "en-US"
+      ? `Inspect Dispatch vehicles (${qtdExpedicao}) →`
+      : `Inspecionar veículos da Expedição (${qtdExpedicao}) →`;
+}
+
 function configurarAbasFluxosOperacionais() {
   const container = document.getElementById("bloco-fluxos-operacionais");
   if (!container) return;
@@ -6972,38 +8396,119 @@ function configurarAbasFluxosOperacionais() {
   const tabButtons = container.querySelectorAll(".fluxo-aba-btn");
   const tabPanels = container.querySelectorAll(".fluxo-conteudo-aba");
 
-  if (!tabButtons.length || !tabPanels.length) return;
+  if (tabButtons.length && tabPanels.length && !container.dataset.fluxosInicializado) {
+    container.dataset.fluxosInicializado = "true";
+    tabButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetTab = btn.getAttribute("data-tab");
+        if (!targetTab) return;
 
-  tabButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const targetTab = btn.getAttribute("data-tab");
-      if (!targetTab) return;
+        tabButtons.forEach(b => {
+          const isCurrent = b === btn;
+          b.classList.toggle("fluxo-aba-btn--ativo", isCurrent);
+          b.setAttribute("aria-selected", isCurrent ? "true" : "false");
+        });
 
-      tabButtons.forEach(b => {
-        const isCurrent = b === btn;
-        b.classList.toggle("fluxo-aba-btn--ativo", isCurrent);
-        b.setAttribute("aria-selected", isCurrent ? "true" : "false");
-      });
-
-      tabPanels.forEach(panel => {
-        const panelTab = panel.getAttribute("data-tab-content");
-        const isTarget = panelTab === targetTab;
-        panel.classList.toggle("fluxo-conteudo-aba--ativo", isTarget);
-        if (isTarget) {
-          panel.removeAttribute("hidden");
-        } else {
-          panel.setAttribute("hidden", "");
-        }
+        tabPanels.forEach(panel => {
+          const panelTab = panel.getAttribute("data-tab-content");
+          const isTarget = panelTab === targetTab;
+          panel.classList.toggle("fluxo-conteudo-aba--ativo", isTarget);
+          if (isTarget) {
+            panel.removeAttribute("hidden");
+          } else {
+            panel.setAttribute("hidden", "");
+          }
+        });
       });
     });
-  });
+  }
+
+  atualizarBadgesFluxoConvencional();
+  atualizarRitmoBerco101FluxoMecanizado();
+  atualizarPranchaExpedicaoFluxo();
+  atualizarBotaoFluxoExpedicao();
 }
 
 if (document.readyState === "complete" || document.readyState === "interactive") {
   configurarAbasFluxosOperacionais();
 }
 
+function encerrarSessaoOperador(event) {
+  if (event && typeof event.preventDefault === "function") {
+    event.preventDefault();
+  }
+  try {
+    localStorage.removeItem("cco_sessao_operador");
+    sessionStorage.removeItem("cco_sessao_operador");
+  } catch (e) {
+    // ignore storage errors
+  }
+  window.location.href = "login.html";
+}
+
+function inicializarSessaoOperadorCabecalho() {
+  const avatarEl = document.getElementById("header-user-avatar");
+  const nameEl = document.getElementById("header-user-name");
+  const roleEl = document.getElementById("header-user-role");
+  const logoutLinkEl = document.getElementById("btn-logout-login");
+  const settingsUserEl = document.getElementById("settings-session-user");
+  const settingsRoleEl = document.getElementById("settings-session-role");
+  const settingsLogoutBtn = document.getElementById("btn-logout-settings");
+
+  let sessao = null;
+  try {
+    const raw =
+      localStorage.getItem("cco_sessao_operador") ||
+      sessionStorage.getItem("cco_sessao_operador");
+    if (raw) {
+      sessao = JSON.parse(raw);
+    }
+  } catch (e) {
+    sessao = null;
+  }
+
+  if (!sessao || !sessao.usuario) {
+    window.location.replace("login.html");
+    return;
+  }
+
+  const nomeCurto = String(sessao.usuario).split("@")[0];
+  if (avatarEl && sessao.iniciais) {
+    avatarEl.textContent = sessao.iniciais;
+  }
+  if (nameEl) {
+    nameEl.textContent = nomeCurto;
+  }
+  if (settingsUserEl) {
+    settingsUserEl.textContent = nomeCurto;
+  }
+
+  const temUnidadeEspecifica = Boolean(sessao.unidade && sessao.unidade !== "all");
+  const textoPerfil = temUnidadeEspecifica
+    ? `${t("header.control_center")} · ${sessao.unidade}`
+    : t("header.control_center");
+
+  if (roleEl && temUnidadeEspecifica) {
+    roleEl.removeAttribute("data-i18n");
+    roleEl.textContent = textoPerfil;
+  }
+  if (settingsRoleEl) {
+    if (temUnidadeEspecifica) {
+      settingsRoleEl.removeAttribute("data-i18n");
+    }
+    settingsRoleEl.textContent = textoPerfil;
+  }
+
+  if (logoutLinkEl) {
+    logoutLinkEl.addEventListener("click", encerrarSessaoOperador);
+  }
+  if (settingsLogoutBtn) {
+    settingsLogoutBtn.addEventListener("click", encerrarSessaoOperador);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  inicializarSessaoOperadorCabecalho();
   aplicarIdiomaUI(idiomaAtual);
   inicializarConfiguracoesOperacionais();
   configurarAbasFluxosOperacionais();

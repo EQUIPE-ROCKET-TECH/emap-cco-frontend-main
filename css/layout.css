@@ -19,6 +19,7 @@
     text-decoration: none;
     color: var(--cor-texto);
     padding: 0 10px 27px;
+    cursor: default;
 }
 
 .barra-lateral__imagem {

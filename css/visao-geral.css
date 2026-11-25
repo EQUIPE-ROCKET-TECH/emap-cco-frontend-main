@@ -977,12 +977,6 @@ body.tema--escuro .modal-historico-edicao__obs,
     min-width: 0;
 }
 
-/* =====================================
-   RESPONSIVIDADE DA VISÃO GERAL
-===================================== */
-
-/* Responsividade das seções da Visão Geral consolidada ao final do arquivo */
-
 /* =========================================================
    MONITORAMENTO ÁREA PRIMÁRIA · MODAL CONVENCIONAL
 ========================================================= */
@@ -1378,59 +1372,6 @@ body.tema--escuro #page-overview .grade-esteira .card-area-primaria .esteira__te
 }
 
 /* =========================================================
-   RESPONSIVIDADE: TELAS VERTICAIS E TABLETS (<= 1200px)
-========================================================= */
-
-@media (max-width: 1200px), (orientation: portrait) and (max-width: 1200px) {
-    #page-overview .grade-indicadores--executivo,
-    .grade-indicadores {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 14px !important;
-    }
-
-    .grade-bercos {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 14px !important;
-    }
-
-    #page-overview .grade-esteira,
-    .grade-esteira {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 14px !important;
-    }
-
-    #page-overview .grade-paineis--graficos {
-        grid-template-columns: 1fr !important;
-        gap: 16px !important;
-    }
-}
-
-/* =========================================================
-   RESPONSIVIDADE: MOBILE E TELAS PEQUENAS (<= 768px)
-========================================================= */
-
-@media (max-width: 768px) {
-    #page-overview .grade-indicadores--executivo,
-    .grade-indicadores,
-    .grade-bercos,
-    #page-overview .grade-esteira,
-    .grade-esteira {
-        grid-template-columns: 1fr !important;
-        gap: 10px !important;
-    }
-
-    .visao-geral__cabecalho {
-        align-items: flex-start !important;
-        flex-direction: column !important;
-        gap: 8px !important;
-    }
-
-    .berco {
-        padding: 16px !important;
-    }
-}
-
-/* =========================================================
    BLOCO: FLUXOS OPERACIONAIS · COPI
 ========================================================= */
 
@@ -1438,9 +1379,7 @@ body.tema--escuro #page-overview .grade-esteira .card-area-primaria .esteira__te
     padding: 16px 20px;
     margin-bottom: 24px;
     border-radius: 12px;
-    background: var(--cor-superficie);
-    border: 1px solid var(--cor-borda);
-    box-shadow: var(--sombra-padrao);
+    background: #CFEBFF;
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
@@ -1462,7 +1401,7 @@ body.tema--escuro #page-overview .grade-esteira .card-area-primaria .esteira__te
 }
 
 .fluxos-operacionais__titulo {
-    font-size: 1.05rem;
+    font-size: 1.4rem;
     font-weight: 700;
     color: var(--cor-texto);
     margin: 0;
@@ -1580,20 +1519,21 @@ body.tema--escuro #page-overview .grade-esteira .card-area-primaria .esteira__te
     display: flex;
     align-items: stretch;
     justify-content: space-between;
-    gap: 6px;
+    gap: 10px;
     width: 100%;
 }
 
 .fluxo-etapa {
-    flex: 1 1 0;
-    min-width: 0;
-    background: var(--cor-fundo-secundario);
+    flex: 1 1 150px;
+    min-width: 150px;
+    min-height: 76px;
+    background: #F0F9FF;
     border: 1px solid var(--cor-borda);
-    border-radius: 8px;
-    padding: 8px 9px;
+    border-radius: 10px;
+    padding: 14px 16px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 12px;
     position: relative;
     transition: all 0.2s ease;
 }
@@ -1626,12 +1566,12 @@ body.tema--escuro #page-overview .grade-esteira .card-area-primaria .esteira__te
 }
 
 .fluxo-etapa__numero {
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: var(--cor-primaria-suave);
     color: var(--cor-primaria);
-    font-size: 0.7rem;
+    font-size: 0.9rem;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
@@ -1647,7 +1587,7 @@ body.tema--escuro #page-overview .grade-esteira .card-area-primaria .esteira__te
 }
 
 .fluxo-etapa__nome {
-    font-size: 0.78rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: var(--cor-texto);
     white-space: nowrap;
@@ -1656,7 +1596,7 @@ body.tema--escuro #page-overview .grade-esteira .card-area-primaria .esteira__te
 }
 
 .fluxo-etapa__desc {
-    font-size: 0.68rem;
+    font-size: 0.8rem;
     line-height: 1.25;
     color: var(--cor-texto-secundario);
     white-space: normal;
@@ -1670,13 +1610,13 @@ body.tema--escuro #page-overview .grade-esteira .card-area-primaria .esteira__te
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 20px;
-    height: 20px;
+    min-width: 26px;
+    height: 26px;
     padding: 0 6px;
     border-radius: 999px;
     background: rgba(100, 116, 139, 0.12);
     color: var(--cor-texto);
-    font-size: 0.68rem;
+    font-size: 0.85rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     line-height: 1;
@@ -1911,77 +1851,4 @@ body.tema--escuro .fluxo-badge--destaque,
     background: #1e293b;
     color: #60a5fa;
     border-color: transparent;
-}
-
-/* =========================================================
-   RESPONSIVIDADE: FLUXOS OPERACIONAIS
-========================================================= */
-
-@media (max-width: 1200px), (orientation: portrait) and (max-width: 1200px) {
-    .fluxos-operacionais__cabecalho {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-    }
-
-    .fluxos-operacionais__abas {
-        width: 100%;
-        justify-content: flex-start;
-    }
-
-    .fluxo-etapas {
-        display: grid !important;
-        grid-template-columns: repeat(4, 1fr) !important;
-        gap: 8px !important;
-    }
-
-    .fluxo-seta {
-        display: none !important;
-    }
-}
-
-@media (max-width: 768px) {
-    .fluxos-operacionais {
-        padding: 12px 14px;
-    }
-
-    .fluxos-operacionais__abas {
-        width: 100%;
-        display: flex;
-        flex-wrap: wrap;
-        border-radius: 12px;
-        padding: 4px;
-    }
-
-    .fluxo-aba-btn {
-        flex: 1 1 auto;
-        text-align: center;
-        padding: 6px 8px;
-        font-size: 0.72rem;
-    }
-
-    .fluxo-etapas {
-        display: grid !important;
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8px !important;
-    }
-
-    .fluxo-etapa {
-        padding: 8px;
-    }
-
-    .fluxo-rodape {
-        gap: 6px;
-    }
-
-    .fluxo-badge {
-        font-size: 0.68rem;
-        padding: 2px 7px;
-    }
-}
-
-@media (max-width: 440px) {
-    .fluxo-etapas {
-        grid-template-columns: 1fr !important;
-    }
 }

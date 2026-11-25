@@ -1,6 +1,7 @@
 /* RESPONSIVIDADE - TELAS VERTICAIS E TABLETS (<= 1200px) */
 
-@media (max-width: 1200px), (orientation: portrait) and (max-width: 1200px) {
+@media (max-width: 1200px),
+(orientation: portrait) and (max-width: 1200px) {
 
   .barra-lateral {
 
@@ -323,10 +324,113 @@
 
 }
 
-
-
 @media (max-width: 900px) {
   .grade-paineis {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1200px),
+(orientation: portrait) and (max-width: 1200px) {
+  #page-overview .grade-indicadores--executivo,
+  .grade-indicadores {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+  }
+  .grade-bercos {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+  }
+  #page-overview .grade-esteira,
+  .grade-esteira {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 14px !important;
+  }
+  #page-overview .grade-paineis--graficos {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  #page-overview .grade-indicadores--executivo,
+  .grade-indicadores,
+  .grade-bercos,
+  #page-overview .grade-esteira,
+  .grade-esteira {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .visao-geral__cabecalho {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .berco {
+    padding: 16px !important;
+  }
+}
+
+/* =========================================================
+   RESPONSIVIDADE: FLUXOS OPERACIONAIS
+========================================================= */
+@media (max-width: 1200px),
+(orientation: portrait) and (max-width: 1200px) {
+  .fluxos-operacionais__cabecalho {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .fluxos-operacionais__abas {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .fluxo-etapas {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+  }
+  .fluxo-seta {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .fluxos-operacionais {
+    padding: 12px 14px;
+  }
+  .fluxos-operacionais__abas {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    border-radius: 12px;
+    padding: 4px;
+  }
+  .fluxo-aba-btn {
+    flex: 1 1 auto;
+    text-align: center;
+    padding: 6px 8px;
+    font-size: 0.72rem;
+  }
+  .fluxo-etapas {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  .fluxo-etapa {
+    padding: 8px;
+  }
+  .fluxo-rodape {
+    gap: 6px;
+  }
+  .fluxo-badge {
+    font-size: 0.68rem;
+    padding: 2px 7px;
+  }
+}
+
+@media (max-width: 440px) {
+  .fluxo-etapas {
+    grid-template-columns: 1fr !important;
   }
 }

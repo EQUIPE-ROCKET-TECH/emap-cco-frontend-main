@@ -1,3 +1,39 @@
+/* SUB-ABAS DENTRO DE MOVIMENTAÇÕES */
+
+.movimentacoes__subabas {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  margin-bottom: 18px;
+  background-color: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.subaba {
+  border: none;
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.subaba:hover {
+  background-color: var(--cor-hover);
+  color: var(--cor-texto);
+}
+
+.subaba--ativa {
+  background-color: var(--cor-primaria-suave);
+  color: var(--cor-primaria);
+}
+
 /* CADASTRO DE VEÍCULOS */
 
 .cadastro {

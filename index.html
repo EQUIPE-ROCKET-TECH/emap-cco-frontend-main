@@ -63,10 +63,6 @@
           Transportadoras
         </button>
 
-        <button class="menu__link" data-page="vehicles" data-i18n="nav.vehicles">
-          Cadastrar Veículos
-        </button>
-
         <button class="menu__link" data-page="reports" data-i18n="nav.reports">
           Relatórios
         </button>
@@ -853,6 +849,32 @@
           </button>
         </div>
 
+        <div class="movimentacoes__subabas" role="tablist" aria-label="Sub-abas de Movimentações">
+          <button
+            type="button"
+            class="subaba subaba--ativa"
+            id="tab-movements-list"
+            data-movements-tab="list"
+            role="tab"
+            aria-selected="true"
+            data-i18n="nav.movements"
+          >
+            Movimentações
+          </button>
+          <button
+            type="button"
+            class="subaba"
+            id="tab-movements-vehicles"
+            data-movements-tab="vehicles"
+            role="tab"
+            aria-selected="false"
+            data-i18n="nav.vehicles"
+          >
+            Cadastro de Veículos
+          </button>
+        </div>
+
+        <div id="movements-tab-list">
         <div id="movement-inspection-banner" class="inspecao-banner">
           <div class="inspecao-banner__info">
             <div class="inspecao-banner__titulo">
@@ -975,6 +997,132 @@
         <p class="pagina__observacao">
           Os dados desta tela são fictícios e servem apenas para desenvolver e testar a interface.
         </p>
+        </div>
+
+        <div id="movements-tab-vehicles" hidden>
+          <div class="cadastro">
+            <h2 class="cadastro__titulo" data-i18n="vehicles.title">Cadastro de Veículos</h2>
+            <p class="cadastro__descricao" data-i18n="vehicles.subtitle">
+              Cadastre e gerencie os veículos da operação. Os veículos cadastrados aqui são mantidos localmente e sincronizados com as tabelas de Movimentações, Visão Geral e Transportadoras.
+            </p>
+
+            <form class="cadastro__formulario" id="form-vehicles" novalidate>
+              <div class="cadastro__campo">
+                <label for="vehicle-plate" data-i18n="vehicles.plate_label">Placa do veículo *</label>
+                <input type="text" id="vehicle-plate" placeholder="Ex.: ABC1D23 ou ABC-1234" data-i18n-placeholder="vehicles.plate_placeholder" maxlength="8" required>
+              </div>
+
+              <div class="cadastro__campo">
+                <label for="vehicle-carrier" data-i18n="vehicles.carrier_label">Transportadora *</label>
+                <input type="text" id="vehicle-carrier" list="carrier-suggestions" placeholder="Nome da transportadora" data-i18n-placeholder="vehicles.carrier_placeholder" required>
+                <datalist id="carrier-suggestions">
+                  <option value="Transporte Alfa"></option>
+                  <option value="Translog"></option>
+                  <option value="Veloz Cargas"></option>
+                  <option value="Rota Sul"></option>
+                  <option value="Logística Brasil"></option>
+                </datalist>
+              </div>
+
+              <div class="cadastro__campo">
+                <label for="vehicle-type" data-i18n="vehicles.type_label">Tipo de veículo</label>
+                <select id="vehicle-type" required>
+                  <option value="Carreta" selected data-i18n="vehicles.type_carreta">Carreta (6 eixos)</option>
+                  <option value="Bitrem" data-i18n="vehicles.type_bitrem">Bitrem (7 eixos)</option>
+                  <option value="Rodotrem" data-i18n="vehicles.type_rodotrem">Rodotrem (9 eixos)</option>
+                  <option value="Caminhão" data-i18n="vehicles.type_truck">Caminhão (4 eixos)</option>
+                  <option value="Outro" data-i18n="vehicles.type_other">Outro</option>
+                </select>
+              </div>
+
+              <div class="cadastro__campo">
+                <label for="vehicle-operation" data-i18n="vehicles.op_label">Tipo de operação</label>
+                <select id="vehicle-operation">
+                  <option value="Recebimento" selected data-i18n="vehicles.op_receiving">Recebimento (Descarga)</option>
+                  <option value="Expedição" data-i18n="vehicles.op_dispatch">Expedição (Carregamento)</option>
+                </select>
+              </div>
+
+              <div class="cadastro__campo">
+                <label for="vehicle-destino" data-i18n="vehicles.dest_label">Destino / Berço</label>
+                <select id="vehicle-destino">
+                  <option value="Berço 99" selected data-i18n="dest.berth99">Berço 99</option>
+                  <option value="Berço 100" data-i18n="dest.berth100">Berço 100</option>
+                  <option value="Berço 101" data-i18n="dest.berth101">Berço 101</option>
+                  <option value="Berço 102" data-i18n="dest.berth102">Berço 102</option>
+                  <option value="Berço 103" data-i18n="dest.berth103">Berço 103</option>
+                  <option value="Expedição" data-i18n="op.dispatch">Expedição</option>
+                </select>
+              </div>
+
+              <div class="cadastro__campo">
+                <label for="vehicle-stage" data-i18n="vehicles.stage_label">Etapa inicial</label>
+                <select id="vehicle-stage">
+                  <option value="1. Fila PRC (1ª pesagem)" selected>1. Fila PRC (1ª pesagem)</option>
+                  <option value="2. PAN (Área Primária)">2. PAN (Área Primária)</option>
+                  <option value="3. Fila Berço">3. Fila Berço</option>
+                  <option value="4. Registro TOS/SICOPI">4. Registro TOS/SICOPI</option>
+                  <option value="5. Funil (Carregamento)">5. Funil (Carregamento)</option>
+                  <option value="6. Balança (2ª pesagem)">6. Balança (2ª pesagem)</option>
+                  <option value="7. PAN (Saída)">7. PAN (Saída)</option>
+                </select>
+              </div>
+
+              <div class="cadastro__campo">
+                <label for="vehicle-weight" data-i18n="vehicles.weight_label">Peso / Carga líquida (kg)</label>
+                <input type="number" id="vehicle-weight" placeholder="Ex.: 32000" data-i18n-placeholder="vehicles.weight_placeholder" min="0" step="100">
+              </div>
+
+              <div class="cadastro__campo">
+                <label for="vehicle-unidade" data-i18n="vehicles.unit_label">Unidade / Empresa (iPort)</label>
+                <select id="vehicle-unidade">
+                  <option value="COPISI" selected>COPISI</option>
+                  <option value="VM">VM</option>
+                  <option value="TIPA">TIPA</option>
+                </select>
+              </div>
+
+              <div class="cadastro__campo">
+                <label for="vehicle-driver" data-i18n="vehicles.driver_label">Motorista</label>
+                <input type="text" id="vehicle-driver" placeholder="Ex.: Carlos Mendes" data-i18n-placeholder="vehicles.driver_placeholder">
+              </div>
+
+              <div class="cadastro__campo">
+                <label for="vehicle-client" data-i18n="vehicles.client_label">Cliente</label>
+                <input type="text" id="vehicle-client" placeholder="Ex.: Vale S.A. / Suzano / Raízen" data-i18n-placeholder="vehicles.client_placeholder">
+              </div>
+
+              <div class="cadastro__campo">
+                <label for="vehicle-obs" data-i18n="vehicles.obs_label">Navio / Documento do Lote (DI / BL)</label>
+                <input type="text" id="vehicle-obs" placeholder="Ex.: PRESTIGE DIVA · BL-ITQ-2026-103" data-i18n-placeholder="vehicles.obs_placeholder">
+              </div>
+
+              <div class="cadastro__acoes">
+                <span class="cadastro__dica" data-i18n="vehicles.required_hint">* Campos obrigatórios para liberar o veículo no giro.</span>
+                <button type="submit" class="cadastro__botao" data-i18n="vehicles.submit">
+                  Cadastrar veículo na operação
+                </button>
+              </div>
+            </form>
+
+            <div id="vehicle-feedback" class="cadastro__feedback" hidden role="status" aria-live="polite"></div>
+
+            <div class="cadastro__gerenciamento" id="local-vehicles-manager">
+              <div class="cadastro__gerenciamento-topo">
+                <div>
+                  <h3 data-i18n="vehicles.local_title">Veículos cadastrados localmente</h3>
+                  <p data-i18n="vehicles.local_desc">Registros salvos neste navegador e mesclados automaticamente com a API.</p>
+                </div>
+                <div class="cadastro__gerenciamento-acoes">
+                  <button type="button" class="cadastro__botao-limpar-locais" id="btn-limpar-veiculos-locais" hidden data-i18n="vehicles.clear_local">
+                    Limpar cadastros locais
+                  </button>
+                </div>
+              </div>
+              <div class="cadastro__lista-locais" id="local-vehicles-list"></div>
+            </div>
+          </div>
+        </div>
       </section>
 
 
@@ -1017,6 +1165,8 @@
               <option value="today" data-i18n="period.today">Hoje</option>
               <option value="24h" data-i18n="period.24h">Últimas 24h</option>
               <option value="48h" data-i18n="period.48h">Últimas 48h</option>
+              <option value="7d" data-i18n="period.7d">Últimos 7 dias</option>
+              <option value="30d" data-i18n="period.30d">Últimos 30 dias</option>
             </select>
           </label>
         </div>
@@ -1088,6 +1238,8 @@
               <option value="today" data-i18n="period.today">Hoje</option>
               <option value="24h" data-i18n="period.24h">Últimas 24h</option>
               <option value="48h" data-i18n="period.48h">Últimas 48h</option>
+              <option value="7d" data-i18n="period.7d">Últimos 7 dias</option>
+              <option value="30d" data-i18n="period.30d">Últimos 30 dias</option>
             </select>
           </label>
 
@@ -1324,131 +1476,6 @@
             </button>
           </div>
         </article>
-      </section>
-
-      <section class="pagina" id="page-vehicles">
-        <div class="cadastro">
-          <h2 class="cadastro__titulo" data-i18n="vehicles.title">Cadastro de Veículos</h2>
-          <p class="cadastro__descricao" data-i18n="vehicles.subtitle">
-            Cadastre e gerencie os veículos da operação. Os veículos cadastrados aqui são mantidos localmente e sincronizados com as tabelas de Movimentações, Visão Geral e Transportadoras.
-          </p>
-
-          <form class="cadastro__formulario" id="form-vehicles" novalidate>
-            <div class="cadastro__campo">
-              <label for="vehicle-plate" data-i18n="vehicles.plate_label">Placa do veículo *</label>
-              <input type="text" id="vehicle-plate" placeholder="Ex.: ABC1D23 ou ABC-1234" data-i18n-placeholder="vehicles.plate_placeholder" maxlength="8" required>
-            </div>
-
-            <div class="cadastro__campo">
-              <label for="vehicle-carrier" data-i18n="vehicles.carrier_label">Transportadora *</label>
-              <input type="text" id="vehicle-carrier" list="carrier-suggestions" placeholder="Nome da transportadora" data-i18n-placeholder="vehicles.carrier_placeholder" required>
-              <datalist id="carrier-suggestions">
-                <option value="Transporte Alfa"></option>
-                <option value="Translog"></option>
-                <option value="Veloz Cargas"></option>
-                <option value="Rota Sul"></option>
-                <option value="Logística Brasil"></option>
-              </datalist>
-            </div>
-
-            <div class="cadastro__campo">
-              <label for="vehicle-type" data-i18n="vehicles.type_label">Tipo de veículo</label>
-              <select id="vehicle-type" required>
-                <option value="Carreta" selected data-i18n="vehicles.type_carreta">Carreta (6 eixos)</option>
-                <option value="Bitrem" data-i18n="vehicles.type_bitrem">Bitrem (7 eixos)</option>
-                <option value="Rodotrem" data-i18n="vehicles.type_rodotrem">Rodotrem (9 eixos)</option>
-                <option value="Caminhão" data-i18n="vehicles.type_truck">Caminhão (4 eixos)</option>
-                <option value="Outro" data-i18n="vehicles.type_other">Outro</option>
-              </select>
-            </div>
-
-            <div class="cadastro__campo">
-              <label for="vehicle-operation" data-i18n="vehicles.op_label">Tipo de operação</label>
-              <select id="vehicle-operation">
-                <option value="Recebimento" selected data-i18n="vehicles.op_receiving">Recebimento (Descarga)</option>
-                <option value="Expedição" data-i18n="vehicles.op_dispatch">Expedição (Carregamento)</option>
-              </select>
-            </div>
-
-            <div class="cadastro__campo">
-              <label for="vehicle-destino" data-i18n="vehicles.dest_label">Destino / Berço</label>
-              <select id="vehicle-destino">
-                <option value="Berço 99" selected data-i18n="dest.berth99">Berço 99</option>
-                <option value="Berço 100" data-i18n="dest.berth100">Berço 100</option>
-                <option value="Berço 101" data-i18n="dest.berth101">Berço 101</option>
-                <option value="Berço 102" data-i18n="dest.berth102">Berço 102</option>
-                <option value="Berço 103" data-i18n="dest.berth103">Berço 103</option>
-                <option value="Expedição" data-i18n="op.dispatch">Expedição</option>
-              </select>
-            </div>
-
-            <div class="cadastro__campo">
-              <label for="vehicle-stage" data-i18n="vehicles.stage_label">Etapa inicial</label>
-              <select id="vehicle-stage">
-                <option value="1. Fila PRC (1ª pesagem)" selected>1. Fila PRC (1ª pesagem)</option>
-                <option value="2. PAN (Área Primária)">2. PAN (Área Primária)</option>
-                <option value="3. Fila Berço">3. Fila Berço</option>
-                <option value="4. Registro TOS/SICOPI">4. Registro TOS/SICOPI</option>
-                <option value="5. Funil (Carregamento)">5. Funil (Carregamento)</option>
-                <option value="6. Balança (2ª pesagem)">6. Balança (2ª pesagem)</option>
-                <option value="7. PAN (Saída)">7. PAN (Saída)</option>
-              </select>
-            </div>
-
-            <div class="cadastro__campo">
-              <label for="vehicle-weight" data-i18n="vehicles.weight_label">Peso / Carga líquida (kg)</label>
-              <input type="number" id="vehicle-weight" placeholder="Ex.: 32000" data-i18n-placeholder="vehicles.weight_placeholder" min="0" step="100">
-            </div>
-
-            <div class="cadastro__campo">
-              <label for="vehicle-unidade" data-i18n="vehicles.unit_label">Unidade / Empresa (iPort)</label>
-              <select id="vehicle-unidade">
-                <option value="COPISI" selected>COPISI</option>
-                <option value="VM">VM</option>
-                <option value="TIPA">TIPA</option>
-              </select>
-            </div>
-
-            <div class="cadastro__campo">
-              <label for="vehicle-driver" data-i18n="vehicles.driver_label">Motorista</label>
-              <input type="text" id="vehicle-driver" placeholder="Ex.: Carlos Mendes" data-i18n-placeholder="vehicles.driver_placeholder">
-            </div>
-
-            <div class="cadastro__campo">
-              <label for="vehicle-client" data-i18n="vehicles.client_label">Cliente</label>
-              <input type="text" id="vehicle-client" placeholder="Ex.: Vale S.A. / Suzano / Raízen" data-i18n-placeholder="vehicles.client_placeholder">
-            </div>
-
-            <div class="cadastro__campo">
-              <label for="vehicle-obs" data-i18n="vehicles.obs_label">Navio / Documento do Lote (DI / BL)</label>
-              <input type="text" id="vehicle-obs" placeholder="Ex.: PRESTIGE DIVA · BL-ITQ-2026-103" data-i18n-placeholder="vehicles.obs_placeholder">
-            </div>
-
-            <div class="cadastro__acoes">
-              <span class="cadastro__dica" data-i18n="vehicles.required_hint">* Campos obrigatórios para liberar o veículo no giro.</span>
-              <button type="submit" class="cadastro__botao" data-i18n="vehicles.submit">
-                Cadastrar veículo na operação
-              </button>
-            </div>
-          </form>
-
-          <div id="vehicle-feedback" class="cadastro__feedback" hidden role="status" aria-live="polite"></div>
-
-          <div class="cadastro__gerenciamento" id="local-vehicles-manager">
-            <div class="cadastro__gerenciamento-topo">
-              <div>
-                <h3 data-i18n="vehicles.local_title">Veículos cadastrados localmente</h3>
-                <p data-i18n="vehicles.local_desc">Registros salvos neste navegador e mesclados automaticamente com a API.</p>
-              </div>
-              <div class="cadastro__gerenciamento-acoes">
-                <button type="button" class="cadastro__botao-limpar-locais" id="btn-limpar-veiculos-locais" hidden data-i18n="vehicles.clear_local">
-                  Limpar cadastros locais
-                </button>
-              </div>
-            </div>
-            <div class="cadastro__lista-locais" id="local-vehicles-list"></div>
-          </div>
-        </div>
       </section>
 
       <footer class="rodape">

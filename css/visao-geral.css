@@ -1792,22 +1792,24 @@ body.tema--escuro #page-overview .grade-esteira .card-area-primaria .esteira__te
     display: flex;
     align-items: stretch;
     justify-content: space-between;
-    gap: 10px;
+    gap: 6px;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .fluxo-etapa {
-    flex: 1 1 150px;
-    min-width: 150px;
-    min-height: 76px;
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 68px;
     background: #F0F9FF;
     border: 1px solid var(--cor-borda);
     border-radius: 10px;
-    padding: 14px 16px;
+    padding: 10px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     position: relative;
+    box-sizing: border-box;
     transition: all 0.2s ease;
 }
 
@@ -1839,12 +1841,12 @@ body.tema--escuro #page-overview .grade-esteira .card-area-primaria .esteira__te
 }
 
 .fluxo-etapa__numero {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: var(--cor-primaria-suave);
     color: var(--cor-primaria);
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
@@ -1855,21 +1857,23 @@ body.tema--escuro #page-overview .grade-esteira .card-area-primaria .esteira__te
 .fluxo-etapa__info {
     display: flex;
     flex-direction: column;
+    flex: 1 1 auto;
     min-width: 0;
-    overflow: hidden;
+    gap: 2px;
 }
 
 .fluxo-etapa__nome {
-    font-size: 0.95rem;
+    font-size: 0.86rem;
     font-weight: 700;
+    line-height: 1.2;
     color: var(--cor-texto);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow-wrap: normal;
+    word-break: normal;
 }
 
 .fluxo-etapa__desc {
-    font-size: 0.8rem;
+    font-size: 0.74rem;
     line-height: 1.25;
     color: var(--cor-texto-secundario);
     white-space: normal;
@@ -1883,13 +1887,13 @@ body.tema--escuro #page-overview .grade-esteira .card-area-primaria .esteira__te
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 26px;
-    height: 26px;
-    padding: 0 6px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
     border-radius: 999px;
     background: rgba(100, 116, 139, 0.12);
     color: var(--cor-texto);
-    font-size: 0.85rem;
+    font-size: 0.76rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     line-height: 1;
@@ -1932,11 +1936,11 @@ body.tema--escuro #page-overview .grade-esteira .card-area-primaria .esteira__te
     align-items: center;
     justify-content: center;
     color: var(--cor-texto-desabilitado);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 700;
     user-select: none;
     flex-shrink: 0;
-    padding: 0 1px;
+    padding: 0;
 }
 
 /* Rodapé com badges */

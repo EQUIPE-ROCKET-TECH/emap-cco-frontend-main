@@ -96,73 +96,229 @@
 }
 
 /* =====================================
-   CARDS DOS BERÇOS
+   CARDS DOS BERÇOS (COMPACTO · GRID 3x2)
 ===================================== */
 
 .grade-bercos {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
+    align-items: stretch;
 }
 
 .berco {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
     min-width: 0;
-    padding: 20px;
-    background-color: var(--cor-superficie);
-    border: 1px solid var(--cor-borda);
+    min-height: 174px;
+    height: 100%;
+    padding: 14px 16px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
-    box-shadow: var(--sombra-padrao);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.berco--livre {
+    background-color: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+/* LINHA 1: Cabeçalho (Badge do Modal + Engrenagem) */
+.berco__topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.berco__modal-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.67rem;
+    font-weight: 700;
+    letter-spacing: 0.015em;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.berco__modal-badge--convencional {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+
+.berco__modal-badge--mecanizado {
+    background-color: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.berco__modal-badge--expedicao {
+    background-color: #f5f3ff;
+    color: #6d28d9;
+    border: 1px solid #ddd6fe;
+}
+
+.berco__config-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background-color: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.berco__config-btn:hover {
+    background-color: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #0f366e;
+}
+
+.berco__config-btn:focus-visible {
+    outline: 2px solid var(--cor-primaria);
+    outline-offset: 2px;
+}
+
+/* LINHA 2: Título & Detalhes */
+.berco__cabecalho-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
 }
 
 .berco__titulo {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.04rem;
     font-weight: 800;
-    color: var(--cor-texto);
+    line-height: 1.2;
+    color: #0f366e;
 }
 
 .berco__carga {
-    margin: -7px 0 0;
-    font-size: 0.8rem;
-    color: var(--cor-texto-secundario);
+    margin: 0;
+    font-size: 0.76rem;
+    font-weight: 500;
+    line-height: 1.3;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
+/* LINHA 3: Métrica & Meta na mesma linha */
 .berco__produtividade {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
+    gap: 5px;
+    margin-top: 2px;
+    line-height: 1.2;
+}
+
+.berco__produtividade > strong {
+    font-size: 1.22rem;
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    color: #0f366e;
+}
+
+.berco--livre .berco__produtividade > strong {
+    color: #94a3b8;
+}
+
+.berco__referencia {
+    margin: 0;
+    font-size: 0.77rem;
+    font-weight: 500;
+    color: #64748b;
+}
+
+.berco__referencia strong {
+    font-size: inherit;
+    font-weight: 600;
+    color: #64748b;
+}
+
+/* LINHA 4: Barra de Progresso Fina */
+.berco__progresso {
+    width: 100%;
+    height: 7px;
+    overflow: hidden;
+    border-radius: 4px;
+    background-color: #e2e8f0;
+}
+
+.berco__progresso[hidden] {
+    display: none;
+}
+
+.berco__progresso span {
+    display: block;
+    height: 100%;
+    border-radius: 4px;
+    background-color: #10b981;
+    transition: width 0.25s ease, background-color 0.2s ease;
+}
+
+.berco:has(.berco__status--positivo) .berco__progresso span {
+    background-color: #10b981;
+}
+
+.berco:has(.berco__status--atencao) .berco__progresso span {
+    background-color: #f59e0b;
+}
+
+.berco:has(.berco__status--critico) .berco__progresso span {
+    background-color: var(--cor-erro);
+}
+
+.berco:has(.berco__status--neutro) .berco__progresso span,
+.berco--livre .berco__progresso span {
+    background-color: #cbd5e1;
+}
+
+/* LINHA 5: Status diretamente abaixo da barra + Alerta Ureia inline */
+.berco__status-linha {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
     gap: 6px;
-}
-
-.berco__produtividade strong {
-    font-size: 1.2rem;
-    color: var(--cor-texto);
-}
-
-.berco__produtividade span {
-    font-size: 0.75rem;
-    color: var(--cor-texto-secundario);
+    min-height: 22px;
 }
 
 .berco__status {
-    align-self: flex-start;
-    padding: 5px 9px;
-    border-radius: 20px;
-    font-size: 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.68rem;
     font-weight: 700;
+    line-height: 1.3;
+    white-space: nowrap;
 }
 
 .berco__status--positivo {
-    background-color: var(--cor-fundo-sucesso);
-    color: var(--cor-sucesso);
+    background-color: #ecfdf5;
+    color: #047857;
 }
 
 .berco__status--atencao {
-    background-color: var(--cor-fundo-atencao);
-    color: var(--cor-atencao);
+    background-color: #fffbeb;
+    color: #b45309;
 }
 
 .berco__status--critico {
@@ -170,81 +326,198 @@
     color: var(--cor-erro);
 }
 
-.berco__progresso {
-    width: 100%;
-    height: 8px;
-    overflow: hidden;
-    border-radius: 20px;
-    background-color: var(--cor-fundo-secundario);
+.berco__status--neutro {
+    background-color: #f1f5f9;
+    color: #64748b;
 }
 
-.berco__progresso span {
-    display: block;
-    height: 100%;
-    border-radius: inherit;
-    background-color: var(--cor-primaria);
+.berco__alerta-ureia {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background-color: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #b45309;
+    font-size: 0.65rem;
+    font-weight: 600;
+    line-height: 1.25;
+    white-space: nowrap;
 }
 
-.berco:has(.berco__status--positivo) .berco__progresso span {
-    background-color: var(--cor-sucesso);
+.berco__alerta-ureia[hidden] {
+    display: none;
 }
 
-.berco:has(.berco__status--atencao) .berco__progresso span {
-    background-color: var(--cor-atencao);
-}
-
-.berco:has(.berco__status--critico) .berco__progresso span {
-    background-color: var(--cor-erro);
-}
-
+/* LINHA 6: Rodapé Horizontal em 2 Colunas */
 .berco__detalhes {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
     margin-top: auto;
-    padding-top: 12px;
-    border-top: 1px solid var(--cor-borda);
+    padding-top: 9px;
+    border-top: 1px solid #f1f5f9;
 }
 
 .berco__detalhes p {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
     margin: 0;
-    font-size: 0.78rem;
-    color: var(--cor-texto);
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: #64748b;
+    white-space: nowrap;
 }
 
 .berco__detalhes strong {
-    color: var(--cor-texto);
+    color: #0f172a;
+    font-weight: 700;
+    white-space: nowrap;
 }
 
-/* REFERÊNCIA DE PRODUTIVIDADE DOS BERÇOS */
-
-.berco__referencia {
-    margin: -5px 0 0;
-    font-size: 0.75rem;
-    color: var(--cor-texto-secundario);
-}
-
-.berco__referencia strong {
-    color: var(--cor-texto);
+.berco__elipse-status {
+    color: #047857 !important;
     font-weight: 700;
 }
 
-/* MELHOR ORGANIZAÇÃO DAS INFORMAÇÕES */
-
-.berco__carga {
-    line-height: 1.4;
+.berco__detalhes-livre {
+    color: #64748b;
+    font-weight: 500;
 }
 
-.berco__detalhes p {
-    align-items: baseline;
+/* MODO ESCURO DOS CARDS DE BERÇO E MODAL DE CONFIGURAÇÃO */
+
+body.tema--escuro .berco,
+[data-theme="dark"] .berco,
+.dark .berco {
+    background-color: var(--cor-superficie);
+    border-color: var(--cor-borda);
+    box-shadow: var(--sombra-padrao);
 }
 
-.berco__detalhes strong {
-    text-align: right;
-    white-space: nowrap;
+body.tema--escuro .berco--livre,
+[data-theme="dark"] .berco--livre,
+.dark .berco--livre {
+    background-color: var(--cor-fundo-secundario);
+}
+
+body.tema--escuro .berco__titulo,
+[data-theme="dark"] .berco__titulo,
+.dark .berco__titulo,
+body.tema--escuro .berco__produtividade > strong,
+[data-theme="dark"] .berco__produtividade > strong,
+.dark .berco__produtividade > strong,
+body.tema--escuro .berco__detalhes strong,
+[data-theme="dark"] .berco__detalhes strong,
+.dark .berco__detalhes strong {
+    color: var(--cor-texto);
+}
+
+body.tema--escuro .berco__carga,
+[data-theme="dark"] .berco__carga,
+.dark .berco__carga,
+body.tema--escuro .berco__referencia,
+[data-theme="dark"] .berco__referencia,
+.dark .berco__referencia,
+body.tema--escuro .berco__referencia strong,
+[data-theme="dark"] .berco__referencia strong,
+.dark .berco__referencia strong,
+body.tema--escuro .berco__detalhes p,
+[data-theme="dark"] .berco__detalhes p,
+.dark .berco__detalhes p,
+body.tema--escuro .berco__detalhes-livre,
+[data-theme="dark"] .berco__detalhes-livre,
+.dark .berco__detalhes-livre {
+    color: var(--cor-texto-secundario);
+}
+
+body.tema--escuro .berco__detalhes,
+[data-theme="dark"] .berco__detalhes,
+.dark .berco__detalhes {
+    border-top-color: var(--cor-borda);
+}
+
+body.tema--escuro .berco__progresso,
+[data-theme="dark"] .berco__progresso,
+.dark .berco__progresso {
+    background-color: rgba(148, 163, 184, 0.2);
+}
+
+body.tema--escuro .berco:has(.berco__status--neutro) .berco__progresso span,
+[data-theme="dark"] .berco:has(.berco__status--neutro) .berco__progresso span,
+.dark .berco:has(.berco__status--neutro) .berco__progresso span {
+    background-color: rgba(148, 163, 184, 0.45);
+}
+
+body.tema--escuro .berco__config-btn:hover,
+[data-theme="dark"] .berco__config-btn:hover,
+.dark .berco__config-btn:hover {
+    background-color: rgba(148, 163, 184, 0.14);
+    border-color: var(--cor-borda);
+    color: var(--cor-texto);
+}
+
+body.tema--escuro .berco__modal-badge--convencional,
+[data-theme="dark"] .berco__modal-badge--convencional,
+.dark .berco__modal-badge--convencional {
+    background-color: rgba(59, 130, 246, 0.18);
+    color: #93c5fd;
+    border-color: rgba(96, 165, 250, 0.35);
+}
+
+body.tema--escuro .berco__modal-badge--mecanizado,
+[data-theme="dark"] .berco__modal-badge--mecanizado,
+.dark .berco__modal-badge--mecanizado {
+    background-color: rgba(16, 185, 129, 0.18);
+    color: #6ee7b7;
+    border-color: rgba(52, 211, 153, 0.35);
+}
+
+body.tema--escuro .berco__modal-badge--expedicao,
+[data-theme="dark"] .berco__modal-badge--expedicao,
+.dark .berco__modal-badge--expedicao {
+    background-color: rgba(167, 139, 250, 0.18);
+    color: #c4b5fd;
+    border-color: rgba(167, 139, 250, 0.35);
+}
+
+body.tema--escuro .berco__status--positivo,
+[data-theme="dark"] .berco__status--positivo,
+.dark .berco__status--positivo {
+    background-color: rgba(16, 185, 129, 0.18);
+    color: #6ee7b7;
+}
+
+body.tema--escuro .berco__status--atencao,
+[data-theme="dark"] .berco__status--atencao,
+.dark .berco__status--atencao {
+    background-color: rgba(245, 158, 11, 0.18);
+    color: #fcd34d;
+}
+
+body.tema--escuro .berco__alerta-ureia,
+[data-theme="dark"] .berco__alerta-ureia,
+.dark .berco__alerta-ureia {
+    background-color: rgba(245, 158, 11, 0.14);
+    border-color: rgba(245, 158, 11, 0.35);
+    color: #fcd34d;
+}
+
+body.tema--escuro .berco__status--neutro,
+[data-theme="dark"] .berco__status--neutro,
+.dark .berco__status--neutro {
+    background-color: rgba(148, 163, 184, 0.16);
+    color: #cbd5e1;
+}
+
+body.tema--escuro .berco__elipse-status,
+[data-theme="dark"] .berco__elipse-status,
+.dark .berco__elipse-status {
+    color: #34d399 !important;
 }
 
 /* =====================================

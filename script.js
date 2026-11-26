@@ -1136,6 +1136,9 @@ function renderDashboard() {
   if (typeof renderizarBercosResumoFallback === "function" && ultimosBercosAPI.length) {
     renderizarBercosResumoFallback(ultimosBercosAPI);
   } else {
+    if (typeof renderizarTodosCardsBercos === "function") {
+      renderizarTodosCardsBercos(ultimosBercosAPI);
+    }
     if (typeof atualizarRitmoBerco101FluxoMecanizado === "function") {
       atualizarRitmoBerco101FluxoMecanizado();
     }
@@ -1282,7 +1285,7 @@ function obterChaveRegistroVeiculo(item) {
   return normalizarTexto(item.plate);
 }
 
-const DESTINOS_PADRAO = ["Berço 99", "Berço 101", "Berço 102", "Expedição"];
+const DESTINOS_PADRAO = ["Berço 99", "Berço 100", "Berço 101", "Berço 102", "Berço 103", "Expedição"];
 const ETAPAS_PADRAO = [
   "PAN",
   "Fila PRC",
@@ -3498,6 +3501,9 @@ async function carregarEtapasOperacao() {
 ----------------------------------------- */
 function obterClasseStatusBerco(statusOperacional) {
   const status = normalizarTexto(statusOperacional).toUpperCase();
+  if (status.includes("LIVRE") || status.includes("NEUTRO")) {
+    return "berco__status--neutro";
+  }
   if (status.includes("CRITICO")) {
     return "berco__status--critico";
   }
@@ -3536,78 +3542,504 @@ async function carregarBercosOperacao() {
 }
 
 /* -----------------------------------------
+   CONFIGURAÇÃO E REGRAS EMAP / COPI DOS PONTOS OPERACIONAIS
+----------------------------------------- */
+const STORAGE_KEY_CONFIG_BERCOS = "cco_config_pontos_operacionais_v1";
+
+const PONTOS_OPERACIONAIS_PADRAO = {
+  "Berço 99": {
+    status: "Operando",
+    modal: "Convencional",
+    produto: "Fertilizantes",
+    ternos: 2,
+    poroes: "2 e 4",
+    pranchaDemo: 298,
+    volumeDemo: 208.4,
+    veiculosDemo: 5
+  },
+  "Berço 100": {
+    status: "Operando",
+    modal: "Convencional",
+    produto: "Ureia / Nitrogenados",
+    ternos: 2,
+    poroes: "1 e 3",
+    pranchaDemo: 235,
+    volumeDemo: 3120,
+    veiculosDemo: 14
+  },
+  "Berço 101": {
+    status: "Operando",
+    modal: "Mecanizado",
+    produto: "Carvão Mineral",
+    ternos: 2,
+    poroes: "",
+    pranchaDemo: 472,
+    volumeDemo: 209,
+    veiculosDemo: 0
+  },
+  "Berço 102": {
+    status: "Operando",
+    modal: "Convencional",
+    produto: "Trigo/Arroz",
+    ternos: 2,
+    poroes: "2 e 5",
+    pranchaDemo: 255,
+    volumeDemo: 240.4,
+    veiculosDemo: 5
+  },
+  "Berço 103": {
+    status: "Livre",
+    modal: "Convencional",
+    produto: "Fertilizantes",
+    ternos: 2,
+    poroes: "",
+    pranchaDemo: 0,
+    volumeDemo: 0,
+    veiculosDemo: 0
+  },
+  "Expedição": {
+    status: "Operando",
+    modal: "Expedição",
+    produto: "Fertilizantes",
+    ternos: 2,
+    poroes: "",
+    pranchaDemo: 312,
+    volumeDemo: 208.8,
+    veiculosDemo: 5
+  }
+};
+
+function normalizarNomePontoOperacional(nomeBruto) {
+  const texto = String(nomeBruto || "").trim();
+  if (/^ber[çc]o\s*99$/i.test(texto) || /^99$/.test(texto)) return "Berço 99";
+  if (/^ber[çc]o\s*100$/i.test(texto) || /^100$/.test(texto)) return "Berço 100";
+  if (/^ber[çc]o\s*101$/i.test(texto) || /^101$/.test(texto)) return "Berço 101";
+  if (/^ber[çc]o\s*102$/i.test(texto) || /^102$/.test(texto)) return "Berço 102";
+  if (/^ber[çc]o\s*103$/i.test(texto) || /^103$/.test(texto)) return "Berço 103";
+  if (/^expedi[çc][ãa]o$/i.test(texto)) return "Expedição";
+  return texto;
+}
+
+function ehProdutoUreia(produto) {
+  return normalizarTexto(produto).toLowerCase().includes("ureia");
+}
+
+function calcularPranchaMetaBerco(cfg) {
+  const modal = cfg?.modal || "Convencional";
+  const produto = cfg?.produto || "Fertilizantes";
+  const ternos = Number(cfg?.ternos) === 1 ? 1 : 2;
+  const prodNorm = normalizarTexto(produto).toLowerCase();
+
+  if (modal === "Expedição") {
+    return prodNorm.includes("ureia") ? 200 : 250;
+  }
+
+  if (prodNorm.includes("ureia")) {
+    if (modal === "Mecanizado") return 320;
+    return ternos === 1 ? 150 : 250;
+  }
+
+  if (prodNorm.includes("fertilizante")) {
+    if (modal === "Mecanizado") return 390;
+    return ternos === 1 ? 210 : 310;
+  }
+
+  if (prodNorm.includes("carvao")) {
+    if (modal === "Mecanizado") return 458;
+    return ternos === 1 ? 210 : 310;
+  }
+
+  if (prodNorm.includes("trigo") || prodNorm.includes("arroz")) {
+    if (modal === "Mecanizado") return 350;
+    return ternos === 1 ? 180 : 280;
+  }
+
+  if (prodNorm.includes("clinquer") || prodNorm.includes("calcario")) {
+    if (modal === "Mecanizado") return 400;
+    return ternos === 1 ? 200 : 300;
+  }
+
+  return modal === "Mecanizado" ? 390 : (ternos === 1 ? 210 : 310);
+}
+
+function carregarConfigBercosStorage() {
+  let salvo = {};
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_CONFIG_BERCOS);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        salvo = parsed;
+      }
+    }
+  } catch (e) {
+    salvo = {};
+  }
+
+  const resultado = {};
+  Object.keys(PONTOS_OPERACIONAIS_PADRAO).forEach(nomePonto => {
+    const base = PONTOS_OPERACIONAIS_PADRAO[nomePonto];
+    const custom = salvo[nomePonto] || {};
+    const ehExpedicao = nomePonto === "Expedição";
+    resultado[nomePonto] = {
+      ...base,
+      status: custom.status === "Livre" ? "Livre" : (custom.status === "Operando" ? "Operando" : base.status),
+      modal: ehExpedicao
+        ? "Expedição"
+        : (custom.modal === "Mecanizado" || custom.modal === "Convencional" ? custom.modal : base.modal),
+      produto: typeof custom.produto === "string" && custom.produto.trim() ? custom.produto.trim() : base.produto,
+      ternos: Number(custom.ternos) === 1 ? 1 : (Number(custom.ternos) === 2 ? 2 : base.ternos),
+      poroes: typeof custom.poroes === "string" ? custom.poroes.trim() : base.poroes
+    };
+  });
+  return resultado;
+}
+
+let configPontosOperacionais = carregarConfigBercosStorage();
+let pontoEmConfiguracao = null;
+
+function salvarConfigBercosStorage() {
+  try {
+    const payload = {};
+    Object.keys(configPontosOperacionais).forEach(nome => {
+      const c = configPontosOperacionais[nome];
+      payload[nome] = {
+        status: c.status,
+        modal: c.modal,
+        produto: c.produto,
+        ternos: c.ternos,
+        poroes: c.poroes
+      };
+    });
+    localStorage.setItem(STORAGE_KEY_CONFIG_BERCOS, JSON.stringify(payload));
+  } catch (e) {
+    console.warn("Não foi possível salvar configuração dos berços:", e);
+  }
+}
+
+function obterRotuloModalBerco(modal) {
+  if (modal === "Mecanizado") {
+    return { texto: "Modal Mecanizado", classe: "berco__modal-badge--mecanizado" };
+  }
+  if (modal === "Expedição") {
+    return { texto: "Expedição Rodoviária", classe: "berco__modal-badge--expedicao" };
+  }
+  return { texto: "Modal Convencional", classe: "berco__modal-badge--convencional" };
+}
+
+function aplicarConfiguracaoCardBerco(card, nomePonto, dadosAPI) {
+  if (!card) return;
+  const nomeCanonico = normalizarNomePontoOperacional(nomePonto || card.dataset.bercoFilter);
+  const cfg = configPontosOperacionais[nomeCanonico] || PONTOS_OPERACIONAIS_PADRAO[nomeCanonico];
+  if (!cfg) return;
+
+  const ehExpedicao = nomeCanonico === "Expedição";
+  const modalEfetivo = ehExpedicao ? "Expedição" : cfg.modal;
+  const estaLivre = cfg.status === "Livre";
+  const meta = calcularPranchaMetaBerco({ ...cfg, modal: modalEfetivo });
+
+  const pranchaReal = dadosAPI
+    ? Number(dadosAPI.prancha_atual_th ?? dadosAPI.prancha_th ?? cfg.pranchaDemo ?? 0)
+    : Number(cfg.pranchaDemo ?? 0);
+
+  const volTon = dadosAPI
+    ? (dadosAPI.volume_acumulado_ton !== undefined && dadosAPI.volume_acumulado_ton !== null
+      ? Number(dadosAPI.volume_acumulado_ton)
+      : (dadosAPI.volume_total_movimentado_kg ? Number(dadosAPI.volume_total_movimentado_kg) / 1000 : Number(cfg.volumeDemo ?? 0)))
+    : Number(cfg.volumeDemo ?? 0);
+
+  const veiculosAtivos = dadosAPI
+    ? Number(dadosAPI.veiculos_alocados ?? dadosAPI.total_veiculos_ativos ?? cfg.veiculosDemo ?? 0)
+    : Number(cfg.veiculosDemo ?? 0);
+
+  card.dataset.bercoFilter = nomeCanonico;
+  card.classList.toggle("berco--livre", estaLivre);
+
+  const badgeModal = card.querySelector(".berco__modal-badge");
+  if (badgeModal) {
+    const infoModal = obterRotuloModalBerco(modalEfetivo);
+    badgeModal.textContent = infoModal.texto;
+    badgeModal.className = `berco__modal-badge ${infoModal.classe}`;
+  }
+
+  const elTitulo = card.querySelector(".berco__titulo");
+  if (elTitulo) elTitulo.textContent = traduzirDestino(nomeCanonico);
+
+  const elCarga = card.querySelector(".berco__carga");
+  if (elCarga) {
+    if (estaLivre) {
+      elCarga.textContent = "Sem navio atracado";
+    } else if (modalEfetivo === "Mecanizado") {
+      elCarga.textContent = `${cfg.produto} · Esteira`;
+    } else if (modalEfetivo === "Expedição") {
+      elCarga.textContent = `Armazém · ${cfg.produto}`;
+    } else {
+      const labelTernos = cfg.ternos === 1 ? "1 terno" : `${cfg.ternos} ternos`;
+      const textoPoroes = cfg.poroes ? ` · Porões ${cfg.poroes}` : "";
+      elCarga.textContent = `${cfg.produto} · ${labelTernos}${textoPoroes}`;
+    }
+  }
+
+  const elProdStrong = card.querySelector(".berco__produtividade > strong");
+  const elRef = card.querySelector(".berco__referencia");
+  const badgeStatus = card.querySelector(".berco__status");
+  const barraContainer = card.querySelector(".berco__progresso");
+  const barraProgresso = card.querySelector(".berco__progresso span");
+  const alertaUreia = card.querySelector(".berco__alerta-ureia");
+  const elDetalhes = card.querySelector(".berco__detalhes");
+
+  if (estaLivre) {
+    if (elProdStrong) elProdStrong.textContent = "—";
+    if (elRef) {
+      elRef.innerHTML = `/ <strong>—</strong> (Sem operação ativa)`;
+    }
+    if (barraContainer) barraContainer.hidden = false;
+    if (barraProgresso) barraProgresso.style.width = "100%";
+    if (badgeStatus) {
+      badgeStatus.textContent = "Livre";
+      badgeStatus.className = "berco__status berco__status--neutro";
+    }
+    if (alertaUreia) alertaUreia.hidden = true;
+    if (elDetalhes) {
+      elDetalhes.innerHTML = `
+        <p>Vol: <strong>—</strong></p>
+        <p><span class="berco__detalhes-livre">Pronto p/ atracação</span></p>
+      `;
+    }
+    return;
+  }
+
+  const atingimento = meta > 0 ? (pranchaReal / meta) * 100 : 0;
+  const atingimentoFormatado = Number(atingimento).toLocaleString("pt-BR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1
+  });
+  const naMeta = pranchaReal >= meta;
+  const statusTexto = naMeta ? "Na meta" : "Abaixo da norma";
+  const statusClasse = naMeta ? "berco__status--positivo" : "berco__status--atencao";
+
+  if (elProdStrong) {
+    elProdStrong.textContent = `${formatarNumero(pranchaReal, 0)} t/h`;
+  }
+  if (elRef) {
+    elRef.innerHTML = `/ <strong>${formatarNumero(meta, 0)} t/h</strong> (${atingimentoFormatado}%)`;
+  }
+  if (barraContainer) barraContainer.hidden = false;
+  if (barraProgresso) {
+    barraProgresso.style.width = `${Math.min(Math.max(Number(atingimento) || 0, 0), 100)}%`;
+  }
+  if (badgeStatus) {
+    badgeStatus.textContent = traduzirSituacao(statusTexto);
+    badgeStatus.className = `berco__status ${statusClasse}`;
+  }
+  if (alertaUreia) {
+    alertaUreia.textContent = "⚠ Alerta Ureia: controle de umidade";
+    alertaUreia.hidden = !ehProdutoUreia(cfg.produto);
+  }
+
+  if (elDetalhes) {
+    if (modalEfetivo === "Mecanizado") {
+      elDetalhes.innerHTML = `
+        <p>Vol: <strong>${formatarNumero(volTon, 1)} t</strong></p>
+        <p><strong class="berco__elipse-status">BF1 · Elipse OK</strong></p>
+      `;
+    } else {
+      elDetalhes.innerHTML = `
+        <p>Vol: <strong>${formatarNumero(volTon, 1)} t</strong></p>
+        <p>Giro: <strong>${veiculosAtivos}</strong> veíc.</p>
+      `;
+    }
+  }
+}
+
+function renderizarTodosCardsBercos(pontosOperacionaisAPI) {
+  const listaAPI = Array.isArray(pontosOperacionaisAPI) ? pontosOperacionaisAPI : ultimosBercosAPI;
+  const mapaAPI = new Map();
+
+  if (Array.isArray(listaAPI)) {
+    listaAPI.forEach(ponto => {
+      const nomeBruto = ponto?.nome || (ponto?.berco_destino ? `Berço ${ponto.berco_destino}` : "");
+      const chave = normalizarNomePontoOperacional(nomeBruto);
+      if (chave) mapaAPI.set(chave, ponto);
+    });
+  }
+
+  const cardsBercos = document.querySelectorAll(".grade-bercos .berco");
+  cardsBercos.forEach(card => {
+    const chave = normalizarNomePontoOperacional(card.dataset.bercoFilter);
+    const dadosAPI = mapaAPI.get(chave) || null;
+    aplicarConfiguracaoCardBerco(card, chave, dadosAPI);
+  });
+}
+
+function atualizarCamposModalConfigBerco() {
+  const statusEl = document.getElementById("berth-config-status");
+  const modalEl = document.getElementById("berth-config-modal-op");
+  const produtoEl = document.getElementById("berth-config-produto");
+  const ternosEl = document.getElementById("berth-config-ternos");
+  const poroesEl = document.getElementById("berth-config-poroes");
+  const previewMetaEl = document.getElementById("berth-config-preview-meta");
+  const ureiaHintEl = document.getElementById("berth-config-ureia-hint");
+  if (!statusEl || !modalEl || !produtoEl || !ternosEl || !poroesEl) return;
+
+  const ehExpedicao = pontoEmConfiguracao === "Expedição";
+  const modalSelecionado = ehExpedicao ? "Expedição" : modalEl.value;
+  const statusSelecionado = statusEl.value;
+  const produtoSelecionado = produtoEl.value;
+
+  const desabilitarTernos = ehExpedicao || modalSelecionado === "Mecanizado";
+  ternosEl.disabled = desabilitarTernos;
+  poroesEl.disabled = ehExpedicao;
+
+  if (previewMetaEl) {
+    if (statusSelecionado === "Livre") {
+      previewMetaEl.textContent = "Sem operação (livre)";
+    } else {
+      const meta = calcularPranchaMetaBerco({
+        modal: modalSelecionado,
+        produto: produtoSelecionado,
+        ternos: Number(ternosEl.value)
+      });
+      previewMetaEl.textContent = `${formatarNumero(meta, 0)} t/h`;
+    }
+  }
+
+  if (ureiaHintEl) {
+    ureiaHintEl.hidden = !(statusSelecionado === "Operando" && ehProdutoUreia(produtoSelecionado));
+  }
+}
+
+function abrirModalConfigBerco(nomePontoBruto) {
+  const nomePonto = normalizarNomePontoOperacional(nomePontoBruto);
+  const cfg = configPontosOperacionais[nomePonto];
+  const dialog = document.getElementById("berth-config-modal");
+  if (!cfg || !dialog) return;
+
+  pontoEmConfiguracao = nomePonto;
+  const ehExpedicao = nomePonto === "Expedição";
+
+  const titleEl = document.getElementById("berth-config-title");
+  const statusEl = document.getElementById("berth-config-status");
+  const modalEl = document.getElementById("berth-config-modal-op");
+  const produtoEl = document.getElementById("berth-config-produto");
+  const ternosEl = document.getElementById("berth-config-ternos");
+  const poroesEl = document.getElementById("berth-config-poroes");
+
+  if (titleEl) titleEl.textContent = `Configurar ${nomePonto}`;
+  if (statusEl) statusEl.value = cfg.status;
+
+  if (modalEl) {
+    const optExp = modalEl.querySelector('option[value="Expedição"]');
+    const optConv = modalEl.querySelector('option[value="Convencional"]');
+    const optMec = modalEl.querySelector('option[value="Mecanizado"]');
+    if (optExp) optExp.hidden = !ehExpedicao;
+    if (optConv) optConv.hidden = ehExpedicao;
+    if (optMec) optMec.hidden = ehExpedicao;
+    modalEl.value = ehExpedicao ? "Expedição" : cfg.modal;
+    modalEl.disabled = ehExpedicao;
+  }
+
+  if (produtoEl) produtoEl.value = cfg.produto;
+  if (ternosEl) ternosEl.value = String(cfg.ternos || 2);
+  if (poroesEl) poroesEl.value = cfg.poroes || "";
+
+  atualizarCamposModalConfigBerco();
+
+  if (typeof dialog.showModal === "function") {
+    if (!dialog.open) dialog.showModal();
+  } else {
+    dialog.setAttribute("open", "");
+  }
+}
+
+function fecharModalConfigBerco() {
+  const dialog = document.getElementById("berth-config-modal");
+  if (!dialog) return;
+  if (typeof dialog.close === "function" && dialog.open) {
+    dialog.close();
+  } else {
+    dialog.removeAttribute("open");
+  }
+  pontoEmConfiguracao = null;
+}
+
+function inicializarModalConfigBerco() {
+  const dialog = document.getElementById("berth-config-modal");
+  const form = document.getElementById("berth-config-form");
+  const cancelBtn = document.getElementById("berth-config-cancel");
+  const statusEl = document.getElementById("berth-config-status");
+  const modalEl = document.getElementById("berth-config-modal-op");
+  const produtoEl = document.getElementById("berth-config-produto");
+  const ternosEl = document.getElementById("berth-config-ternos");
+
+  if (!dialog || !form || dialog.dataset.inicializado === "true") return;
+  dialog.dataset.inicializado = "true";
+
+  [statusEl, modalEl, produtoEl, ternosEl].forEach(el => {
+    if (el) el.addEventListener("change", atualizarCamposModalConfigBerco);
+  });
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", fecharModalConfigBerco);
+  }
+
+  dialog.addEventListener("click", event => {
+    if (event.target === dialog) fecharModalConfigBerco();
+  });
+
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+    if (!pontoEmConfiguracao || !configPontosOperacionais[pontoEmConfiguracao]) return;
+
+    const ehExpedicao = pontoEmConfiguracao === "Expedição";
+    const status = statusEl?.value === "Livre" ? "Livre" : "Operando";
+    const modal = ehExpedicao
+      ? "Expedição"
+      : (modalEl?.value === "Mecanizado" ? "Mecanizado" : "Convencional");
+    const produto = produtoEl?.value || "Fertilizantes";
+    const ternos = Number(ternosEl?.value) === 1 ? 1 : 2;
+    const poroes = (document.getElementById("berth-config-poroes")?.value || "").trim();
+
+    configPontosOperacionais[pontoEmConfiguracao] = {
+      ...configPontosOperacionais[pontoEmConfiguracao],
+      status,
+      modal,
+      produto,
+      ternos,
+      poroes
+    };
+
+    salvarConfigBercosStorage();
+    renderizarTodosCardsBercos(ultimosBercosAPI);
+
+    if (typeof atualizarRitmoBerco101FluxoMecanizado === "function") {
+      atualizarRitmoBerco101FluxoMecanizado(ultimosBercosAPI);
+    }
+    if (typeof atualizarPranchaExpedicaoFluxo === "function") {
+      atualizarPranchaExpedicaoFluxo();
+    }
+    if (normalizarFluxoOperacional(fluxoOperacionalAtivo) === "mecanizado" && typeof renderizarCardsAreaPrimaria === "function") {
+      renderizarCardsAreaPrimaria(ultimasEtapasAPI);
+    }
+
+    const pontoSalvo = pontoEmConfiguracao;
+    fecharModalConfigBerco();
+    if (typeof notify === "function") {
+      notify(`Configuração de ${pontoSalvo} atualizada.`, "sucesso");
+    }
+  });
+}
+
+/* -----------------------------------------
    FALLBACKS DO /dashboard/resumo
 ----------------------------------------- */
 function renderizarBercosResumoFallback(pontosOperacionais) {
-  if (!Array.isArray(pontosOperacionais) || !pontosOperacionais.length) return;
+  if (!Array.isArray(pontosOperacionais) || !pontosOperacionais.length) {
+    renderizarTodosCardsBercos([]);
+    return;
+  }
   ultimosBercosAPI = pontosOperacionais;
-  const cardsBercos = document.querySelectorAll(".grade-bercos .berco");
-
-  pontosOperacionais.forEach((ponto, index) => {
-    const card = cardsBercos[index];
-    if (!card) return;
-
-    let nomePonto = ponto.nome || (ponto.berco_destino ? `Berço ${ponto.berco_destino}` : "") || card.dataset.bercoFilter || `Berço ${index + 1}`;
-    if (/^ber[çc]o\s*99$/i.test(nomePonto)) nomePonto = "Berço 99";
-    else if (/^ber[çc]o\s*101$/i.test(nomePonto)) nomePonto = "Berço 101";
-    else if (/^ber[çc]o\s*102$/i.test(nomePonto)) nomePonto = "Berço 102";
-    else if (/^expedi[çc][ãa]o$/i.test(nomePonto)) nomePonto = "Expedição";
-
-    card.dataset.bercoFilter = nomePonto;
-    const elTitulo = card.querySelector(".berco__titulo");
-    if (elTitulo) elTitulo.textContent = traduzirDestino(nomePonto);
-
-    const elCarga = card.querySelector(".berco__carga");
-    if (elCarga) elCarga.textContent = ponto.tipo_carga || "Operação integrada";
-
-    const prancha = ponto.prancha_atual_th ?? ponto.prancha_th ?? 0;
-    const elProdStrong = card.querySelector(".berco__produtividade strong");
-    if (elProdStrong) {
-      elProdStrong.textContent = `${formatarNumero(prancha, 0)} t/h`;
-    }
-
-    const ehExpedicao = nomePonto === "Expedição";
-    const metaRaw = ponto.meta_contratual_th ?? ponto.meta_th ?? 0;
-    // Norma/COPI define 250 t/h para Expedição Rodoviária, mesmo se API/fallback enviar 300
-    const meta = ehExpedicao ? 250 : metaRaw;
-    const atingimento = ehExpedicao
-      ? (meta > 0 ? (Number(prancha) / meta) * 100 : 0)
-      : (ponto.atingimento_percentual ?? ponto.atingimento ?? 100);
-
-    const elProdSpan = card.querySelector(".berco__produtividade span");
-    if (elProdSpan) {
-      elProdSpan.textContent =
-        idiomaAtual === "en-US"
-          ? `${formatarNumero(atingimento, 1)}% of target`
-          : `${formatarNumero(atingimento, 1)}% da meta`;
-    }
-
-    const elRefStrong = card.querySelector(".berco__referencia strong");
-    if (elRefStrong) {
-      elRefStrong.textContent = `${formatarNumero(meta, 0)} t/h`;
-    }
-
-    const statusTexto = ponto.status ?? ponto.status_operacional ?? "Na meta";
-    const badgeStatus = card.querySelector(".berco__status");
-    if (badgeStatus) {
-      badgeStatus.textContent = traduzirSituacao(statusTexto);
-      badgeStatus.className = `berco__status ${obterClasseStatusBerco(statusTexto)}`;
-    }
-
-    const barraProgresso = card.querySelector(".berco__progresso span");
-    if (barraProgresso) {
-      barraProgresso.style.width = `${Math.min(Math.max(Number(atingimento) || 0, 0), 100)}%`;
-    }
-
-    const detalhes = card.querySelectorAll(".berco__detalhes strong");
-    if (detalhes.length >= 2) {
-      const volTon = ponto.volume_acumulado_ton !== undefined && ponto.volume_acumulado_ton !== null
-        ? Number(ponto.volume_acumulado_ton)
-        : (ponto.volume_total_movimentado_kg ? Number(ponto.volume_total_movimentado_kg) / 1000 : 0);
-      detalhes[0].textContent = `${formatarNumero(volTon, 1)} t`;
-      detalhes[1].textContent = ponto.veiculos_alocados ?? ponto.total_veiculos_ativos ?? 0;
-    }
-  });
+  renderizarTodosCardsBercos(pontosOperacionais);
 
   const nomesBercos = pontosOperacionais.map(p => p.nome).filter(Boolean);
   atualizarOpcoesSelect("movement-destino", nomesBercos, t("filter.all_masc"), DESTINOS_PADRAO);
@@ -4777,6 +5209,17 @@ document.addEventListener("click", event => {
     contextoInspecaoCard = extrairResumoCardEtapa(etapaFiltro, etapaCard);
     showPage("movements");
     renderMovements();
+    return;
+  }
+
+  const configBercoBtn = event.target.closest(".berco__config-btn");
+  if (configBercoBtn) {
+    event.stopPropagation();
+    const bercoAlvo =
+      configBercoBtn.dataset.bercoConfig ||
+      configBercoBtn.closest(".berco")?.dataset.bercoFilter ||
+      "";
+    abrirModalConfigBerco(bercoAlvo);
     return;
   }
 
@@ -7007,7 +7450,11 @@ function recalcularContadoresOverviewDelta(veiculo, delta) {
     if (coincidirDestino(veiculo.flow, rawBerco)) {
       const detalhes = card.querySelectorAll(".berco__detalhes strong");
       const ultimoStrong = detalhes[detalhes.length - 1];
-      if (ultimoStrong) {
+      if (
+        ultimoStrong &&
+        !ultimoStrong.classList.contains("berco__elipse-status") &&
+        !card.classList.contains("berco--livre")
+      ) {
         const qtdAtual = Number(String(ultimoStrong.textContent).replace(/\D/g, "")) || 0;
         ultimoStrong.textContent = Math.max(0, qtdAtual + delta);
       }
@@ -9231,6 +9678,8 @@ document.addEventListener("DOMContentLoaded", () => {
   inicializarSessaoOperadorCabecalho();
   aplicarIdiomaUI(idiomaAtual);
   inicializarConfiguracoesOperacionais();
+  inicializarModalConfigBerco();
+  renderizarTodosCardsBercos(ultimosBercosAPI);
   configurarAbasFluxosOperacionais();
   sincronizarTodosEndpoints();
 });

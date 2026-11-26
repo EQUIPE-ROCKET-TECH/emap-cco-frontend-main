@@ -9600,19 +9600,47 @@ if (document.readyState === "complete" || document.readyState === "interactive")
   configurarAbasFluxosOperacionais();
 }
 
+// Verifica se a página foi aberta como plano de fundo borrado dentro do iframe de login.html
+const ehModoBackdropLogin = new URLSearchParams(window.location.search).get("backdrop") === "1";
+
+// Escuta mensagens da tela de login para sincronizar tema e idioma ao vivo no painel de fundo
+window.addEventListener("message", event => {
+  const payload = event?.data;
+  if (!payload || typeof payload !== "object") return;
+
+  if (payload.tipo === "cco-sync-tema") {
+    const darkMode = payload.tema === "dark";
+    document.body.classList.toggle("tema--escuro", darkMode);
+    if (themeSelect) {
+      themeSelect.value = darkMode ? "dark" : "light";
+    }
+  } else if (payload.tipo === "cco-sync-idioma" && payload.idioma) {
+    aplicarIdiomaUI(payload.idioma);
+  }
+});
+
+// Encerra a sessão do operador com esmaecimento suave antes de voltar à tela de login
 function encerrarSessaoOperador(event) {
   if (event && typeof event.preventDefault === "function") {
     event.preventDefault();
   }
+  const aplicacaoEl = document.querySelector(".aplicacao");
   try {
     localStorage.removeItem("cco_sessao_operador");
     sessionStorage.removeItem("cco_sessao_operador");
+    sessionStorage.removeItem("cco_login_fade_transition");
   } catch (e) {
-    // ignore storage errors
+    // Ignora erros de acesso ao armazenamento
   }
-  window.location.href = "login.html";
+  if (aplicacaoEl) {
+    aplicacaoEl.classList.add("aplicacao--saindo");
+  }
+  setTimeout(() => {
+    window.location.href = "login.html";
+  }, 320);
 }
 
+// Valida sessão, exibe os dados do operador no cabeçalho e aplica a entrada Fade / Dissolve
 function inicializarSessaoOperadorCabecalho() {
   const avatarEl = document.getElementById("header-user-avatar");
   const nameEl = document.getElementById("header-user-name");
@@ -9621,6 +9649,34 @@ function inicializarSessaoOperadorCabecalho() {
   const settingsUserEl = document.getElementById("settings-session-user");
   const settingsRoleEl = document.getElementById("settings-session-role");
   const settingsLogoutBtn = document.getElementById("btn-logout-settings");
+  const aplicacaoEl = document.querySelector(".aplicacao");
+
+  // Quando carregado como fundo borrado no iframe de login.html, não redireciona
+  if (ehModoBackdropLogin) {
+    return;
+  }
+
+  // Executa a transição suave Esmaecer / Dissolver (Fade / Dissolve) quando o usuário acaba de logar
+  if (aplicacaoEl) {
+    let deveAnimarEntrada = false;
+    try {
+      deveAnimarEntrada = sessionStorage.getItem("cco_login_fade_transition") === "1";
+      if (deveAnimarEntrada) {
+        sessionStorage.removeItem("cco_login_fade_transition");
+      }
+    } catch (e) {
+      deveAnimarEntrada = false;
+    }
+
+    if (deveAnimarEntrada) {
+      aplicacaoEl.classList.add("aplicacao--entrando");
+      const limparClasseAnimacao = () => {
+        aplicacaoEl.classList.remove("aplicacao--entrando");
+      };
+      aplicacaoEl.addEventListener("animationend", limparClasseAnimacao, { once: true });
+      setTimeout(limparClasseAnimacao, 800);
+    }
+  }
 
   let sessao = null;
   try {

@@ -9,6 +9,10 @@
   <script>
     (function () {
       try {
+        // Permite carregar o painel apenas como plano de fundo borrado dentro do iframe de login.html
+        var ehModoBackdrop = new URLSearchParams(window.location.search).get("backdrop") === "1";
+        if (ehModoBackdrop) return;
+
         var sessaoRaw =
           localStorage.getItem("cco_sessao_operador") ||
           sessionStorage.getItem("cco_sessao_operador");
@@ -30,6 +34,16 @@
 </head>
 
 <body>
+  <!-- Aplica o tema escuro imediatamente se estiver salvo para evitar flash visual na transição de entrada -->
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem("tema") === "dark") {
+          document.body.classList.add("tema--escuro");
+        }
+      } catch (e) {}
+    })();
+  </script>
   <div class="aplicacao">
     <aside class="barra-lateral">
       <div class="marca" title="COPI - Operações Integradas">

@@ -5,11 +5,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>COPI | Acesso ao Painel Operacional (CCO)</title>
+  <!-- Importa a folha de estilos principal do sistema (inclui base.css, tema-escuro.css e login.css) -->
   <link rel="stylesheet" href="css/main.css">
+  <!-- Script dedicado da tela de login flutuante -->
   <script src="login.js" defer></script>
 </head>
 
 <body class="login-pagina">
+  <!-- Aplica imediatamente o tema salvo antes da primeira renderização para evitar piscada visual -->
   <script>
     (function () {
       try {
@@ -20,181 +23,154 @@
     })();
   </script>
 
-  <header class="login-topo">
-    <div class="login-status">
-      <span class="monitoramento__ponto" aria-hidden="true"></span>
-      <span data-i18n="login.status_badge">Monitoramento CCO · Contrato iPort COPI001</span>
-    </div>
+  <!-- Painel de controle real carregado ao fundo (não interativo) para compor o efeito de vidro borrado -->
+  <iframe
+    id="login-backdrop-frame"
+    class="login-fundo-painel"
+    src="index.html?backdrop=1"
+    tabindex="-1"
+    aria-hidden="true"
+    title="Painel de controle operacional ao fundo"
+  ></iframe>
 
-    <div class="login-controles-topo">
-      <select
-        id="login-language-select"
-        class="login-select-idioma"
-        aria-label="Selecionar idioma"
-        data-i18n-aria="login.lang_aria"
-      >
-        <option value="pt-BR">PT-BR</option>
-        <option value="en-US">EN-US</option>
-      </select>
+  <!-- Camada flutuante com efeito de vidro borrado (Glassmorphism) e transição Fade/Dissolve -->
+  <div class="login-overlay" id="login-overlay">
+    <main class="login-container">
+      <!-- Logo da empresa COPI solto fora do card, posicionado à esquerda e ampliado -->
+      <div class="login-logo-destaque">
+        <img class="login-logo-destaque__imagem" src="logoCOPI.png" alt="COPI - Operações Integradas">
+      </div>
 
-      <button
-        type="button"
-        id="login-theme-toggle"
-        class="login-botao-tema"
-        aria-label="Alternar tema claro e escuro"
-        data-i18n-aria="login.theme_aria"
-      >
-        <span id="login-theme-icon" aria-hidden="true">◐</span>
-        <span id="login-theme-label" data-i18n="login.theme_dark">Tema escuro</span>
-      </button>
-    </div>
-  </header>
+      <!-- Card flutuante simplificado com barra de idioma/tema no topo e formulário -->
+      <section class="login-cartao" aria-labelledby="login-heading">
 
-  <main class="login-container">
-    <section class="login-cartao" aria-labelledby="login-heading">
-      <aside class="login-painel-institucional">
-        <div class="login-marca">
-          <img class="login-marca__imagem" src="logoCOPI.png" alt="COPI - Operações Integradas">
-          <div>
-            <p class="login-institucional__rotulo" data-i18n="login.eyebrow">CENTRO DE CONTROLE OPERACIONAL</p>
-            <h1 class="login-institucional__titulo" data-i18n="login.system_title">
-              Acompanhamento da Movimentação Rodoviária
-            </h1>
-            <p class="login-institucional__descricao" data-i18n="login.system_desc">
-              Painel integrado para monitoramento do giro de veículos, berços operacionais, SLA e alertas críticos no terminal.
-            </p>
-          </div>
-        </div>
-
-        <div class="login-resumo-operacional">
-          <div class="login-bloco-info">
-            <div class="login-bloco-info__topo">
-              <strong data-i18n="login.units_title">Unidades integradas (iPort)</strong>
-              <span class="etiqueta">COPI001</span>
-            </div>
-            <div class="login-unidades">
-              <span class="login-unidade-tag">COPISI</span>
-              <span class="login-unidade-tag">VM</span>
-              <span class="login-unidade-tag">TIPA</span>
-            </div>
-          </div>
-
-          <div class="login-metricas-mini">
-            <div class="login-metrica-mini">
-              <span data-i18n="login.metric_window_label">Janela operacional</span>
-              <strong data-i18n="login.metric_window_val">48 horas</strong>
-            </div>
-            <div class="login-metrica-mini">
-              <span data-i18n="login.metric_stages_label">Esteira de giro</span>
-              <strong data-i18n="login.metric_stages_val">6 etapas</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="login-institucional__rodape">
-          <span class="monitoramento__ponto" aria-hidden="true"></span>
-          <span data-i18n="login.monitoring">Monitoramento operacional em tempo real</span>
-        </div>
-      </aside>
-
-      <div class="login-painel-formulario">
-        <div class="login-cabecalho-form">
-          <h2 id="login-heading" data-i18n="login.form_title">Acesso ao Painel CCO</h2>
-          <p data-i18n="login.form_subtitle">
-            Informe sua unidade e credenciais operacionais para continuar.
-          </p>
-        </div>
-
-        <form class="login-formulario" id="login-form" novalidate>
-          <div class="login-campo">
-            <label for="login-unidade" data-i18n="login.unit_label">Unidade / Empresa</label>
-            <select id="login-unidade" name="unidade">
-              <option value="all" data-i18n="login.unit_all">Todas as unidades (CCO Geral)</option>
-              <option value="COPISI">COPISI</option>
-              <option value="VM">VM</option>
-              <option value="TIPA">TIPA</option>
-            </select>
-          </div>
-
-          <div class="login-campo" id="grupo-usuario">
-            <label for="login-usuario" data-i18n="login.user_label">Operador ou e-mail institucional *</label>
-            <input
-              type="text"
-              id="login-usuario"
-              name="usuario"
-              autocomplete="username"
-              placeholder="Ex.: operador.cco ou usuario@emap.ma.gov.br"
-              data-i18n-placeholder="login.user_placeholder"
-              required
+        <!-- Barra superior interna do card: reúne seletor de idioma e alternância de tema -->
+        <header class="login-cartao__barra-interna">
+          <!-- Controles de idioma e tema claro/escuro integrados dentro do card -->
+          <div class="login-controles-topo">
+            <select
+              id="login-language-select"
+              class="login-select-idioma"
+              aria-label="Selecionar idioma"
+              data-i18n-aria="login.lang_aria"
             >
-          </div>
-
-          <div class="login-campo" id="grupo-senha">
-            <label for="login-password" data-i18n="login.password_label">Senha de acesso *</label>
-            <div class="login-campo-senha">
-              <input
-                type="password"
-                id="login-password"
-                name="password"
-                autocomplete="current-password"
-                placeholder="Digite sua senha"
-                data-i18n-placeholder="login.password_placeholder"
-                required
-              >
-              <button
-                type="button"
-                id="toggle-password"
-                class="login-alternar-senha"
-                aria-label="Mostrar senha"
-                aria-pressed="false"
-                data-i18n-aria="login.show_password"
-              >
-                👁
-              </button>
-            </div>
-          </div>
-
-          <div class="login-opcoes">
-            <label class="login-lembrar">
-              <input type="checkbox" id="login-remember" checked>
-              <span data-i18n="login.remember">Manter conectado neste terminal</span>
-            </label>
+              <option value="pt-BR">PT-BR</option>
+              <option value="en-US">EN-US</option>
+            </select>
 
             <button
               type="button"
-              id="btn-forgot-password"
-              class="login-link-recuperar"
-              data-i18n="login.forgot"
+              id="login-theme-toggle"
+              class="login-botao-tema"
+              aria-label="Alternar tema claro e escuro"
+              data-i18n-aria="login.theme_aria"
             >
-              Esqueci minha senha
+              <span id="login-theme-icon" aria-hidden="true">☾</span>
+              <span id="login-theme-label" data-i18n="login.theme_dark">Tema escuro</span>
             </button>
           </div>
+        </header>
 
-          <div id="login-error" class="login-erro" role="alert" hidden></div>
+        <!-- Corpo do card: formulário de autenticação do operador -->
+        <div class="login-painel-formulario">
+          <div class="login-cabecalho-form">
+            <h2 id="login-heading" data-i18n="login.form_title">Acesso ao Painel CCO</h2>
+            <p data-i18n="login.form_subtitle">
+              Informe sua unidade e credenciais operacionais para continuar.
+            </p>
+          </div>
 
-          <button type="submit" id="login-submit" class="login-botao" data-i18n="login.submit">
-            Entrar no painel operacional
-          </button>
-        </form>
+          <!-- Formulário principal com validação customizada em JavaScript -->
+          <form class="login-formulario" id="login-form" novalidate>
+            <div class="login-campo">
+              <label for="login-unidade" data-i18n="login.unit_label">Unidade / Empresa</label>
+              <select id="login-unidade" name="unidade">
+                <option value="all" data-i18n="login.unit_all">Todas as unidades (CCO Geral)</option>
+                <option value="COPISI">COPISI</option>
+                <option value="VM">VM</option>
+                <option value="TIPA">TIPA</option>
+              </select>
+            </div>
 
-        <div class="login-dica-acesso">
-          <span>
-            <strong data-i18n="login.demo_title">Acesso de demonstração:</strong>
-            <span data-i18n="login.demo_text">preencha com operador padrão do CCO.</span>
-          </span>
-          <button type="button" id="btn-fill-demo" class="login-botao-demo" data-i18n="login.demo_btn">
-            Preencher CCO
-          </button>
+            <div class="login-campo" id="grupo-usuario">
+              <label for="login-usuario" data-i18n="login.user_label">Operador ou e-mail institucional *</label>
+              <input
+                type="text"
+                id="login-usuario"
+                name="usuario"
+                autocomplete="username"
+                placeholder="Ex.: operador.cco ou usuario@emap.ma.gov.br"
+                data-i18n-placeholder="login.user_placeholder"
+                required
+              >
+            </div>
+
+            <div class="login-campo" id="grupo-senha">
+              <label for="login-password" data-i18n="login.password_label">Senha de acesso *</label>
+              <div class="login-campo-senha">
+                <input
+                  type="password"
+                  id="login-password"
+                  name="password"
+                  autocomplete="current-password"
+                  placeholder="Digite sua senha"
+                  data-i18n-placeholder="login.password_placeholder"
+                  required
+                >
+                <!-- Botão para alternar entre ocultar e exibir a senha -->
+                <button
+                  type="button"
+                  id="toggle-password"
+                  class="login-alternar-senha"
+                  aria-label="Mostrar senha"
+                  aria-pressed="false"
+                  data-i18n-aria="login.show_password"
+                >
+                  👁
+                </button>
+              </div>
+            </div>
+
+            <div class="login-opcoes">
+              <label class="login-lembrar">
+                <input type="checkbox" id="login-remember" checked>
+                <span data-i18n="login.remember">Manter conectado neste terminal</span>
+              </label>
+
+              <button
+                type="button"
+                id="btn-forgot-password"
+                class="login-link-recuperar"
+                data-i18n="login.forgot"
+              >
+                Esqueci minha senha
+              </button>
+            </div>
+
+            <!-- Alerta inline de erro de validação -->
+            <div id="login-error" class="login-erro" role="alert" hidden></div>
+
+            <button type="submit" id="login-submit" class="login-botao" data-i18n="login.submit">
+              Entrar no painel operacional
+            </button>
+          </form>
+
+          <!-- Atalho para preencher credenciais de demonstração -->
+          <div class="login-dica-acesso">
+            <span>
+              <strong data-i18n="login.demo_title">Acesso de demonstração:</strong>
+              <span data-i18n="login.demo_text">preencha com operador padrão do CCO.</span>
+            </span>
+            <button type="button" id="btn-fill-demo" class="login-botao-demo" data-i18n="login.demo_btn">
+              Preencher CCO
+            </button>
+          </div>
         </div>
-      </div>
-    </section>
-  </main>
+      </section>
+    </main>
+  </div>
 
-  <footer class="login-rodape">
-    <span data-i18n="login.footer_left">COPI · Centro de Controle Operacional</span>
-    <span data-i18n="login.footer_right">Porto do Itaqui · Integração iPort (COPI001)</span>
-  </footer>
-
+  <!-- Modal informativo para recuperação de senha -->
   <dialog class="modal-recuperar-senha" id="forgot-password-modal" aria-labelledby="forgot-modal-title">
     <div class="modal-recuperar-senha__caixa">
       <span class="modal-ticket__etiqueta" data-i18n="login.modal_tag">SUPORTE OPERACIONAL · CCO</span>
@@ -210,6 +186,7 @@
     </div>
   </dialog>
 
+  <!-- Notificação flutuante (toast) compartilhada com o padrão visual do sistema -->
   <div class="notificacao" id="toast" role="status" aria-live="polite"></div>
 </body>
 

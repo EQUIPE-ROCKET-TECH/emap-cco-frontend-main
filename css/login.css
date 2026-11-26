@@ -1,49 +1,170 @@
 /* =========================================================
-   TELA DE LOGIN - COPI / CCO
-   Segue integralmente as variáveis e traços de base.css e tema-escuro.css
+   TELA DE LOGIN FLUTUANTE COM VIDRO BORRADO - COPI / CCO
+   Mantém as variáveis visuais de base.css e tema-escuro.css,
+   exibindo o logo solto à esquerda e o card simplificado à direita
+   sobre o painel de controle com efeito Fade / Dissolve.
    ========================================================= */
 
-.login-pagina {
+/* Trava a rolagem da janela enquanto a tela de login está sobreposta */
+body.login-pagina {
+  margin: 0;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 20px 26px 18px;
   background: var(--cor-fundo);
   color: var(--cor-texto);
+  overflow: hidden;
 }
 
-/* Barra superior discreta com status, idioma e alternância de tema */
-.login-topo {
+/* Iframe que renderiza o painel de controle real ao fundo (não interativo) */
+.login-fundo-painel {
+  position: fixed;
+  inset: 0;
   width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
+  height: 100%;
+  border: 0;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+/* Camada flutuante com efeito de vidro borrado (Glassmorphism) sobre o painel */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgba(244, 248, 253, 0.56);
+  backdrop-filter: blur(12px) saturate(135%);
+  -webkit-backdrop-filter: blur(12px) saturate(135%);
+  opacity: 1;
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0.6s ease,
+    backdrop-filter 0.6s ease,
+    -webkit-backdrop-filter 0.6s ease;
 }
 
-.login-status {
-  display: inline-flex;
+/* Fundo em vidro borrado adaptado para o tema escuro */
+body.tema--escuro .login-overlay {
+  background: rgba(17, 19, 24, 0.65);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+}
+
+/* Estado de saída (Esmaecer / Dissolver) aplicado após o login bem-sucedido */
+.login-overlay--dissolvendo {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+}
+
+.login-overlay--dissolvendo .login-cartao,
+.login-overlay--dissolvendo .login-logo-destaque {
+  opacity: 0;
+  transform: scale(0.975);
+  filter: blur(4px);
+}
+
+/* Animação de entrada (Esmaecer / Dissolver) para o painel de controle após o login */
+@keyframes ccoFadeDissolveIn {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: scale(1.012);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
+
+.aplicacao--entrando {
+  animation: ccoFadeDissolveIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Animação de saída suave ao clicar em "Sair" no painel principal */
+.aplicacao--saindo {
+  opacity: 0;
+  filter: blur(4px);
+  transition: opacity 0.35s ease, filter 0.35s ease;
+}
+
+/* Container central: posiciona o logo solto à esquerda e o card de login à direita */
+.login-container {
+  width: 100%;
+  max-width: 1140px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: minmax(300px, 1.1fr) minmax(0, 490px);
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
+  gap: 56px;
+}
+
+/* Área do logo solto fora do card, alinhado mais à esquerda sobre o fundo borrado */
+.login-logo-destaque {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-right: 12px;
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Logo COPI ampliado para acompanhar visualmente a proporção do card */
+.login-logo-destaque__imagem {
+  width: clamp(320px, 38vw, 520px);
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 14px 28px rgba(15, 23, 42, 0.14));
+}
+
+body.tema--escuro .login-logo-destaque__imagem {
+  filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.45));
+}
+
+/* Card flutuante principal do login (coluna única com barra superior + formulário) */
+.login-cartao {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--cor-texto-secundario);
-  box-shadow: var(--sombra-padrao);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16), var(--sombra-padrao);
+  overflow: hidden;
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.login-status .monitoramento__ponto {
-  margin-top: 0;
+body.tema--escuro .login-cartao {
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55), var(--sombra-padrao);
 }
 
+/* Barra interna superior do card: reúne idioma e tema alinhados à direita */
+.login-cartao__barra-interna {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 14px 28px;
+  background: var(--cor-fundo-secundario);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+/* Controles internos de idioma e tema no topo do card */
 .login-controles-topo {
   display: flex;
   align-items: center;
@@ -61,8 +182,7 @@
   font-weight: 600;
   cursor: pointer;
   outline: none;
-  box-shadow: var(--sombra-padrao);
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .login-select-idioma:focus {
@@ -82,7 +202,6 @@
   color: var(--cor-texto);
   font-size: 11.5px;
   font-weight: 600;
-  box-shadow: var(--sombra-padrao);
   transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 
@@ -97,167 +216,12 @@
   box-shadow: 0 0 0 3px var(--cor-primaria-suave);
 }
 
-/* Container central */
-.login-container {
-  width: 100%;
-  max-width: 960px;
-  margin: auto;
-}
-
-.login-cartao {
-  display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-  background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda);
-  border-radius: 14px;
-  box-shadow: var(--sombra-padrao);
-  overflow: hidden;
-}
-
-/* Painel esquerdo institucional (traços da .barra-lateral) */
-.login-painel-institucional {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 34px 30px;
-  background: var(--cor-fundo-secundario);
-  border-right: 1px solid var(--cor-borda);
-}
-
-.login-marca {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.login-marca__imagem {
-  width: 155px;
-  max-width: 100%;
-  height: auto;
-  object-fit: contain;
-  display: block;
-}
-
-.login-institucional__rotulo {
-  color: var(--cor-primaria);
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 1.1px;
-  text-transform: uppercase;
-  margin: 0 0 6px;
-}
-
-.login-institucional__titulo {
-  margin: 0;
-  font-size: clamp(20px, 2vw, 24px);
-  font-weight: 700;
-  letter-spacing: -0.6px;
-  line-height: 1.25;
-  color: var(--cor-texto);
-}
-
-.login-institucional__descricao {
-  margin: 10px 0 0;
-  font-size: 12.5px;
-  line-height: 1.55;
-  color: var(--cor-texto-secundario);
-}
-
-.login-resumo-operacional {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.login-bloco-info {
-  padding: 13px 14px;
-  background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda);
-  border-radius: 10px;
-}
-
-.login-bloco-info__topo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.login-bloco-info__topo strong {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--cor-texto);
-}
-
-.login-unidades {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.login-unidade-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 10.5px;
-  font-weight: 700;
-  background: var(--cor-primaria-suave);
-  color: var(--cor-primaria);
-  border: 1px solid var(--cor-borda);
-}
-
-.login-metricas-mini {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.login-metrica-mini {
-  padding: 11px 12px;
-  background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda);
-  border-radius: 10px;
-}
-
-.login-metrica-mini span {
-  display: block;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--cor-texto-secundario);
-  margin-bottom: 4px;
-}
-
-.login-metrica-mini strong {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--cor-texto);
-}
-
-.login-institucional__rodape {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding-top: 14px;
-  border-top: 1px solid var(--cor-borda);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--cor-texto-secundario);
-}
-
-.login-institucional__rodape .monitoramento__ponto {
-  margin-top: 0;
-}
-
-/* Painel direito de autenticação */
+/* Corpo do card com formulário de acesso */
 .login-painel-formulario {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 36px 34px;
+  padding: 36px 36px;
   background: var(--cor-superficie);
 }
 
@@ -323,6 +287,7 @@
   background: var(--cor-superficie);
 }
 
+/* Realce visual para campos com erro de validação */
 .login-campo--invalido input,
 .login-campo--invalido select {
   border-color: var(--cor-erro);
@@ -333,6 +298,7 @@
   box-shadow: 0 0 0 3px var(--cor-fundo-erro);
 }
 
+/* Campo de senha com botão interno de exibição */
 .login-campo-senha {
   position: relative;
   display: flex;
@@ -407,7 +373,7 @@
   text-decoration: underline;
 }
 
-/* Alerta de validação */
+/* Caixa de erro acessível do formulário */
 .login-erro {
   display: flex;
   align-items: flex-start;
@@ -427,7 +393,7 @@
   display: none !important;
 }
 
-/* Botão principal (contraste consistente no claro e no escuro) */
+/* Botão principal de entrada */
 .login-botao {
   width: 100%;
   min-height: 42px;
@@ -462,7 +428,11 @@
   cursor: wait;
 }
 
-/* Nota auxiliar de acesso rápido */
+body.tema--escuro .login-botao:hover:not(:disabled) {
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.38);
+}
+
+/* Bloco de acesso rápido para demonstração */
 .login-dica-acesso {
   display: flex;
   align-items: center;
@@ -498,21 +468,6 @@
   background: var(--cor-hover);
 }
 
-/* Rodapé */
-.login-rodape {
-  width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  color: var(--cor-texto-desabilitado);
-  font-size: 10px;
-  padding: 4px 2px 0;
-}
-
 /* Botão de sair / trocar operador no cabeçalho do sistema principal */
 .usuario__acao-login {
   display: inline-flex;
@@ -537,7 +492,7 @@
   border-color: var(--cor-primaria);
 }
 
-/* Modal de recuperação de senha (seguindo o estilo dos modais do sistema) */
+/* Modal de recuperação de credenciais (segue os modais do sistema) */
 dialog.modal-recuperar-senha {
   position: fixed;
   inset: 0;
@@ -551,7 +506,7 @@ dialog.modal-recuperar-senha {
   color: var(--cor-texto);
   box-shadow: 0 20px 45px rgba(15, 23, 42, 0.22);
   overflow: hidden;
-  z-index: 1000;
+  z-index: 2000;
 }
 
 dialog.modal-recuperar-senha:not([open]) {
@@ -561,6 +516,10 @@ dialog.modal-recuperar-senha:not([open]) {
 dialog.modal-recuperar-senha::backdrop {
   background: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(3px);
+}
+
+body.tema--escuro dialog.modal-recuperar-senha {
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.55);
 }
 
 .modal-recuperar-senha__caixa {
@@ -595,25 +554,31 @@ dialog.modal-recuperar-senha::backdrop {
   color: #ffffff;
 }
 
-/* Ajustes explícitos no tema escuro */
-body.tema--escuro dialog.modal-recuperar-senha {
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.55);
-}
-
-body.tema--escuro .login-botao:hover:not(:disabled) {
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.38);
-}
-
-/* Responsividade */
-@media (max-width: 820px) {
-  .login-cartao {
-    grid-template-columns: 1fr;
+/* Responsividade para telas menores e dispositivos móveis */
+@media (max-width: 900px) {
+  .login-overlay {
+    align-items: flex-start;
+    padding: 20px 16px;
   }
 
-  .login-painel-institucional {
-    border-right: 0;
-    border-bottom: 1px solid var(--cor-borda);
-    padding: 26px 24px;
+  /* Em telas menores, empilha o logo acima do card de login */
+  .login-container {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+    gap: 24px;
+  }
+
+  .login-logo-destaque {
+    justify-content: center;
+    padding-right: 0;
+  }
+
+  .login-logo-destaque__imagem {
+    width: clamp(200px, 52vw, 290px);
+  }
+
+  .login-cartao__barra-interna {
+    padding: 14px 20px;
   }
 
   .login-painel-formulario {
@@ -622,21 +587,23 @@ body.tema--escuro .login-botao:hover:not(:disabled) {
 }
 
 @media (max-width: 560px) {
-  .login-pagina {
+  .login-overlay {
     padding: 14px 12px;
   }
 
-  .login-painel-institucional,
+  .login-logo-destaque__imagem {
+    width: 190px;
+  }
+
+  .login-cartao__barra-interna {
+    padding: 12px 16px;
+  }
+
   .login-painel-formulario {
     padding: 22px 18px;
   }
 
   .login-dica-acesso {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .login-rodape {
     flex-direction: column;
     align-items: flex-start;
   }

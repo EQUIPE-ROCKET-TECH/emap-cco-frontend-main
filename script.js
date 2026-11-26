@@ -3057,10 +3057,10 @@ function renderizarListaAlertasDOM(listaAlertas) {
 ----------------------------------------- */
 function obterClasseStatusEtapa(statusOperacional) {
   const status = normalizarTexto(statusOperacional).toUpperCase();
-  if (status.includes("CRITICO")) {
+  if (status.includes("CRITIC")) {
     return "esteira__etapa--critico";
   }
-  if (status.includes("ATENCAO")) {
+  if (status.includes("ATENC") || status.includes("WARN")) {
     return "esteira__etapa--atencao";
   }
   return "esteira__etapa--normal";
@@ -3068,10 +3068,10 @@ function obterClasseStatusEtapa(statusOperacional) {
 
 function formatarStatusOperacional(statusOperacional) {
   const status = normalizarTexto(statusOperacional).toUpperCase();
-  if (status.includes("CRITICO")) {
+  if (status.includes("CRITIC")) {
     return idiomaAtual === "en-US" ? "CRITICAL" : "CRÍTICO";
   }
-  if (status.includes("ATENCAO")) {
+  if (status.includes("ATENC") || status.includes("WARN")) {
     return idiomaAtual === "en-US" ? "ATTENTION" : "ATENÇÃO";
   }
   return "NORMAL";
@@ -3120,15 +3120,57 @@ function atualizarCabecalhoAreaPrimaria(fluxo) {
   if (subtituloEl) subtituloEl.textContent = selecionado.subtitulo;
 }
 
+function atualizarBotoesModalAreaPrimaria(fluxo) {
+  const fluxoNorm = normalizarFluxoOperacional(fluxo);
+  const botoes = document.querySelectorAll("#bloco-area-primaria [data-area-modal]");
+  botoes.forEach(btn => {
+    const modalBtn = normalizarFluxoOperacional(btn.getAttribute("data-area-modal"));
+    const ativo = modalBtn === fluxoNorm;
+    btn.classList.toggle("fluxo-aba-btn--ativo", ativo);
+    btn.setAttribute("aria-selected", ativo ? "true" : "false");
+  });
+}
+
+function configurarSeletorModalAreaPrimaria() {
+  const container = document.getElementById("bloco-area-primaria");
+  if (!container) return;
+
+  if (!container.dataset.modalSeletorInicializado) {
+    container.dataset.modalSeletorInicializado = "true";
+    const botoes = container.querySelectorAll("[data-area-modal]");
+    botoes.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetModal = btn.getAttribute("data-area-modal");
+        if (!targetModal) return;
+
+        fluxoOperacionalAtivo = normalizarFluxoOperacional(targetModal);
+        atualizarBotoesModalAreaPrimaria(fluxoOperacionalAtivo);
+        renderizarCardsAreaPrimaria(ultimasEtapasAPI, { animarTransicao: true });
+      });
+    });
+  }
+
+  atualizarBotoesModalAreaPrimaria(fluxoOperacionalAtivo);
+}
+
+function normalizarStatusAreaPrimaria(status) {
+  const norm = normalizarTexto(status).toUpperCase();
+  if (norm.includes("CRITIC")) return "CRITICO";
+  if (norm.includes("ATENC") || norm.includes("WARN")) return "ATENCAO";
+  return "NORMAL";
+}
+
 function obterRotuloStatusAreaPrimaria(status) {
-  if (status === "CRITICO") return idiomaAtual === "en-US" ? "CRITICAL" : "CRÍTICO";
-  if (status === "ATENCAO") return idiomaAtual === "en-US" ? "ATTENTION" : "ATENÇÃO";
+  const statusNorm = normalizarStatusAreaPrimaria(status);
+  if (statusNorm === "CRITICO") return idiomaAtual === "en-US" ? "CRITICAL" : "CRÍTICO";
+  if (statusNorm === "ATENCAO") return idiomaAtual === "en-US" ? "ATTENTION" : "ATENÇÃO";
   return "NORMAL";
 }
 
 function obterClasseStatusAreaPrimaria(status) {
-  if (status === "CRITICO") return "esteira__status--critico";
-  if (status === "ATENCAO") return "esteira__status--atencao";
+  const statusNorm = normalizarStatusAreaPrimaria(status);
+  if (statusNorm === "CRITICO") return "esteira__status--critico";
+  if (statusNorm === "ATENCAO") return "esteira__status--atencao";
   return "esteira__status--normal";
 }
 
@@ -3136,6 +3178,7 @@ function renderizarCardsAreaPrimariaMecanizado(gradeEsteira) {
   const lista = Array.isArray(ultimosBercosAPI) ? ultimosBercosAPI : [];
   const itemB101 = lista.find(p => coincidirDestino(p?.berco_destino ?? p?.nome, "Berço 101"));
 
+  // TODO: mapear dados reais da API para este modal (fallback quando itemB101 não estiver disponível)
   let ritmo = 472;
   let meta = 458;
   let volumeTon = 6380;
@@ -3229,7 +3272,7 @@ function renderizarCardsAreaPrimariaMecanizado(gradeEsteira) {
   ];
 
   gradeEsteira.innerHTML = cards.map(card => `
-    <article class="esteira__etapa card-area-primaria ${card.classe}" data-berco-inspect="Berço 101" title="${escaparHtml(card.tooltip)}">
+    <article class="esteira__etapa ${obterClasseStatusEtapa(card.status)} card-area-primaria ${card.classe}" data-berco-inspect="Berço 101" title="${escaparHtml(card.tooltip)}">
       <span class="card-area-primaria__titulo">${escaparHtml(card.titulo)}</span>
       <strong class="card-area-primaria__valor">${escaparHtml(card.valor)}</strong>
       <small class="esteira__tempo">${escaparHtml(card.referencia)}</small>
@@ -3253,24 +3296,34 @@ function renderizarCardsAreaPrimariaExpedicao(gradeEsteira, todosVeiculos) {
   const carregamento = veiculosExpedicao.filter(v => pertenceAoGrupoExpedicao(v.stage, "coletor_balanca"));
   const balancaSaida = veiculosExpedicao.filter(v => pertenceAoGrupoExpedicao(v.stage, "balanca_pan"));
 
-  const totalQtd = veiculosExpedicao.length;
-  const triagemQtd = triagem.length;
-  const carregamentoQtd = carregamento.length;
-  const balancaSaidaQtd = balancaSaida.length;
-
-  const totalTempo = calcularMediaTempoVeiculos(veiculosExpedicao);
   const totalLim = 45;
-  const triagemTempo = calcularMediaTempoVeiculos(triagem);
   const triagemLim = 30;
-  const carregamentoTempo = calcularMediaTempoVeiculos(carregamento);
   const carregamentoLim = 35;
-  const balancaSaidaTempo = calcularMediaTempoVeiculos(balancaSaida);
   const balancaSaidaLim = 25;
 
-  const en = idiomaAtual === "en-US";
-  const lblMedio = en ? "Avg" : "Médio";
-  const lblLimite = "Lim";
+  let totalQtd = veiculosExpedicao.length;
+  let triagemQtd = triagem.length;
+  let carregamentoQtd = carregamento.length;
+  let balancaSaidaQtd = balancaSaida.length;
 
+  let totalTempo = calcularMediaTempoVeiculos(veiculosExpedicao);
+  let triagemTempo = calcularMediaTempoVeiculos(triagem);
+  let carregamentoTempo = calcularMediaTempoVeiculos(carregamento);
+  let balancaSaidaTempo = calcularMediaTempoVeiculos(balancaSaida);
+
+  if (veiculosExpedicao.length === 0) {
+    // TODO: mapear dados reais da API para este modal
+    totalQtd = 6;
+    totalTempo = 34.0;
+    triagemQtd = 2;
+    triagemTempo = 26.5;
+    carregamentoQtd = 3;
+    carregamentoTempo = 38.0;
+    balancaSaidaQtd = 1;
+    balancaSaidaTempo = 16.0;
+  }
+
+  const en = idiomaAtual === "en-US";
   const cards = [
     {
       grupo: "total",
@@ -3315,10 +3368,9 @@ function renderizarCardsAreaPrimariaExpedicao(gradeEsteira, todosVeiculos) {
   ];
 
   gradeEsteira.innerHTML = cards.map(card => `
-    <article class="esteira__etapa card-area-primaria ${card.classe}" data-group-filter="${card.grupo}" data-fluxo-filter="expedicao" data-limite-min="${card.limite}" title="${escaparHtml(card.tooltip)}">
+    <article class="esteira__etapa ${obterClasseStatusEtapa(card.status)} card-area-primaria ${card.classe}" data-group-filter="${card.grupo}" data-fluxo-filter="expedicao" data-limite-min="${card.limite}" title="${escaparHtml(card.tooltip)}">
       <span class="card-area-primaria__titulo">${escaparHtml(card.titulo)}</span>
       <strong class="card-area-primaria__valor">${card.valor}</strong>
-      <small class="esteira__tempo">${lblMedio}: ${escaparHtml(formatarNumero(card.tempo, 1))} min / ${lblLimite}: ${card.limite} min</small>
       <span class="esteira__status ${obterClasseStatusAreaPrimaria(card.status)}">${escaparHtml(obterRotuloStatusAreaPrimaria(card.status))}</span>
     </article>
   `).join("");
@@ -3328,8 +3380,11 @@ function renderizarCardsAreaPrimaria(listaEtapas, opcoes = {}) {
   const gradeEsteira = document.querySelector(".grade-esteira");
   if (!gradeEsteira) return;
 
+  configurarSeletorModalAreaPrimaria();
+
   const fluxoAtual = normalizarFluxoOperacional(fluxoOperacionalAtivo);
   atualizarCabecalhoAreaPrimaria(fluxoAtual);
+  atualizarBotoesModalAreaPrimaria(fluxoAtual);
 
   const todosVeiculos = typeof obterFonteVeiculosCompleta === "function" ? obterFonteVeiculosCompleta() : [];
 
@@ -3420,6 +3475,7 @@ function renderizarCardsAreaPrimariaConvencional(gradeEsteira, listaEtapas, todo
 
   const rotuloStatus = obterRotuloStatusAreaPrimaria;
   const statusClasse = obterClasseStatusAreaPrimaria;
+  const cardStatusClasse = obterClasseStatusEtapa;
 
   const tituloTotal = t("primary_area.total") || "Total na Área Primária";
   const descTotal = t("primary_area.total_title") || "Clique para filtrar todos os veículos na Área Primária";
@@ -3433,32 +3489,28 @@ function renderizarCardsAreaPrimariaConvencional(gradeEsteira, listaEtapas, todo
   const tituloBalancaPan = t("primary_area.between_scale_pan") || "Entre Balança e PAN";
   const descBalancaPan = t("primary_area.between_scale_pan_title") || "Clique para filtrar veículos de Balança (Tara/Bruto) e PAN";
 
-  gradeEsteira.innerHTML = `
-    <article class="esteira__etapa card-area-primaria card-area-primaria--total" data-group-filter="total" data-fluxo-filter="convencional" data-limite-min="${gTotalLim}" title="${escaparHtml(descTotal)}">
+ gradeEsteira.innerHTML = `
+    <article class="esteira__etapa ${cardStatusClasse(gTotalStatus)} card-area-primaria card-area-primaria--total" data-group-filter="total" data-fluxo-filter="convencional" data-limite-min="${gTotalLim}" title="${escaparHtml(descTotal)}">
       <span class="card-area-primaria__titulo">${escaparHtml(tituloTotal)}</span>
       <strong class="card-area-primaria__valor">${gTotalQtd}</strong>
-      <small class="esteira__tempo">${lblMedio}: ${escaparHtml(formatarNumero(gTotalTempo, 1))} min / ${lblLimite}: ${gTotalLim} min</small>
       <span class="esteira__status ${statusClasse(gTotalStatus)}">${escaparHtml(rotuloStatus(gTotalStatus))}</span>
     </article>
 
-    <article class="esteira__etapa card-area-primaria card-area-primaria--sem-coletor" data-group-filter="sem_coletor" data-fluxo-filter="convencional" data-limite-min="${gSemColetorLim}" title="${escaparHtml(descSemColetor)}">
+    <article class="esteira__etapa ${cardStatusClasse(gSemColetorStatus)} card-area-primaria card-area-primaria--sem-coletor" data-group-filter="sem_coletor" data-fluxo-filter="convencional" data-limite-min="${gSemColetorLim}" title="${escaparHtml(descSemColetor)}">
       <span class="card-area-primaria__titulo">${escaparHtml(tituloSemColetor)}</span>
       <strong class="card-area-primaria__valor">${gSemColetorQtd}</strong>
-      <small class="esteira__tempo">${lblMedio}: ${escaparHtml(formatarNumero(gSemColetorTempo, 1))} min / ${lblLimite}: ${gSemColetorLim} min</small>
       <span class="esteira__status ${statusClasse(gSemColetorStatus)}">${escaparHtml(rotuloStatus(gSemColetorStatus))}</span>
     </article>
 
-    <article class="esteira__etapa card-area-primaria card-area-primaria--coletor-balanca" data-group-filter="coletor_balanca" data-fluxo-filter="convencional" data-limite-min="${gColetorBalancaLim}" title="${escaparHtml(descColetorBalanca)}">
+    <article class="esteira__etapa ${cardStatusClasse(gColetorBalancaStatus)} card-area-primaria card-area-primaria--coletor-balanca" data-group-filter="coletor_balanca" data-fluxo-filter="convencional" data-limite-min="${gColetorBalancaLim}" title="${escaparHtml(descColetorBalanca)}">
       <span class="card-area-primaria__titulo">${escaparHtml(tituloColetorBalanca)}</span>
       <strong class="card-area-primaria__valor">${gColetorBalancaQtd}</strong>
-      <small class="esteira__tempo">${lblMedio}: ${escaparHtml(formatarNumero(gColetorBalancaTempo, 1))} min / ${lblLimite}: ${gColetorBalancaLim} min</small>
       <span class="esteira__status ${statusClasse(gColetorBalancaStatus)}">${escaparHtml(rotuloStatus(gColetorBalancaStatus))}</span>
     </article>
 
-    <article class="esteira__etapa card-area-primaria card-area-primaria--balanca-pan" data-group-filter="balanca_pan" data-fluxo-filter="convencional" data-limite-min="${gBalancaPanLim}" title="${escaparHtml(descBalancaPan)}">
+    <article class="esteira__etapa ${cardStatusClasse(gBalancaPanStatus)} card-area-primaria card-area-primaria--balanca-pan" data-group-filter="balanca_pan" data-fluxo-filter="convencional" data-limite-min="${gBalancaPanLim}" title="${escaparHtml(descBalancaPan)}">
       <span class="card-area-primaria__titulo">${escaparHtml(tituloBalancaPan)}</span>
       <strong class="card-area-primaria__valor">${gBalancaPanQtd}</strong>
-      <small class="esteira__tempo">${lblMedio}: ${escaparHtml(formatarNumero(gBalancaPanTempo, 1))} min / ${lblLimite}: ${gBalancaPanLim} min</small>
       <span class="esteira__status ${statusClasse(gBalancaPanStatus)}">${escaparHtml(rotuloStatus(gBalancaPanStatus))}</span>
     </article>
   `;

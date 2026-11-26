@@ -1251,8 +1251,48 @@ body.tema--escuro .modal-historico-edicao__obs,
 }
 
 /* =========================================================
-   MONITORAMENTO ÁREA PRIMÁRIA · MODAL CONVENCIONAL
+   MONITORAMENTO ÁREA PRIMÁRIA (3 MODAIS)
 ========================================================= */
+
+.area-primaria__cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.area-primaria__cabecalho .visao-geral__cabecalho-bloco {
+    min-width: 0;
+}
+
+.area-primaria__cabecalho .visao-geral__titulo {
+    margin: 18px 5px 4px;
+}
+
+.area-primaria__cabecalho .visao-geral__subtitulo {
+    margin: 0 5px;
+    font-size: 0.82rem;
+    color: var(--cor-texto-secundario);
+}
+
+.area-primaria__abas {
+    margin-top: 10px;
+}
+
+@media (max-width: 900px) {
+    .area-primaria__cabecalho {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .area-primaria__abas {
+        margin-top: 0;
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
 
 #page-overview .grade-esteira,
 .grade-esteira {
@@ -1281,7 +1321,7 @@ body.tema--escuro .modal-historico-edicao__obs,
     text-align: center;
     box-shadow: var(--sombra-padrao);
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.2s ease;
 }
 
 #page-overview .grade-esteira .esteira__etapa:hover {
@@ -1320,94 +1360,6 @@ body.tema--escuro .modal-historico-edicao__obs,
     line-height: 1;
 }
 
-/* STATUS SEMÂNTICOS: NORMAL */
-#page-overview .grade-esteira .esteira__etapa--normal,
-.esteira__etapa--normal {
-    background-color: #F0FDF4 !important;
-    border-color: #BBF7D0 !important;
-}
-
-#page-overview .grade-esteira .esteira__etapa--normal .esteira__status,
-.esteira__etapa--normal .esteira__status {
-    color: #15803D !important;
-    background-color: #DCFCE7;
-    border: 1px solid #BBF7D0;
-}
-
-/* STATUS SEMÂNTICOS: ATENCAO */
-#page-overview .grade-esteira .esteira__etapa--atencao,
-.esteira__etapa--atencao {
-    background-color: #FFFBEB !important;
-    border-color: #FDE68A !important;
-}
-
-#page-overview .grade-esteira .esteira__etapa--atencao .esteira__status,
-.esteira__etapa--atencao .esteira__status {
-    color: #B45309 !important;
-    background-color: #FEF3C7;
-    border: 1px solid #FDE68A;
-}
-
-/* STATUS SEMÂNTICOS: CRITICO */
-#page-overview .grade-esteira .esteira__etapa--critico,
-.esteira__etapa--critico {
-    background-color: #FEF2F2 !important;
-    border-color: #FECACA !important;
-}
-
-#page-overview .grade-esteira .esteira__etapa--critico .esteira__status,
-.esteira__etapa--critico .esteira__status {
-    color: #B91C1C !important;
-    background-color: #FEE2E2;
-    border: 1px solid #FECACA;
-}
-
-/* SUPORTE MODO ESCURO */
-body.tema--escuro #page-overview .grade-esteira .esteira__etapa--normal,
-[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--normal,
-.dark #page-overview .grade-esteira .esteira__etapa--normal {
-    background-color: rgba(21, 128, 61, 0.16) !important;
-    border-color: rgba(34, 197, 94, 0.35) !important;
-}
-
-body.tema--escuro #page-overview .grade-esteira .esteira__etapa--normal .esteira__status,
-[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--normal .esteira__status,
-.dark #page-overview .grade-esteira .esteira__etapa--normal .esteira__status {
-    color: #4ADE80 !important;
-    background-color: rgba(34, 197, 94, 0.2);
-    border-color: rgba(34, 197, 94, 0.35);
-}
-
-body.tema--escuro #page-overview .grade-esteira .esteira__etapa--atencao,
-[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--atencao,
-.dark #page-overview .grade-esteira .esteira__etapa--atencao {
-    background-color: rgba(245, 158, 11, 0.16) !important;
-    border-color: rgba(245, 158, 11, 0.35) !important;
-}
-
-body.tema--escuro #page-overview .grade-esteira .esteira__etapa--atencao .esteira__status,
-[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--atencao .esteira__status,
-.dark #page-overview .grade-esteira .esteira__etapa--atencao .esteira__status {
-    color: #FBBF24 !important;
-    background-color: rgba(245, 158, 11, 0.2);
-    border-color: rgba(245, 158, 11, 0.35);
-}
-
-body.tema--escuro #page-overview .grade-esteira .esteira__etapa--critico,
-[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--critico,
-.dark #page-overview .grade-esteira .esteira__etapa--critico {
-    background-color: rgba(239, 68, 68, 0.16) !important;
-    border-color: rgba(239, 68, 68, 0.35) !important;
-}
-
-body.tema--escuro #page-overview .grade-esteira .esteira__etapa--critico .esteira__status,
-[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--critico .esteira__status,
-.dark #page-overview .grade-esteira .esteira__etapa--critico .esteira__status {
-    color: #F87171 !important;
-    background-color: rgba(239, 68, 68, 0.2);
-    border-color: rgba(239, 68, 68, 0.35);
-}
-
 /* =========================================================
    ESTILIZAÇÃO DOS 4 CARDS DA ÁREA PRIMÁRIA (MODO CLARO E ESCURO)
 ========================================================= */
@@ -1424,6 +1376,9 @@ body.tema--escuro #page-overview .grade-esteira .esteira__etapa--critico .esteir
     min-height: 110px;
     padding: 16px 12px;
     border-radius: 10px;
+    background-color: var(--cor-superficie);
+    border: 1px solid var(--cor-borda);
+    border-top: 3px solid var(--cor-borda);
     text-align: center;
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
@@ -1481,160 +1436,134 @@ body.tema--escuro #page-overview .grade-esteira .esteira__etapa--critico .esteir
     line-height: 1.2;
 }
 
-/* Status Badges das Etapas */
+/* STATUS SEMÂNTICOS: NORMAL (Verde) */
+#page-overview .grade-esteira .esteira__etapa--normal,
+#page-overview .grade-esteira .card-area-primaria.esteira__etapa--normal,
+.esteira__etapa--normal {
+    background-color: #F0FDF4 !important;
+    border: 1px solid #A7F3D0 !important;
+    border-top: 3px solid #10b981 !important;
+}
+
+#page-overview .grade-esteira .esteira__etapa--normal .esteira__status,
+.esteira__etapa--normal .esteira__status,
 .esteira__status--normal {
-    color: #15803D !important;
-    background-color: #DCFCE7 !important;
-    border: 1px solid #BBF7D0 !important;
+    color: #047857 !important;
+    background-color: #d1fae5 !important;
+    border: 1px solid #a7f3d0 !important;
 }
 
-.esteira__status--atencao {
-    color: #B45309 !important;
-    background-color: #FEF3C7 !important;
+/* STATUS SEMÂNTICOS: ATENÇÃO (Amarelo/Âmbar) */
+#page-overview .grade-esteira .esteira__etapa--atencao,
+#page-overview .grade-esteira .card-area-primaria.esteira__etapa--atencao,
+.esteira__etapa--atencao {
+    background-color: #FFFBEB !important;
     border: 1px solid #FDE68A !important;
+    border-top: 3px solid #f59e0b !important;
 }
 
-.esteira__status--critico {
-    color: #B91C1C !important;
-    background-color: #FEE2E2 !important;
+#page-overview .grade-esteira .esteira__etapa--atencao .esteira__status,
+.esteira__etapa--atencao .esteira__status,
+.esteira__status--atencao {
+    color: #b45309 !important;
+    background-color: #fef3c7 !important;
+    border: 1px solid #fde68a !important;
+}
+
+/* STATUS SEMÂNTICOS: CRÍTICO (Vermelho) */
+#page-overview .grade-esteira .esteira__etapa--critico,
+#page-overview .grade-esteira .card-area-primaria.esteira__etapa--critico,
+.esteira__etapa--critico {
+    background-color: #FEF2F2 !important;
     border: 1px solid #FECACA !important;
+    border-top: 3px solid #ef4444 !important;
 }
 
-/* Card 1 — Total na Área Primária (Cinza/Ardósia) */
-#page-overview .grade-esteira .card-area-primaria--total,
-.card-area-primaria--total {
-    background-color: #F1F5F9 !important;
-    border: 1px solid #CBD5E1 !important;
-    border-top: 3px solid #64748B !important;
+#page-overview .grade-esteira .esteira__etapa--critico .esteira__status,
+.esteira__etapa--critico .esteira__status,
+.esteira__status--critico {
+    color: #b91c1c !important;
+    background-color: #fee2e2 !important;
+    border: 1px solid #fecaca !important;
 }
 
-body.tema--escuro #page-overview .grade-esteira .card-area-primaria--total,
-[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--total,
-.dark #page-overview .grade-esteira .card-area-primaria--total {
-    background-color: rgba(100, 116, 139, 0.16) !important;
-    border: 1px solid rgba(148, 163, 184, 0.35) !important;
-    border-top: 3px solid #94A3B8 !important;
-}
-
-body.tema--escuro #page-overview .grade-esteira .card-area-primaria--total .card-area-primaria__titulo,
-[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--total .card-area-primaria__titulo,
-.dark #page-overview .grade-esteira .card-area-primaria--total .card-area-primaria__titulo {
+/* SUPORTE MODO ESCURO (TEXTOS E CARDS SEMÂNTICOS) */
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria .card-area-primaria__titulo,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria .card-area-primaria__titulo,
+.dark #page-overview .grade-esteira .card-area-primaria .card-area-primaria__titulo {
     color: #CBD5E1 !important;
 }
 
-body.tema--escuro #page-overview .grade-esteira .card-area-primaria--total .card-area-primaria__valor,
-[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--total .card-area-primaria__valor,
-.dark #page-overview .grade-esteira .card-area-primaria--total .card-area-primaria__valor {
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria .card-area-primaria__valor,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria .card-area-primaria__valor,
+.dark #page-overview .grade-esteira .card-area-primaria .card-area-primaria__valor {
     color: #F8FAFC !important;
 }
 
-/* Card 2 — Sem passar no Coletor (Azul) */
-#page-overview .grade-esteira .card-area-primaria--sem-coletor,
-.card-area-primaria--sem-coletor {
-    background-color: #EFF6FF !important;
-    border: 1px solid #BFDBFE !important;
-    border-top: 3px solid #2563EB !important;
+body.tema--escuro #page-overview .grade-esteira .esteira__etapa--normal,
+[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--normal,
+.dark #page-overview .grade-esteira .esteira__etapa--normal,
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria.esteira__etapa--normal,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria.esteira__etapa--normal,
+.dark #page-overview .grade-esteira .card-area-primaria.esteira__etapa--normal {
+    background-color: rgba(16, 185, 129, 0.14) !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    border-top: 3px solid #10b981 !important;
 }
 
-body.tema--escuro #page-overview .grade-esteira .card-area-primaria--sem-coletor,
-[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--sem-coletor,
-.dark #page-overview .grade-esteira .card-area-primaria--sem-coletor {
-    background-color: rgba(37, 99, 235, 0.16) !important;
-    border: 1px solid rgba(59, 130, 246, 0.35) !important;
-    border-top: 3px solid #60A5FA !important;
-}
-
-body.tema--escuro #page-overview .grade-esteira .card-area-primaria--sem-coletor .card-area-primaria__titulo,
-[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--sem-coletor .card-area-primaria__titulo,
-.dark #page-overview .grade-esteira .card-area-primaria--sem-coletor .card-area-primaria__titulo {
-    color: #93C5FD !important;
-}
-
-body.tema--escuro #page-overview .grade-esteira .card-area-primaria--sem-coletor .card-area-primaria__valor,
-[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--sem-coletor .card-area-primaria__valor,
-.dark #page-overview .grade-esteira .card-area-primaria--sem-coletor .card-area-primaria__valor {
-    color: #F8FAFC !important;
-}
-
-/* Card 3 — Entre Coletor e Balança (Vermelho/Vinho suave) */
-#page-overview .grade-esteira .card-area-primaria--coletor-balanca,
-.card-area-primaria--coletor-balanca {
-    background-color: #FFF1F2 !important;
-    border: 1px solid #FECDD3 !important;
-    border-top: 3px solid #E11D48 !important;
-}
-
-body.tema--escuro #page-overview .grade-esteira .card-area-primaria--coletor-balanca,
-[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--coletor-balanca,
-.dark #page-overview .grade-esteira .card-area-primaria--coletor-balanca {
-    background-color: rgba(225, 29, 72, 0.16) !important;
-    border: 1px solid rgba(244, 63, 94, 0.35) !important;
-    border-top: 3px solid #FB7185 !important;
-}
-
-body.tema--escuro #page-overview .grade-esteira .card-area-primaria--coletor-balanca .card-area-primaria__titulo,
-[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--coletor-balanca .card-area-primaria__titulo,
-.dark #page-overview .grade-esteira .card-area-primaria--coletor-balanca .card-area-primaria__titulo {
-    color: #FDA4AF !important;
-}
-
-body.tema--escuro #page-overview .grade-esteira .card-area-primaria--coletor-balanca .card-area-primaria__valor,
-[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--coletor-balanca .card-area-primaria__valor,
-.dark #page-overview .grade-esteira .card-area-primaria--coletor-balanca .card-area-primaria__valor {
-    color: #F8FAFC !important;
-}
-
-/* Card 4 — Entre Balança e PAN (Verde) */
-#page-overview .grade-esteira .card-area-primaria--balanca-pan,
-.card-area-primaria--balanca-pan {
-    background-color: #F0FDF4 !important;
-    border: 1px solid #BBF7D0 !important;
-    border-top: 3px solid #16A34A !important;
-}
-
-body.tema--escuro #page-overview .grade-esteira .card-area-primaria--balanca-pan,
-[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--balanca-pan,
-.dark #page-overview .grade-esteira .card-area-primaria--balanca-pan {
-    background-color: rgba(22, 163, 74, 0.16) !important;
-    border: 1px solid rgba(34, 197, 94, 0.35) !important;
-    border-top: 3px solid #4ADE80 !important;
-}
-
-body.tema--escuro #page-overview .grade-esteira .card-area-primaria--balanca-pan .card-area-primaria__titulo,
-[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--balanca-pan .card-area-primaria__titulo,
-.dark #page-overview .grade-esteira .card-area-primaria--balanca-pan .card-area-primaria__titulo {
-    color: #86EFAC !important;
-}
-
-body.tema--escuro #page-overview .grade-esteira .card-area-primaria--balanca-pan .card-area-primaria__valor,
-[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria--balanca-pan .card-area-primaria__valor,
-.dark #page-overview .grade-esteira .card-area-primaria--balanca-pan .card-area-primaria__valor {
-    color: #F8FAFC !important;
-}
-
-/* Status Badges no Modo Escuro */
+body.tema--escuro #page-overview .grade-esteira .esteira__etapa--normal .esteira__status,
+[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--normal .esteira__status,
+.dark #page-overview .grade-esteira .esteira__etapa--normal .esteira__status,
 body.tema--escuro .esteira__status--normal,
 [data-theme="dark"] .esteira__status--normal,
 .dark .esteira__status--normal {
-    color: #4ADE80 !important;
-    background-color: rgba(34, 197, 94, 0.2) !important;
-    border-color: rgba(34, 197, 94, 0.35) !important;
+    color: #047857 !important;
+    background-color: #d1fae5 !important;
+    border-color: #a7f3d0 !important;
 }
 
+body.tema--escuro #page-overview .grade-esteira .esteira__etapa--atencao,
+[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--atencao,
+.dark #page-overview .grade-esteira .esteira__etapa--atencao,
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria.esteira__etapa--atencao,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria.esteira__etapa--atencao,
+.dark #page-overview .grade-esteira .card-area-primaria.esteira__etapa--atencao {
+    background-color: rgba(245, 158, 11, 0.14) !important;
+    border: 1px solid rgba(245, 158, 11, 0.35) !important;
+    border-top: 3px solid #f59e0b !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .esteira__etapa--atencao .esteira__status,
+[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--atencao .esteira__status,
+.dark #page-overview .grade-esteira .esteira__etapa--atencao .esteira__status,
 body.tema--escuro .esteira__status--atencao,
 [data-theme="dark"] .esteira__status--atencao,
 .dark .esteira__status--atencao {
-    color: #FBBF24 !important;
-    background-color: rgba(245, 158, 11, 0.2) !important;
-    border-color: rgba(245, 158, 11, 0.35) !important;
+    color: #b45309 !important;
+    background-color: #fef3c7 !important;
+    border-color: #fde68a !important;
 }
 
+body.tema--escuro #page-overview .grade-esteira .esteira__etapa--critico,
+[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--critico,
+.dark #page-overview .grade-esteira .esteira__etapa--critico,
+body.tema--escuro #page-overview .grade-esteira .card-area-primaria.esteira__etapa--critico,
+[data-theme="dark"] #page-overview .grade-esteira .card-area-primaria.esteira__etapa--critico,
+.dark #page-overview .grade-esteira .card-area-primaria.esteira__etapa--critico {
+    background-color: rgba(239, 68, 68, 0.14) !important;
+    border: 1px solid rgba(239, 68, 68, 0.35) !important;
+    border-top: 3px solid #ef4444 !important;
+}
+
+body.tema--escuro #page-overview .grade-esteira .esteira__etapa--critico .esteira__status,
+[data-theme="dark"] #page-overview .grade-esteira .esteira__etapa--critico .esteira__status,
+.dark #page-overview .grade-esteira .esteira__etapa--critico .esteira__status,
 body.tema--escuro .esteira__status--critico,
 [data-theme="dark"] .esteira__status--critico,
 .dark .esteira__status--critico {
-    color: #F87171 !important;
-    background-color: rgba(239, 68, 68, 0.2) !important;
-    border-color: rgba(239, 68, 68, 0.35) !important;
+    color: #b91c1c !important;
+    background-color: #fee2e2 !important;
+    border-color: #fecaca !important;
 }
 
 /* Tempo no Modo Escuro */

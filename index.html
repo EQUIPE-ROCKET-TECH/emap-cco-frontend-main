@@ -369,37 +369,52 @@
             </article>
           </div>
 
-        <!-- MONITORAMENTO ÁREA PRIMÁRIA · MODAL CONVENCIONAL -->
-          <div class="visao-geral__secao">
-            <div class="visao-geral__cabecalho-bloco"><h2 class="visao-geral__titulo" id="area-primaria-titulo" data-i18n="overview.conveyor_title">Monitoramento Área Primária · Modal Convencional</h2><p class="visao-geral__subtitulo" id="area-primaria-subtitulo" data-i18n="overview.conveyor_subtitle">Giro de veículos por etapa de fluxo operacional</p></div>
+       <!-- MONITORAMENTO ÁREA PRIMÁRIA -->
+          <div class="visao-geral__secao" id="bloco-area-primaria">
+            <div class="area-primaria__cabecalho">
+              <div class="visao-geral__cabecalho-bloco">
+                <h2 class="visao-geral__titulo" id="area-primaria-titulo" data-i18n="overview.conveyor_title">Monitoramento Área Primária · Modal Convencional</h2>
+                <p class="visao-geral__subtitulo" id="area-primaria-subtitulo" data-i18n="overview.conveyor_subtitle">Giro de veículos por etapa de fluxo operacional</p>
+              </div>
+
+              <div class="fluxos-operacionais__abas area-primaria__abas" role="tablist" aria-label="Modais da Área Primária">
+                <button type="button" class="fluxo-aba-btn fluxo-aba-btn--ativo" role="tab" id="area-tab-btn-convencional" aria-selected="true" data-area-modal="convencional">
+                  Modal Convencional
+                </button>
+                <button type="button" class="fluxo-aba-btn" role="tab" id="area-tab-btn-mecanizado" aria-selected="false" data-area-modal="mecanizado">
+                  Modal Mecanizado
+                </button>
+                <button type="button" class="fluxo-aba-btn" role="tab" id="area-tab-btn-expedicao" aria-selected="false" data-area-modal="expedicao">
+                  Expedição Rodoviária
+                </button>
+              </div>
+            </div>
 
             <div class="grade-esteira">
 
-              <article class="esteira__etapa card-area-primaria card-area-primaria--total" data-group-filter="total" title="Clique para filtrar todos os veículos na Área Primária">
+              <article class="esteira__etapa esteira__etapa--normal card-area-primaria card-area-primaria--total" data-group-filter="total" title="Clique para filtrar todos os veículos na Área Primária">
                 <span class="card-area-primaria__titulo">Total na Área Primária</span>
                 <strong class="card-area-primaria__valor">7</strong>
-                <small class="esteira__tempo">Médio: 24.5 min / Lim: 45 min</small>
+                
                 <span class="esteira__status esteira__status--normal">NORMAL</span>
               </article>
 
-              <article class="esteira__etapa card-area-primaria card-area-primaria--sem-coletor" data-group-filter="sem_coletor" title="Clique para filtrar veículos sem passar no coletor (Fila PRC + Pátio)">
+              <article class="esteira__etapa esteira__etapa--normal card-area-primaria card-area-primaria--sem-coletor" data-group-filter="sem_coletor" title="Clique para filtrar veículos sem passar no coletor (Fila PRC + Pátio)">
                 <span class="card-area-primaria__titulo">Sem passar no Coletor</span>
                 <strong class="card-area-primaria__valor">1</strong>
-                <small class="esteira__tempo">Médio: 18.0 min / Lim: 30 min</small>
+         
                 <span class="esteira__status esteira__status--normal">NORMAL</span>
               </article>
 
-              <article class="esteira__etapa card-area-primaria card-area-primaria--coletor-balanca" data-group-filter="coletor_balanca" title="Clique para filtrar veículos em operação (entre coletor e balança)">
+              <article class="esteira__etapa esteira__etapa--critico card-area-primaria card-area-primaria--coletor-balanca" data-group-filter="coletor_balanca" title="Clique para filtrar veículos em operação (entre coletor e balança)">
                 <span class="card-area-primaria__titulo">Entre Coletor e Balança</span>
                 <strong class="card-area-primaria__valor">2</strong>
-                <small class="esteira__tempo">Médio: 32.0 min / Lim: 30 min</small>
                 <span class="esteira__status esteira__status--critico">CRÍTICO</span>
               </article>
 
-              <article class="esteira__etapa card-area-primaria card-area-primaria--balanca-pan" data-group-filter="balanca_pan" title="Clique para filtrar veículos de Balança (Tara/Bruto) e PAN">
+              <article class="esteira__etapa esteira__etapa--atencao card-area-primaria card-area-primaria--balanca-pan" data-group-filter="balanca_pan" title="Clique para filtrar veículos de Balança (Tara/Bruto) e PAN">
                 <span class="card-area-primaria__titulo">Entre Balança e PAN</span>
                 <strong class="card-area-primaria__valor">4</strong>
-                <small class="esteira__tempo">Médio: 22.0 min / Lim: 25 min</small>
                 <span class="esteira__status esteira__status--atencao">ATENÇÃO</span>
               </article>
 

@@ -1,29 +1,22 @@
-/* =========================================
-   TELA DE LOGIN - COPI / CCO
-   Compartilha tema claro/escuro ("tema") e idioma ("cco_language") com index.html
+/* =========================================================
+   TELA DE LOGIN FLUTUANTE - COPI / CCO
+   Compartilha tema claro/escuro ("tema") e idioma ("cco_language") com index.html,
+   sincroniza o painel borrado ao fundo e executa transição Fade/Dissolve ao logar.
    ========================================================= */
 
 const STORAGE_KEY_TEMA = "tema";
 const STORAGE_KEY_IDIOMA = "cco_language";
 const STORAGE_KEY_SESSAO = "cco_sessao_operador";
+const STORAGE_KEY_FADE_ENTRADA = "cco_login_fade_transition";
 
+// Dicionário bilíngue (Português / Inglês) para todos os textos da tela de login
 const LOGIN_I18N = {
   "pt-BR": {
     "login.page_title": "COPI | Acesso ao Painel Operacional (CCO)",
-    "login.status_badge": "Monitoramento CCO · Contrato iPort COPI001",
     "login.lang_aria": "Selecionar idioma",
     "login.theme_aria": "Alternar tema claro e escuro",
     "login.theme_dark": "Tema escuro",
     "login.theme_light": "Tema claro",
-    "login.eyebrow": "CENTRO DE CONTROLE OPERACIONAL",
-    "login.system_title": "Acompanhamento da Movimentação Rodoviária",
-    "login.system_desc": "Painel integrado para monitoramento do giro de veículos, berços operacionais, SLA e alertas críticos no terminal.",
-    "login.units_title": "Unidades integradas (iPort)",
-    "login.metric_window_label": "Janela operacional",
-    "login.metric_window_val": "48 horas",
-    "login.metric_stages_label": "Esteira de giro",
-    "login.metric_stages_val": "6 etapas",
-    "login.monitoring": "Monitoramento operacional em tempo real",
     "login.form_title": "Acesso ao Painel CCO",
     "login.form_subtitle": "Informe sua unidade e credenciais operacionais para continuar.",
     "login.unit_label": "Unidade / Empresa",
@@ -41,8 +34,6 @@ const LOGIN_I18N = {
     "login.demo_title": "Acesso de demonstração:",
     "login.demo_text": "preencha com operador padrão do CCO.",
     "login.demo_btn": "Preencher CCO",
-    "login.footer_left": "COPI · Centro de Controle Operacional",
-    "login.footer_right": "Porto do Itaqui · Integração iPort (COPI001)",
     "login.modal_tag": "SUPORTE OPERACIONAL · CCO",
     "login.modal_title": "Recuperação de credenciais",
     "login.modal_desc": "Para redefinir sua senha de acesso ao painel CCO, entre em contato com a coordenação de turno ou com a equipe de TI da EMAP informando sua matrícula operacional.",
@@ -53,24 +44,14 @@ const LOGIN_I18N = {
     "login.toast_theme_dark": "Tema escuro aplicado.",
     "login.toast_theme_light": "Tema claro aplicado.",
     "login.toast_demo_filled": "Credenciais demonstrativas do CCO preenchidas.",
-    "login.toast_success": "Acesso autorizado. Redirecionando para o painel..."
+    "login.toast_success": "Acesso autorizado. Entrando no painel..."
   },
   "en-US": {
     "login.page_title": "COPI | Operational Dashboard Login (OCC)",
-    "login.status_badge": "OCC Monitoring · iPort Contract COPI001",
     "login.lang_aria": "Select language",
     "login.theme_aria": "Switch between light and dark theme",
     "login.theme_dark": "Dark theme",
     "login.theme_light": "Light theme",
-    "login.eyebrow": "OPERATIONAL CONTROL CENTER",
-    "login.system_title": "Road Movement Monitoring",
-    "login.system_desc": "Integrated dashboard for vehicle cycle tracking, operational berths, SLA monitoring, and critical terminal alerts.",
-    "login.units_title": "Integrated units (iPort)",
-    "login.metric_window_label": "Operational window",
-    "login.metric_window_val": "48 hours",
-    "login.metric_stages_label": "Turnaround flow",
-    "login.metric_stages_val": "6 stages",
-    "login.monitoring": "Real-time operational monitoring",
     "login.form_title": "OCC Dashboard Sign In",
     "login.form_subtitle": "Enter your unit and operational credentials to continue.",
     "login.unit_label": "Unit / Company",
@@ -88,8 +69,6 @@ const LOGIN_I18N = {
     "login.demo_title": "Demo access:",
     "login.demo_text": "fill with default OCC operator credentials.",
     "login.demo_btn": "Fill OCC",
-    "login.footer_left": "COPI · Operational Control Center",
-    "login.footer_right": "Port of Itaqui · iPort Integration (COPI001)",
     "login.modal_tag": "OPERATIONAL SUPPORT · OCC",
     "login.modal_title": "Credential recovery",
     "login.modal_desc": "To reset your OCC dashboard password, contact the shift coordinator or EMAP IT support with your operator registration ID.",
@@ -100,10 +79,11 @@ const LOGIN_I18N = {
     "login.toast_theme_dark": "Dark theme applied.",
     "login.toast_theme_light": "Light theme applied.",
     "login.toast_demo_filled": "Default OCC demo credentials filled.",
-    "login.toast_success": "Access granted. Redirecting to dashboard..."
+    "login.toast_success": "Access granted. Entering dashboard..."
   }
 };
 
+// Lê o idioma salvo no navegador (padrão pt-BR)
 function obterIdiomaAtual() {
   try {
     return localStorage.getItem(STORAGE_KEY_IDIOMA) === "en-US" ? "en-US" : "pt-BR";
@@ -114,6 +94,7 @@ function obterIdiomaAtual() {
 
 let idiomaLogin = obterIdiomaAtual();
 
+// Retorna o texto traduzido correspondente à chave informada
 function tLogin(key) {
   const dict = LOGIN_I18N[idiomaLogin] || LOGIN_I18N["pt-BR"];
   return dict[key] || LOGIN_I18N["pt-BR"][key] || key;
@@ -122,6 +103,7 @@ function tLogin(key) {
 const toastEl = document.getElementById("toast");
 let toastTimer = null;
 
+// Exibe notificações visuais no mesmo padrão do painel principal
 function notifyLogin(mensagem, tipo = "padrao", duracao = 2800) {
   if (!toastEl) return;
   toastEl.textContent = mensagem;
@@ -143,6 +125,18 @@ function notifyLogin(mensagem, tipo = "padrao", duracao = 2800) {
   }
 }
 
+// Sincroniza tema e idioma com o painel de controle carregado no iframe ao fundo
+function sincronizarPainelFundo(dados) {
+  const frameEl = document.getElementById("login-backdrop-frame");
+  if (!frameEl || !frameEl.contentWindow) return;
+  try {
+    frameEl.contentWindow.postMessage(dados, "*");
+  } catch (e) {
+    // Ignora falhas de comunicação com o iframe caso ainda esteja carregando
+  }
+}
+
+// Recupera o tema salvo ("light" ou "dark")
 function obterTemaAtual() {
   try {
     return localStorage.getItem(STORAGE_KEY_TEMA) === "dark" ? "dark" : "light";
@@ -151,6 +145,7 @@ function obterTemaAtual() {
   }
 }
 
+// Atualiza o ícone e o rótulo do botão de alternância de tema dentro do card
 function atualizarBotaoTemaUI(tema) {
   const isDark = tema === "dark";
   const iconEl = document.getElementById("login-theme-icon");
@@ -164,27 +159,33 @@ function atualizarBotaoTemaUI(tema) {
   }
 }
 
+// Aplica o tema claro/escuro na tela de login e propaga para o painel borrado ao fundo
 function aplicarTemaLogin(tema, notificar = false) {
-  const isDark = tema === "dark";
+  const temaNormalizado = tema === "dark" ? "dark" : "light";
+  const isDark = temaNormalizado === "dark";
+
   document.body.classList.toggle("tema--escuro", isDark);
   try {
-    localStorage.setItem(STORAGE_KEY_TEMA, isDark ? "dark" : "light");
+    localStorage.setItem(STORAGE_KEY_TEMA, temaNormalizado);
   } catch (e) {
-    // ignore storage errors
+    // Ignora erros de acesso ao armazenamento local
   }
-  atualizarBotaoTemaUI(isDark ? "dark" : "light");
+
+  atualizarBotaoTemaUI(temaNormalizado);
+  sincronizarPainelFundo({ tipo: "cco-sync-tema", tema: temaNormalizado });
 
   if (notificar) {
     notifyLogin(tLogin(isDark ? "login.toast_theme_dark" : "login.toast_theme_light"));
   }
 }
 
+// Aplica o idioma selecionado nos textos do card e propaga para o painel de fundo
 function aplicarIdiomaLogin(lang) {
   idiomaLogin = lang === "en-US" ? "en-US" : "pt-BR";
   try {
     localStorage.setItem(STORAGE_KEY_IDIOMA, idiomaLogin);
   } catch (e) {
-    // ignore storage errors
+    // Ignora erros de acesso ao armazenamento local
   }
 
   document.documentElement.lang = idiomaLogin;
@@ -211,8 +212,10 @@ function aplicarIdiomaLogin(lang) {
   }
 
   atualizarBotaoTemaUI(obterTemaAtual());
+  sincronizarPainelFundo({ tipo: "cco-sync-idioma", idioma: idiomaLogin });
 }
 
+// Gera as iniciais do operador para exibir no avatar do cabeçalho após o login
 function extrairIniciaisOperador(nome) {
   const limpo = String(nome || "")
     .split("@")[0]
@@ -227,6 +230,7 @@ function extrairIniciaisOperador(nome) {
   return (partes[0][0] + partes[1][0]).toUpperCase();
 }
 
+// Exibe mensagem de erro inline e destaca o campo inválido
 function exibirErroFormulario(mensagem, campoGrupoId) {
   const erroEl = document.getElementById("login-error");
   document.querySelectorAll(".login-campo--invalido").forEach(el => {
@@ -244,6 +248,7 @@ function exibirErroFormulario(mensagem, campoGrupoId) {
   }
 }
 
+// Limpa o estado de erro ao editar qualquer campo do formulário
 function limparErroFormulario() {
   const erroEl = document.getElementById("login-error");
   if (erroEl) {
@@ -255,10 +260,13 @@ function limparErroFormulario() {
   });
 }
 
+// Inicialização dos eventos da tela de login após o carregamento do DOM
 document.addEventListener("DOMContentLoaded", () => {
   aplicarTemaLogin(obterTemaAtual(), false);
   aplicarIdiomaLogin(obterIdiomaAtual());
 
+  const backdropFrameEl = document.getElementById("login-backdrop-frame");
+  const overlayEl = document.getElementById("login-overlay");
   const themeToggleBtn = document.getElementById("login-theme-toggle");
   const langSelectEl = document.getElementById("login-language-select");
   const formEl = document.getElementById("login-form");
@@ -273,6 +281,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const forgotModal = document.getElementById("forgot-password-modal");
   const forgotCloseBtn = document.getElementById("forgot-modal-close");
 
+  // Garante que o painel de fundo receba tema e idioma atuais assim que terminar de carregar
+  if (backdropFrameEl) {
+    backdropFrameEl.addEventListener("load", () => {
+      sincronizarPainelFundo({ tipo: "cco-sync-tema", tema: obterTemaAtual() });
+      sincronizarPainelFundo({ tipo: "cco-sync-idioma", idioma: idiomaLogin });
+    });
+  }
+
+  // Alterna entre tema claro e escuro dentro do card e no painel de fundo
   if (themeToggleBtn) {
     themeToggleBtn.addEventListener("click", () => {
       const proximoTema = obterTemaAtual() === "dark" ? "light" : "dark";
@@ -280,12 +297,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Atualiza o idioma da interface dentro do card e no painel de fundo
   if (langSelectEl) {
     langSelectEl.addEventListener("change", event => {
       aplicarIdiomaLogin(event.target.value);
     });
   }
 
+  // Alterna visibilidade da senha digitada
   if (togglePassBtn && passInput) {
     togglePassBtn.addEventListener("click", () => {
       const mostrando = passInput.type === "text";
@@ -306,6 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
     passInput.addEventListener("input", limparErroFormulario);
   }
 
+  // Preenche rapidamente credenciais demonstrativas do CCO
   if (fillDemoBtn && userInput && passInput) {
     fillDemoBtn.addEventListener("click", () => {
       limparErroFormulario();
@@ -317,6 +337,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Abre o modal de recuperação de credenciais
   if (forgotBtn && forgotModal) {
     forgotBtn.addEventListener("click", () => {
       if (typeof forgotModal.showModal === "function") {
@@ -327,6 +348,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Fecha o modal de recuperação pelo botão ou clique no backdrop
   if (forgotCloseBtn && forgotModal) {
     forgotCloseBtn.addEventListener("click", () => {
       if (typeof forgotModal.close === "function" && forgotModal.open) {
@@ -349,6 +371,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Valida o envio do formulário e executa o efeito Esmaecer / Dissolver (Fade / Dissolve)
   if (formEl) {
     formEl.addEventListener("submit", event => {
       event.preventDefault();
@@ -398,15 +421,22 @@ document.addEventListener("DOMContentLoaded", () => {
           sessionStorage.setItem(STORAGE_KEY_SESSAO, serializado);
           localStorage.removeItem(STORAGE_KEY_SESSAO);
         }
+        // Sinaliza ao index.html que deve executar a entrada suave em Fade / Dissolve
+        sessionStorage.setItem(STORAGE_KEY_FADE_ENTRADA, "1");
       } catch (e) {
-        // ignore storage errors
+        // Ignora erros de acesso ao armazenamento
       }
 
       notifyLogin(tLogin("login.toast_success"), "sucesso", 2000);
 
+      // Inicia a dissolução do logo, do card e do vidro borrado antes de abrir o painel principal
+      if (overlayEl) {
+        overlayEl.classList.add("login-overlay--dissolvendo");
+      }
+
       setTimeout(() => {
         window.location.href = "index.html";
-      }, 450);
+      }, 560);
     });
   }
 });

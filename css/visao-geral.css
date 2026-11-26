@@ -119,7 +119,14 @@
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
     box-sizing: border-box;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+}
+
+.berco:hover {
+    border-color: #93c5fd;
+    box-shadow: 0 6px 16px rgba(15, 54, 110, 0.08);
+    transform: translateY(-1px);
 }
 
 .berco--livre {
@@ -201,11 +208,49 @@
 }
 
 .berco__titulo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin: 0;
-    font-size: 1.04rem;
+    font-size: 1.02rem;
     font-weight: 800;
-    line-height: 1.2;
+    line-height: 22px;
     color: #0f366e;
+    min-width: 0;
+}
+
+.berco__titulo-texto {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.berco__icone-titulo {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.berco__icone-titulo svg {
+    display: block;
+    width: 22px;
+    height: 22px;
+}
+
+.berco__icone-titulo--navio {
+    color: #0f366e;
+}
+
+.berco__icone-titulo--ancora {
+    color: #94a3b8;
+}
+
+.berco__icone-titulo--caminhao {
+    color: #7e22ce;
 }
 
 .berco__carga {
@@ -2057,4 +2102,645 @@ body.tema--escuro .fluxo-badge--destaque,
     background: #1e293b;
     color: #60a5fa;
     border-color: transparent;
+}
+
+/* =========================================================
+   MODAL: DETALHES DA OPERAÇÃO DO NAVIO (ESTILO GRAFANA)
+========================================================= */
+
+dialog.modal-berco-detalhes,
+dialog.modal-berco-config {
+    position: fixed;
+    inset: 0;
+    margin: auto !important;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 0;
+    width: min(640px, 94vw);
+    max-height: 90vh;
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.22);
+    overflow: hidden;
+    box-sizing: border-box;
+    z-index: 1050;
+}
+
+dialog.modal-berco-config {
+    width: min(560px, 94vw);
+}
+
+dialog.modal-berco-detalhes:not([open]),
+dialog.modal-berco-config:not([open]) {
+    display: none;
+}
+
+dialog.modal-berco-detalhes::backdrop,
+dialog.modal-berco-config::backdrop {
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(3px);
+}
+
+.modal-berco-detalhes__caixa,
+.modal-berco-config__caixa {
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+}
+
+.modal-berco-detalhes__cabecalho,
+.modal-berco-config__cabecalho {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-berco-detalhes__titulos {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.modal-berco-detalhes__topo-badges {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.modal-berco-detalhes__cabecalho h3,
+.modal-berco-config__cabecalho h3 {
+    margin: 2px 0 0;
+    font-size: 1.18rem;
+    font-weight: 800;
+    color: #0f366e;
+    line-height: 1.25;
+}
+
+.modal-berco-detalhes__subtitulo {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.modal-berco-detalhes__corpo {
+    padding: 18px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+}
+
+.modal-berco-detalhes__secao-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.modal-berco-detalhes__secao-titulo {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #475569;
+}
+
+.modal-berco-detalhes__prazo-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.modal-berco-detalhes__prazo-badge--tardio,
+.modal-berco-detalhes__prazo-badge--alerta {
+    background: #fffbeb;
+    color: #b45309;
+    border-color: #fde68a;
+}
+
+body.tema--escuro .modal-berco-detalhes__prazo-badge--tardio,
+body.tema--escuro .modal-berco-detalhes__prazo-badge--alerta,
+[data-theme="dark"] .modal-berco-detalhes__prazo-badge--alerta,
+.dark .modal-berco-detalhes__prazo-badge--alerta {
+    background: rgba(245, 158, 11, 0.16);
+    color: #fcd34d;
+    border-color: rgba(245, 158, 11, 0.4);
+}
+
+.modal-berco-detalhes__grade-horarios {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.modal-berco-detalhes__bloco-hora {
+    padding: 11px 14px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.modal-berco-detalhes__bloco-hora span {
+    font-size: 0.73rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.modal-berco-detalhes__bloco-hora strong {
+    font-size: 0.96rem;
+    font-weight: 700;
+    color: #0f172a;
+    font-variant-numeric: tabular-nums;
+}
+
+.modal-berco-detalhes__grafico {
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.modal-berco-detalhes__prod-resumo {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #0f366e;
+    font-variant-numeric: tabular-nums;
+}
+
+.grafana-barras {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    align-items: end;
+    padding: 10px 8px 6px;
+}
+
+.grafana-barras__coluna {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+}
+
+.grafana-barras__valor {
+    font-size: 0.86rem;
+    font-weight: 800;
+    color: #0f172a;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+.grafana-barras__trilha {
+    width: 100%;
+    max-width: 82px;
+    height: 128px;
+    border-radius: 8px 8px 4px 4px;
+    background: rgba(148, 163, 184, 0.14);
+    border-bottom: 2px solid #cbd5e1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0 6px;
+    box-sizing: border-box;
+}
+
+.grafana-barras__barra {
+    width: 100%;
+    min-height: 4px;
+    border-radius: 6px 6px 0 0;
+    transition: height 0.3s ease;
+}
+
+.grafana-barras__barra--manifestado {
+    background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+}
+
+.grafana-barras__barra--movimentado {
+    background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+.grafana-barras__barra--saldo {
+    background: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 100%);
+}
+
+.grafana-barras__rotulo {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #475569;
+    text-align: center;
+}
+
+.grafana-barras__legenda {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.grafana-barras__legenda span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.grafana-barras__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.grafana-barras__dot--manifestado {
+    background: #16a34a;
+}
+
+.grafana-barras__dot--movimentado {
+    background: #f59e0b;
+}
+
+.grafana-barras__dot--saldo {
+    background: #0ea5e9;
+}
+
+.modal-berco-detalhes__livre {
+    padding: 16px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    text-align: center;
+}
+
+.modal-berco-detalhes__livre strong {
+    display: block;
+    font-size: 0.92rem;
+    color: #334155;
+    margin-bottom: 4px;
+}
+
+.modal-berco-detalhes__livre p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.modal-berco-detalhes__avisos {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.modal-berco-detalhes__avisos:empty {
+    display: none;
+}
+
+.modal-berco-detalhes__aviso {
+    padding: 10px 13px;
+    border-radius: 9px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.modal-berco-detalhes__aviso[hidden] {
+    display: none;
+}
+
+.modal-berco-detalhes__aviso--norma {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-left: 4px solid #f59e0b;
+    color: #92400e;
+}
+
+.modal-berco-detalhes__aviso--parada {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-left: 4px solid #dc2626;
+    color: #991b1b;
+}
+
+.modal-berco-detalhes__rodape {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 22px 18px;
+    border-top: 1px solid #e2e8f0;
+    background: #ffffff;
+}
+
+.modal-berco-detalhes__btn-mov {
+    background-color: #0f366e !important;
+    color: #ffffff !important;
+    border: 1px solid #0f366e !important;
+    font-weight: 700;
+}
+
+.modal-berco-detalhes__btn-mov:hover {
+    background-color: #0a254d !important;
+    border-color: #0a254d !important;
+}
+
+.modal-berco-detalhes__btn-mov[hidden] {
+    display: none;
+}
+
+/* =========================================================
+   MODAL: CONFIGURAR OPERAÇÃO DO BERÇO
+========================================================= */
+
+.modal-berco-config__form {
+    padding: 18px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+}
+
+.modal-berco-config__grade {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.modal-berco-config__campo {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.modal-berco-config__campo[hidden] {
+    display: none;
+}
+
+.modal-berco-config__campo--largo {
+    grid-column: 1 / -1;
+}
+
+.modal-berco-config__campo span {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+.modal-berco-config__campo input,
+.modal-berco-config__campo select {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 0.86rem;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.modal-berco-config__campo input:focus,
+.modal-berco-config__campo select:focus {
+    outline: 2px solid #2563eb;
+    outline-offset: 1px;
+    border-color: #2563eb;
+}
+
+.modal-berco-config__campo select:disabled,
+.modal-berco-config__campo input:disabled {
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: not-allowed;
+}
+
+.modal-berco-config__resumo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.modal-berco-config__meta-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+}
+
+.modal-berco-config__meta-box span {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #1e3a8a;
+}
+
+.modal-berco-config__meta-box strong {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #0f366e;
+}
+
+.modal-berco-config__ureia-hint {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.modal-berco-config__ureia-hint[hidden] {
+    display: none;
+}
+
+.modal-berco-config__rodape {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+}
+
+@media (max-width: 560px) {
+    .modal-berco-detalhes__grade-horarios,
+    .modal-berco-config__grade {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-berco-detalhes__rodape {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+}
+
+/* Tema Escuro dos Modais de Berço */
+body.tema--escuro dialog.modal-berco-detalhes,
+[data-theme="dark"] dialog.modal-berco-detalhes,
+.dark dialog.modal-berco-detalhes,
+body.tema--escuro dialog.modal-berco-config,
+[data-theme="dark"] dialog.modal-berco-config,
+.dark dialog.modal-berco-config {
+    background: #1a1d24;
+    border-color: var(--cor-borda);
+    color: #f8fafc;
+}
+
+body.tema--escuro .modal-berco-detalhes__cabecalho,
+[data-theme="dark"] .modal-berco-detalhes__cabecalho,
+.dark .modal-berco-detalhes__cabecalho,
+body.tema--escuro .modal-berco-config__cabecalho,
+[data-theme="dark"] .modal-berco-config__cabecalho,
+.dark .modal-berco-config__cabecalho,
+body.tema--escuro .modal-berco-detalhes__rodape,
+[data-theme="dark"] .modal-berco-detalhes__rodape,
+.dark .modal-berco-detalhes__rodape,
+body.tema--escuro .modal-berco-config__rodape,
+[data-theme="dark"] .modal-berco-config__rodape,
+.dark .modal-berco-config__rodape {
+    border-color: var(--cor-borda);
+    background: #1a1d24;
+}
+
+body.tema--escuro .modal-berco-detalhes__cabecalho h3,
+[data-theme="dark"] .modal-berco-detalhes__cabecalho h3,
+.dark .modal-berco-detalhes__cabecalho h3,
+body.tema--escuro .modal-berco-config__cabecalho h3,
+[data-theme="dark"] .modal-berco-config__cabecalho h3,
+.dark .modal-berco-config__cabecalho h3,
+body.tema--escuro .modal-berco-detalhes__bloco-hora strong,
+[data-theme="dark"] .modal-berco-detalhes__bloco-hora strong,
+.dark .modal-berco-detalhes__bloco-hora strong,
+body.tema--escuro .grafana-barras__valor,
+[data-theme="dark"] .grafana-barras__valor,
+.dark .grafana-barras__valor,
+body.tema--escuro .modal-berco-detalhes__prod-resumo,
+[data-theme="dark"] .modal-berco-detalhes__prod-resumo,
+.dark .modal-berco-detalhes__prod-resumo {
+    color: #f8fafc;
+}
+
+body.tema--escuro .modal-berco-detalhes__subtitulo,
+[data-theme="dark"] .modal-berco-detalhes__subtitulo,
+.dark .modal-berco-detalhes__subtitulo,
+body.tema--escuro .modal-berco-detalhes__secao-titulo,
+[data-theme="dark"] .modal-berco-detalhes__secao-titulo,
+.dark .modal-berco-detalhes__secao-titulo,
+body.tema--escuro .modal-berco-detalhes__bloco-hora span,
+[data-theme="dark"] .modal-berco-detalhes__bloco-hora span,
+.dark .modal-berco-detalhes__bloco-hora span,
+body.tema--escuro .grafana-barras__rotulo,
+[data-theme="dark"] .grafana-barras__rotulo,
+.dark .grafana-barras__rotulo,
+body.tema--escuro .grafana-barras__legenda,
+[data-theme="dark"] .grafana-barras__legenda,
+.dark .grafana-barras__legenda,
+body.tema--escuro .modal-berco-config__campo span,
+[data-theme="dark"] .modal-berco-config__campo span,
+.dark .modal-berco-config__campo span {
+    color: #cbd5e1;
+}
+
+body.tema--escuro .modal-berco-detalhes__bloco-hora,
+[data-theme="dark"] .modal-berco-detalhes__bloco-hora,
+.dark .modal-berco-detalhes__bloco-hora,
+body.tema--escuro .modal-berco-detalhes__grafico,
+[data-theme="dark"] .modal-berco-detalhes__grafico,
+.dark .modal-berco-detalhes__grafico,
+body.tema--escuro .modal-berco-detalhes__livre,
+[data-theme="dark"] .modal-berco-detalhes__livre,
+.dark .modal-berco-detalhes__livre {
+    background: rgba(15, 23, 42, 0.65);
+    border-color: rgba(148, 163, 184, 0.22);
+}
+
+body.tema--escuro .grafana-barras__legenda,
+[data-theme="dark"] .grafana-barras__legenda,
+.dark .grafana-barras__legenda {
+    border-top-color: rgba(148, 163, 184, 0.2);
+}
+
+body.tema--escuro .modal-berco-detalhes__aviso--norma,
+[data-theme="dark"] .modal-berco-detalhes__aviso--norma,
+.dark .modal-berco-detalhes__aviso--norma,
+body.tema--escuro .modal-berco-config__ureia-hint,
+[data-theme="dark"] .modal-berco-config__ureia-hint,
+.dark .modal-berco-config__ureia-hint {
+    background: rgba(245, 158, 11, 0.14);
+    border-color: rgba(245, 158, 11, 0.35);
+    color: #fcd34d;
+}
+
+body.tema--escuro .modal-berco-detalhes__aviso--parada,
+[data-theme="dark"] .modal-berco-detalhes__aviso--parada,
+.dark .modal-berco-detalhes__aviso--parada {
+    background: rgba(239, 68, 68, 0.16);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+}
+
+body.tema--escuro .modal-berco-config__campo input,
+[data-theme="dark"] .modal-berco-config__campo input,
+.dark .modal-berco-config__campo input,
+body.tema--escuro .modal-berco-config__campo select,
+[data-theme="dark"] .modal-berco-config__campo select,
+.dark .modal-berco-config__campo select {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: rgba(148, 163, 184, 0.32);
+    color: #f8fafc;
+}
+
+body.tema--escuro .modal-berco-config__meta-box,
+[data-theme="dark"] .modal-berco-config__meta-box,
+.dark .modal-berco-config__meta-box {
+    background: rgba(37, 99, 235, 0.16);
+    border-color: rgba(96, 165, 250, 0.35);
+}
+
+body.tema--escuro .modal-berco-config__meta-box span,
+[data-theme="dark"] .modal-berco-config__meta-box span,
+.dark .modal-berco-config__meta-box span,
+body.tema--escuro .modal-berco-config__meta-box strong,
+[data-theme="dark"] .modal-berco-config__meta-box strong,
+.dark .modal-berco-config__meta-box strong {
+    color: #93c5fd;
+}
+
+body.tema--escuro .modal-berco-detalhes__btn-mov,
+[data-theme="dark"] .modal-berco-detalhes__btn-mov,
+.dark .modal-berco-detalhes__btn-mov {
+    background-color: #1e40af !important;
+    border-color: #1e40af !important;
+}
+
+body.tema--escuro .modal-berco-detalhes__btn-mov:hover,
+[data-theme="dark"] .modal-berco-detalhes__btn-mov:hover,
+.dark .modal-berco-detalhes__btn-mov:hover {
+    background-color: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
 }

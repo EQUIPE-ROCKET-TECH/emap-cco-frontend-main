@@ -125,6 +125,19 @@ function notifyLogin(mensagem, tipo = "padrao", duracao = 2800) {
   }
 }
 
+// Sincroniza diretamente a classe tema--escuro no body do iframe de fundo
+function sincronizarClasseTemaIframe(isDark) {
+  const frameEl = document.getElementById("login-backdrop-frame");
+  if (!frameEl) return;
+  try {
+    if (frameEl.contentDocument && frameEl.contentDocument.body) {
+      frameEl.contentDocument.body.classList.toggle("tema--escuro", isDark);
+    }
+  } catch (e) {
+    // Ignora erros de acesso ao DOM do iframe caso ainda esteja carregando
+  }
+}
+
 // Sincroniza tema e idioma com o painel de controle carregado no iframe ao fundo
 function sincronizarPainelFundo(dados) {
   const frameEl = document.getElementById("login-backdrop-frame");
@@ -172,6 +185,7 @@ function aplicarTemaLogin(tema, notificar = false) {
   }
 
   atualizarBotaoTemaUI(temaNormalizado);
+  sincronizarClasseTemaIframe(isDark);
   sincronizarPainelFundo({ tipo: "cco-sync-tema", tema: temaNormalizado });
 
   if (notificar) {
@@ -284,7 +298,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Garante que o painel de fundo receba tema e idioma atuais assim que terminar de carregar
   if (backdropFrameEl) {
     backdropFrameEl.addEventListener("load", () => {
-      sincronizarPainelFundo({ tipo: "cco-sync-tema", tema: obterTemaAtual() });
+      const temaAtual = obterTemaAtual();
+      sincronizarClasseTemaIframe(temaAtual === "dark");
+      sincronizarPainelFundo({ tipo: "cco-sync-tema", tema: temaAtual });
       sincronizarPainelFundo({ tipo: "cco-sync-idioma", idioma: idiomaLogin });
     });
   }
